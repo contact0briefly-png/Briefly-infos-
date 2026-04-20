@@ -35,7 +35,7 @@ const Navbar = ({ B24_BLUE }) => {
     const menuLinks = [
         { name: "Accueil", href: "/" },
         { name: "Contact", href: "/contact" },
-        { name: "Confidentialité", href: "/privacy" },
+        { name: "Confidentialité", href: "/confidentialite" },
         { name: "Mentions Légales", href: "/mentionslegales" },
     ];
 
