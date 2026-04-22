@@ -3,7 +3,7 @@ import React, { useMemo, useEffect } from 'react';
 import AdBannerSquare from '../components/AdBannerSquare';
 import { getFirestore, doc, updateDoc, increment } from "firebase/firestore";
 import { initializeApp, getApps } from "firebase/app";
-import { Clock, Eye, Share2, Bookmark, ChevronRight, TrendingUp, Sparkles } from 'lucide-react';
+import { Clock, Eye, Share2, Bookmark, ChevronRight, TrendingUp, Sparkles, ChevronLeft } from 'lucide-react';
 
 // --- CONFIG FIREBASE ---
 const firebaseConfig = {
@@ -23,7 +23,6 @@ const Icon = ({ name }) => {
         whatsapp: <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.94 3.659 1.437 5.634 1.437h.005c6.558 0 11.894-5.335 11.897-11.893a11.821 11.821 0 00-3.48-8.413z"/>,
         facebook: <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>,
         telegram: <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.357.265-.546.265l.182-2.58 4.68-4.23c.203-.18-.047-.28-.312-.104l-5.786 3.64-2.502-.78c-.544-.17-.554-.544.114-.81l9.76-3.76c.452-.164.847.108.71.79z"/>,
-        // Logo Twitter / X corrigé (ratio 1:1 parfait)
         twitter: <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
     };
     return (
@@ -57,20 +56,27 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
         }
     }, [article]);
 
-    const { currentIdx, encodedMessage, encodedUrl, suggestions, readTime, sortedNews } = useMemo(() => {
+    const { currentIdx, encodedMessage, encodedUrl, suggestions, randomSuggestions, readTime, sortedNews, prevArticle, nextArticle } = useMemo(() => {
         if (!article || !news.length) return {};
         const sorted = [...news].sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
         const idx = sorted.findIndex(n => n.id === article.id);
         const articleUrl = `https://briefly-lilac.vercel.app/article/${article.id}`;
         const words = article.content?.replace(/<[^>]*>/g, '').split(/\s+/).length || 0;
         const time = Math.ceil(words / 200) || 1;
-        
+
+        // Logique Aléatoire pour suggestions
+        const others = sorted.filter(n => n.id !== article.id);
+        const shuffled = [...others].sort(() => 0.5 - Math.random());
+
         return { 
-            currentIdx: idx, sortedNews: sorted,
+            currentIdx: idx, 
+            sortedNews: sorted,
+            prevArticle: idx < sorted.length - 1 ? sorted[idx + 1] : null,
+            nextArticle: idx > 0 ? sorted[idx - 1] : null,
             encodedMessage: encodeURIComponent(` ${article.title}\n\n${articleUrl}`),
             encodedUrl: encodeURIComponent(articleUrl),
-            // On s'assure d'avoir assez d'articles pour les sidebars
-            suggestions: sorted.filter(n => n.id !== article.id),
+            suggestions: others,
+            randomSuggestions: shuffled.slice(0, 3),
             readTime: time
         };
     }, [article, news]);
@@ -91,7 +97,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
             <div className="h-16 md:h-20"></div>
 
             <main className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
-                
+
                 <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-8 overflow-x-auto no-scrollbar">
                     <a href="/" className="hover:text-slate-900 transition-colors">Accueil</a>
                     <ChevronRight size={12} />
@@ -99,9 +105,9 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                 </nav>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                    
+
                     <article className="lg:col-span-8 bg-white p-6 md:p-12 rounded-[2rem] shadow-sm border border-slate-100 h-fit">
-                        
+
                         <header className="mb-10">
                             <div className="flex items-center gap-4 mb-6">
                                 <span className="px-3 py-1 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest">
@@ -126,7 +132,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                                         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{displayDate}</span>
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-100">
                                     <span className="text-[10px] font-black text-slate-400 px-3 border-r border-slate-200">
                                         <Eye size={12} className="inline mr-1" /> {article.views || 0}
@@ -160,9 +166,42 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             dangerouslySetInnerHTML={{ __html: article.content }} 
                         />
 
+                        {/* --- NAVIGATION PRÉCÉDENT / SUIVANT --- */}
+                        <div className="grid grid-cols-2 gap-4 py-8 border-y border-slate-100 mb-12">
+                            {prevArticle ? (
+                                <a href={`/article/${prevArticle.id}`} className="group flex flex-col gap-2 p-4 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100">
+                                    <span className="flex items-center gap-1 text-[10px] font-black text-slate-400 uppercase tracking-widest"><ChevronLeft size={14}/> Précédent</span>
+                                    <span className="font-bold text-slate-900 leading-tight line-clamp-2 italic group-hover:text-indigo-600 transition-colors">{prevArticle.title}</span>
+                                </a>
+                            ) : <div />}
+                            {nextArticle ? (
+                                <a href={`/article/${nextArticle.id}`} className="group flex flex-col gap-2 p-4 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 text-right">
+                                    <span className="flex items-center justify-end gap-1 text-[10px] font-black text-slate-400 uppercase tracking-widest">Suivant <ChevronRight size={14}/></span>
+                                    <span className="font-bold text-slate-900 leading-tight line-clamp-2 italic group-hover:text-indigo-600 transition-colors">{nextArticle.title}</span>
+                                </a>
+                            ) : <div />}
+                        </div>
+
                         <div className="my-12">
                             <AdBannerSquare />
                         </div>
+
+                        {/* --- SECTION SUGGESTIONS ALÉATOIRES --- */}
+                        <section className="mb-12">
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                                <Sparkles size={16} style={{ color: B24_BLUE }} /> Ça pourrait vous plaire
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {randomSuggestions.map(s => (
+                                    <a key={s.id} href={`/article/${s.id}`} className="group block">
+                                        <div className="aspect-video rounded-2xl overflow-hidden mb-3 shadow-sm border border-slate-100">
+                                            <img src={s.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
+                                        </div>
+                                        <h4 className="font-bold text-slate-900 text-sm leading-tight line-clamp-2 group-hover:text-indigo-600 transition-colors">{s.title}</h4>
+                                    </a>
+                                ))}
+                            </div>
+                        </section>
 
                         <footer className="mt-16 pt-8 border-t border-slate-100">
                             <div className="flex flex-wrap gap-2 mb-8">
@@ -176,8 +215,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                     </article>
 
                     <aside className="lg:col-span-4 space-y-12">
-                        
-                        {/* PLUS LUS : AUGMENTÉ À 5 ARTICLES */}
+
                         <section>
                             <div className="flex items-center gap-2 mb-8 border-b-2 border-slate-900 pb-2">
                                 <TrendingUp size={20} style={{ color: B24_BLUE }} />
@@ -206,7 +244,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </div>
                         </div>
 
-                        {/* À DÉCOUVRIR : AUGMENTÉ À 5 ARTICLES */}
                         <section>
                             <div className="flex items-center gap-2 mb-8 border-b-2 border-slate-900 pb-2">
                                 <Sparkles size={20} style={{ color: B24_BLUE }} />
