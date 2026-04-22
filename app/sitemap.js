@@ -1,41 +1,53 @@
 import { db } from "../lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 
 export default async function sitemap() {
   const baseUrl = "https://briefly-lilac.vercel.app";
 
-  // 1. On récupère tous les articles depuis Firebase
-  const newsSnap = await getDocs(collection(db, 'artifacts/bbriefly-7e3b8/public/data/news'));
+  // 1. Récupération optimisée : on trie par date et on peut limiter si besoin (ex: 500 derniers)
+  const q = query(
+    collection(db, 'artifacts/bbriefly-7e3b8/public/data/news'), 
+    orderBy('timestamp', 'desc'),
+    limit(1000) 
+  );
   
+  const newsSnap = await getDocs(q);
+
   const articleEntries = newsSnap.docs.map(doc => {
     const data = doc.data();
-    
-    // On essaie de récupérer une vraie date de modification
-    // Si data.timestamp existe (Firebase Timestamp), on l'utilise, sinon Date du jour
-    const lastMod = data.timestamp ? new Date(data.timestamp.seconds * 1000) : new Date();
+    // Utilisation d'une méthode plus propre pour le timestamp Firebase
+    const lastMod = data.timestamp?.toDate() || new Date();
 
     return {
       url: `${baseUrl}/article/${doc.id}`,
       lastModified: lastMod,
-      // 'weekly' est bien mieux pour le SEO d'un site de news que 'monthly'
-      changeFrequency: 'weekly',
-      priority: 0.8,
+      // 'daily' est le standard pour l'actualité
+      changeFrequency: 'daily',
+      priority: 0.9, // Très haute priorité pour les articles
     };
   });
 
-  // 2. On ajoute les pages statiques
+  // 2. Détermination de la date de l'accueil (doit correspondre à la news la plus récente)
+  const latestNewsDate = articleEntries.length > 0 ? articleEntries[0].lastModified : new Date();
+
   const staticPages = [
     {
       url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'always', // L'accueil change tout le temps
+      lastModified: latestNewsDate, // L'accueil est considéré "modifié" quand une news sort
+      changeFrequency: 'always', 
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/contact`,
-      lastModified: new Date(),
+      url: `${baseUrl}/confidentialite`, // N'oublie pas tes nouvelles pages !
+      lastModified: new Date('2026-04-22'),
       changeFrequency: 'monthly',
-      priority: 0.3, // Le contact est moins prioritaire que les news
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/mentions-legales`,
+      lastModified: new Date('2026-04-22'),
+      changeFrequency: 'monthly',
+      priority: 0.5,
     },
   ];
 
