@@ -44,27 +44,27 @@ const Navbar = ({ B24_BLUE }) => {
 
     return (
         <>
-            {/* ESPACE DE COMPENSATION : Empêche le carrousel d'être coupé */}
             <div className={`${scrolled ? "h-14" : "h-20"} w-full transition-all duration-300`}></div>
 
             <nav className={`fixed top-0 left-0 w-full z-[1000] transition-all duration-300 border-b ${
                 scrolled ? "h-14 bg-white/95 backdrop-blur-md shadow-md" : "h-20 bg-white"
             } border-slate-100`}>
-                
+
                 <div className="container mx-auto h-full px-4 max-w-[1200px] flex items-center justify-between">
-                    
-                    {/* MOBILE: Bouton Menu à gauche */}
+
+                    {/* MOBILE: Bouton Menu corrigé */}
                     <div className="md:hidden flex-1">
                         <button 
                             onClick={() => setIsMenuOpen(true)}
                             className="p-2 -ml-2 text-slate-900 cursor-pointer"
                             style={{ WebkitTapHighlightColor: 'transparent' }}
+                            aria-label="Ouvrir le menu de navigation"
                         >
                             <Menu size={28} />
                         </button>
                     </div>
 
-                    {/* LOGO: Centre (Mobile) / Gauche (PC) */}
+                    {/* LOGO */}
                     <div className="flex-none md:flex-initial flex items-center z-10">
                         <Link href="/" className="flex items-center gap-2 group no-underline">
                             <BrieflyLogo color={B24_BLUE} />
@@ -75,7 +75,7 @@ const Navbar = ({ B24_BLUE }) => {
                         </Link>
                     </div>
 
-                    {/* PC: Liens de navigation */}
+                    {/* PC: Liens */}
                     <div className="hidden md:flex flex-grow ml-10 gap-8">
                         {menuLinks.map((link) => (
                             <Link 
@@ -88,12 +88,13 @@ const Navbar = ({ B24_BLUE }) => {
                         ))}
                     </div>
 
-                    {/* RECHERCHE: À droite */}
+                    {/* RECHERCHE: Bouton corrigé */}
                     <div className="flex-1 md:flex-none flex justify-end">
                         <button 
                             onClick={() => setIsSearchOpen(!isSearchOpen)}
                             className="p-2 -mr-2 text-slate-900 cursor-pointer"
                             style={{ WebkitTapHighlightColor: 'transparent' }}
+                            aria-label={isSearchOpen ? "Fermer la recherche" : "Ouvrir la recherche"}
                         >
                             {isSearchOpen ? <X size={24} /> : <Search size={24} />}
                         </button>
@@ -103,7 +104,7 @@ const Navbar = ({ B24_BLUE }) => {
                     {isSearchOpen && (
                         <div className="absolute top-full left-0 w-full bg-white border-b border-slate-200 p-4 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-200">
                             <form onSubmit={handleSearch} className="max-w-[800px] mx-auto relative flex items-center">
-                                <Search className="absolute left-4 text-slate-400" size={18} />
+                                <Search className="absolute left-4 text-slate-400" size={18} aria-hidden="true" />
                                 <input 
                                     autoFocus
                                     type="text" 
@@ -111,6 +112,7 @@ const Navbar = ({ B24_BLUE }) => {
                                     onChange={(e) => setSearchValue(e.target.value)}
                                     placeholder="Rechercher sur Briefly..."
                                     className="w-full bg-slate-100 border-none py-4 pl-12 pr-20 rounded-none font-bold text-sm outline-none text-slate-900"
+                                    aria-label="Champ de recherche"
                                 />
                                 <button type="submit" className="absolute right-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white cursor-pointer" style={{ backgroundColor: B24_BLUE }}>
                                     OK
@@ -123,18 +125,20 @@ const Navbar = ({ B24_BLUE }) => {
 
             {/* MENU MOBILE LATÉRAL */}
             <div className={`fixed inset-0 z-[2000] transition-all duration-500 ${isMenuOpen ? "visible" : "invisible"}`}>
-                {/* Fond sombre cliquable */}
                 <div 
                     className={`absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-500 ${isMenuOpen ? "opacity-100" : "opacity-0"}`}
                     onClick={() => setIsMenuOpen(false)}
                 ></div>
 
-                {/* Contenu du menu */}
                 <div className={`absolute left-0 top-0 h-full w-[85%] max-w-[320px] bg-white shadow-2xl transition-transform duration-500 transform ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
                     <div className="p-6 pt-10 flex flex-col h-full">
                         <div className="flex justify-between items-center mb-12">
                             <BrieflyLogo color={B24_BLUE} />
-                            <button onClick={() => setIsMenuOpen(false)} className="p-2 text-slate-400 cursor-pointer">
+                            <button 
+                                onClick={() => setIsMenuOpen(false)} 
+                                className="p-2 text-slate-400 cursor-pointer"
+                                aria-label="Fermer le menu"
+                            >
                                 <X size={28} />
                             </button>
                         </div>
@@ -151,7 +155,7 @@ const Navbar = ({ B24_BLUE }) => {
                                     <span className="text-3xl font-serif font-black italic tracking-tighter text-slate-900 group-hover:translate-x-2 transition-transform">
                                         {link.name}
                                     </span>
-                                    <ChevronRight className="text-slate-200" size={20} />
+                                    <ChevronRight className="text-slate-200" size={20} aria-hidden="true" />
                                 </Link>
                             ))}
                         </div>
