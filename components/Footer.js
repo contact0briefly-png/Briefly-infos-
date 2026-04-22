@@ -45,7 +45,7 @@ const Footer = ({ B24_BLUE }) => {
                     <a href="/" className={linkStyle}>Accueil</a>
                     <a href="/contact" className={linkStyle}>Contact</a>
                     <a href="/mentionslegales" className={linkStyle}>Mentions Légales</a>
-                    <a href="/privacy" className={linkStyle}>Confidentialité</a>
+                    <a href="/confidentialite" className={linkStyle}>Confidentialité</a>
                 </nav>
 
                 {/* RESEAUX SOCIAUX */}
