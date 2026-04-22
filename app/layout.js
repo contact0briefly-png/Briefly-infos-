@@ -3,10 +3,15 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { B24_BLUE } from "@/lib/firebase";
 import Script from "next/script";
-import { Analytics } from "@vercel/analytics/next"
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata = {
+  // Configuration pour corriger l'absence de liens canoniques
+  metadataBase: new URL('https://briefly-lilac.vercel.app'),
+  alternates: {
+    canonical: '/',
+  },
   title: "Briefly | L'info à l'essentiel",
   description: "Plateforme d'actualités rapides et concises au Togo et dans le monde.",
   manifest: "/manifest.json",
@@ -39,7 +44,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className="bg-white text-black min-h-screen flex flex-col antialiased">
         <Navbar B24_BLUE={B24_BLUE} />
-        
+
         <main className="flex-grow">
           {children}
         </main>
@@ -54,7 +59,7 @@ export default function RootLayout({ children }) {
             webpushr('setup',{'key':'BOAI8WZjrONBOT3bQhrF6i9FfsXUnw0UmucEgSqzae8y2kAjugYPjWXnlwXV4CJ2gz82aHTMNegMuJsziHe9WMo' });
           `}
         </Script>
-        
+
         <Analytics />
         <SpeedInsights/>
       </body>
