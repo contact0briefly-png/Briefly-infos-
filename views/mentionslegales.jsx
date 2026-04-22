@@ -1,51 +1,82 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Scale, Code2, Globe, ShieldAlert, Mail } from 'lucide-react';
 
 const MentionsLegales = ({ B24_BLUE }) => {
-    const sectionStyle = "mb-10";
-    const titleStyle = "text-black font-[1000] uppercase text-xs tracking-[0.3em] mb-4 flex items-center gap-2";
-    const textStyle = "text-gray-500 font-medium text-sm leading-relaxed ml-6";
-
     return (
-        <div className="min-h-screen bg-white pt-32 pb-20 px-6">
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="max-w-3xl mx-auto"
-            >
-                <header className="mb-20">
-                    <h1 className="text-6xl md:text-8xl font-[1000] italic uppercase tracking-tighter leading-none" style={{ color: B24_BLUE }}>
-                        Légal<span className="text-black">.</span>
+        <div className="bg-[#f6f6f8] min-h-screen font-sans antialiased text-slate-900 overflow-x-hidden">
+            <main className="max-w-4xl mx-auto px-6 py-16 lg:py-24">
+                
+                <header className="mb-16 text-center md:text-left">
+                    <span className="inline-block rounded-full bg-blue-100 px-4 py-1 text-[9px] font-black uppercase tracking-widest text-primary mb-5" style={{ color: B24_BLUE }}>
+                        Informations Légales
+                    </span>
+                    <h1 className="text-5xl md:text-8xl font-serif font-black italic tracking-tighter leading-none mb-6">
+                        Légal<span style={{ color: B24_BLUE }}>.</span>
                     </h1>
-                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-400 mt-4">Informations obligatoires</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400">Publication officielle</p>
                 </header>
 
-                <div className={sectionStyle}>
-                    <h2 className={titleStyle}><span className="w-8 h-[2px] bg-black"></span> 01. Édition du site</h2>
-                    <div className={textStyle}>
-                        <p>Le site <strong>Briefly</strong> est édité par : KJ Technologies</p>
-                        <p>Siège social : Lomé, Togo</p>
-                        <p>Directeur de la publication : Briefly</p>
-                        <p>Contact : contact0briefly@gmail.com</p>
-                    </div>
-                </div>
+                <div className="space-y-8">
+                    {/* Édition & Dev */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <section className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                            <Scale className="mb-6" size={28} style={{ color: B24_BLUE }} />
+                            <h2 className="text-sm font-black uppercase tracking-widest mb-4">01. Édition du site</h2>
+                            <div className="space-y-2 text-slate-600 font-medium">
+                                <p>Éditeur : <span className="text-slate-900 font-black">KJ Technologies</span></p>
+                                <p>Siège : Lomé, Togo</p>
+                                <p>Directeur : Briefly</p>
+                            </div>
+                        </section>
 
-                <div className={sectionStyle}>
-                    <h2 className={titleStyle}><span className="w-8 h-[2px] bg-black"></span> 02. Hébergement</h2>
-                    <div className={textStyle}>
-                        <p>Le site est hébergé par : Google Cloud France</p>
-                        <p>Adresse : 8 Rue de Londres, 75009 Paris, France </p>
+                        <section className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                            <Code2 className="mb-6" size={28} style={{ color: B24_BLUE }} />
+                            <h2 className="text-sm font-black uppercase tracking-widest mb-4">02. Développement</h2>
+                            <div className="space-y-2 text-slate-600 font-medium">
+                                <p>Conception & Code :</p>
+                                <p className="text-slate-900 font-black text-xl italic uppercase">Josué KPLOWODOKPO</p>
+                            </div>
+                        </section>
                     </div>
-                </div>
 
-                <div className={sectionStyle}>
-                    <h2 className={titleStyle}><span className="w-8 h-[2px] bg-black"></span> 03. Propriété</h2>
-                    <div className={textStyle}>
-                        <p>L'architecture, les textes et les créations graphiques de ce site sont la propriété exclusive de Briefly. Toute utilisation non autorisée sera poursuivie.</p>
+                    {/* Hébergement */}
+                    <section className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center gap-8">
+                        <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
+                            <Globe size={30} style={{ color: B24_BLUE }} />
+                        </div>
+                        <div>
+                            <h2 className="text-sm font-black uppercase tracking-widest mb-2">03. Hébergement</h2>
+                            <p className="text-slate-600 leading-relaxed">
+                                Le site est hébergé par <span className="font-bold">Google Cloud France</span>. <br/>
+                                Adresse : 8 Rue de Londres, 75009 Paris, France.
+                            </p>
+                        </div>
+                    </section>
+
+                    {/* Propriété Intellectuelle */}
+                    <section className="relative overflow-hidden bg-slate-900 p-10 md:p-16 rounded-[3rem] text-white">
+                        <ShieldAlert className="absolute top-[-20px] right-[-20px] size-48 opacity-5 rotate-12" />
+                        <h2 className="text-3xl font-serif italic font-black mb-6 relative z-10">Propriété Intellectuelle</h2>
+                        <p className="text-slate-400 leading-relaxed text-lg relative z-10 max-w-2xl">
+                            L'architecture, les textes et les créations graphiques de ce site sont la propriété exclusive de <span className="text-white font-bold text-xl uppercase italic">Briefly</span>. Toute utilisation ou reproduction non autorisée sera poursuivie conformément aux lois internationales sur le droit d'auteur.
+                        </p>
+                    </section>
+
+                    {/* Contact CTA */}
+                    <div className="pt-10 text-center">
+                        <a 
+                            href="mailto:contact0briefly@gmail.com"
+                            className="inline-flex items-center gap-4 px-10 py-5 rounded-full text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl transition-transform hover:scale-105 active:scale-95"
+                            style={{ backgroundColor: B24_BLUE }}
+                        >
+                            <Mail size={16} />
+                            Signaler un contenu
+                        </a>
                     </div>
                 </div>
-            </motion.div>
+            </main>
         </div>
     );
 };
