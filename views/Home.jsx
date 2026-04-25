@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 import AdBannerSquare from '@/components/AdBannerSquare'; 
-import { ArrowRight, TrendingUp, Clock } from 'lucide-react';
+import { ArrowRight, TrendingUp, Clock, FileText, Eye, ChevronRight } from 'lucide-react';
 
 const Home = ({ news = [], B24_BLUE }) => {
     const searchParams = useSearchParams();
@@ -12,12 +12,16 @@ const Home = ({ news = [], B24_BLUE }) => {
     const searchTerm = searchParams.get('search') || "";
     const activeCategory = searchParams.get('category') || "Tous";
 
-    const [visibleCount, setVisibleCount] = useState(10);
-    const [currentPage, setCurrentPage] = useState(1);
     const [activeIndex, setActiveIndex] = useState(0);
     const [direction, setDirection] = useState(0); 
-    const articlesPerPage = 10;
     const loaderRef = useRef(null);
+
+    // Calcul des statistiques globales
+    const stats = useMemo(() => {
+        const totalArticles = news.length;
+        const totalViews = news.reduce((acc, curr) => acc + (curr.views || 0), 0);
+        return { totalArticles, totalViews };
+    }, [news]);
 
     const dynamicCategories = useMemo(() => {
         const cats = news
@@ -25,22 +29,6 @@ const Home = ({ news = [], B24_BLUE }) => {
             .filter(cat => cat && cat.trim() !== ""); 
         return ["Tous", ...new Set(cats)]; 
     }, [news]);
-
-    useEffect(() => {
-        setVisibleCount(10);
-        setCurrentPage(1);
-    }, [searchTerm, activeCategory]);
-
-    useEffect(() => {
-        if (searchTerm) return;
-        const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting) {
-                setVisibleCount(prev => prev + 10);
-            }
-        }, { threshold: 0.1 });
-        if (loaderRef.current) observer.observe(loaderRef.current);
-        return () => observer.disconnect();
-    }, [searchTerm]);
 
     const handleHaptic = () => {
         if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -58,8 +46,18 @@ const Home = ({ news = [], B24_BLUE }) => {
         });
     }, [news, searchTerm, activeCategory]);
 
-    const heroNews = useMemo(() => filteredNews.slice(0, 5), [filteredNews]);
-    const trendingNews = useMemo(() => news.slice(0, 3), [news]);
+    // Logique de tri pour les sections spécifiques
+    const latestNews = useMemo(() => filteredNews.slice(0, 5), [filteredNews]);
+    
+    const categorySections = useMemo(() => {
+        const targetCats = ["Togo", "International", "Lifestyle", "Décryptage", "Sport"];
+        return targetCats.map(cat => ({
+            name: cat,
+            articles: news.filter(n => n.category?.toLowerCase() === cat.toLowerCase()).slice(0, 5)
+        })).filter(section => section.articles.length > 0);
+    }, [news]);
+
+    const heroNews = useMemo(() => latestNews, [latestNews]);
 
     const nextSlide = useCallback(() => {
         setDirection(1);
@@ -73,14 +71,6 @@ const Home = ({ news = [], B24_BLUE }) => {
         }
     }, [searchTerm, heroNews.length, nextSlide]);
 
-    const displayArticles = useMemo(() => {
-        if (searchTerm) {
-            const indexOfLast = currentPage * articlesPerPage;
-            return filteredNews.slice(indexOfLast - articlesPerPage, indexOfLast);
-        }
-        return filteredNews.slice(0, visibleCount);
-    }, [filteredNews, searchTerm, currentPage, visibleCount]);
-
     const handleCategoryClick = (cat) => {
         handleHaptic();
         const params = new URLSearchParams(searchParams);
@@ -90,67 +80,56 @@ const Home = ({ news = [], B24_BLUE }) => {
     };
 
     const formatDate = (dateString) => {
-        if (!dateString) return "";
+        if (!dateString) return "Récemment";
         const date = new Date(dateString);
-        return date.toLocaleDateString('fr-FR', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        });
+        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
     };
+
+    // Composant Réutilisable pour les cartes d'articles
+    const ArticleCard = ({ item }) => (
+        <article className="flex flex-col group bg-white border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all">
+            <a href={`/article/${item.id}`} onClick={handleHaptic}>
+                <div className="relative w-full aspect-[16/10] overflow-hidden bg-slate-100">
+                    <img alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src={item.imageUrl} loading="lazy" />
+                    <span className="absolute top-3 left-3 px-2 py-1 bg-black/60 text-white text-[8px] font-black uppercase tracking-widest">
+                        {item.category}
+                    </span>
+                </div>
+                <div className="p-5">
+                    <h3 className="font-serif font-black text-lg leading-tight mb-4 italic tracking-tight text-slate-950 line-clamp-2">
+                        {item.title}
+                    </h3>
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-50">
+                        <span className="text-[9px] font-black uppercase text-slate-400">{item.authorName || "Briefly"}</span>
+                        <span className="text-[9px] text-slate-300 font-bold flex items-center gap-1">
+                            <Clock size={10} /> {formatDate(item.date)}
+                        </span>
+                    </div>
+                </div>
+            </a>
+        </article>
+    );
 
     return (
         <div className="w-full bg-[#f6f6f8] min-h-screen font-sans text-slate-900 flex flex-col">
-            <h1 className="sr-only">Briefly : L'actualité en continu</h1>
-
-            {/* ZÉRO MARGE ICI : On colle à la navbar */}
             <div className="h-14 md:h-20 shrink-0"></div>
 
-            {/* --- SECTION HERO DYNAMIQUE (Format Intelligent) --- */}
+            {/* --- HERO CARROUSEL --- */}
             {!searchTerm && activeCategory === "Tous" && heroNews.length > 0 && (
                 <section className="w-full relative bg-black overflow-hidden shrink-0 z-10 border-b border-white/10">
-                    {/* On définit une hauteur max pour ne pas que les images verticales prennent tout l'écran */}
                     <div className="relative w-full h-[50vh] md:h-[70vh]">
                         <AnimatePresence initial={false} custom={direction}>
-                            <motion.div 
-                                key={activeIndex} 
-                                custom={direction} 
-                                initial={{ opacity: 0 }} 
-                                animate={{ opacity: 1 }} 
-                                exit={{ opacity: 0 }} 
-                                transition={{ duration: 0.8 }} 
-                                className="absolute inset-0 flex items-center justify-center"
-                            >
+                            <motion.div key={activeIndex} custom={direction} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }} className="absolute inset-0 flex items-center justify-center">
                                 <a href={`/article/${heroNews[activeIndex].id}`} onClick={handleHaptic} className="block w-full h-full relative group">
-                                    
-                                    {/* COUCHE 1 : Arrière-plan flou (pour boucher les trous sans couper l'image) */}
                                     <div className="absolute inset-0 overflow-hidden">
-                                        <img 
-                                            src={heroNews[activeIndex].imageUrl} 
-                                            className="w-full h-full object-cover scale-125 blur-3xl opacity-50 transition-transform duration-[3000ms]" 
-                                            alt=""
-                                        />
+                                        <img src={heroNews[activeIndex].imageUrl} className="w-full h-full object-cover scale-125 blur-3xl opacity-50" alt=""/>
                                     </div>
-
-                                    {/* COUCHE 2 : L'image RÉELLE (on utilise object-contain pour NE PAS LA COUPER) */}
-                                    <img 
-                                        src={heroNews[activeIndex].imageUrl} 
-                                        className="w-full h-full object-contain relative z-10 p-2 md:p-0" 
-                                        alt={heroNews[activeIndex].title} 
-                                    />
-
-                                    {/* COUCHE 3 : Overlay Dégradé pour le texte (plus intense en bas) */}
+                                    <img src={heroNews[activeIndex].imageUrl} className="w-full h-full object-contain relative z-10 p-2 md:p-0" alt={heroNews[activeIndex].title} />
                                     <div className="absolute inset-0 z-20 bg-gradient-to-t from-black via-black/30 to-transparent" />
-
-                                    {/* COUCHE 4 : Titre et Catégorie */}
                                     <div className="absolute bottom-0 left-0 p-6 md:p-16 w-full max-w-[1200px] mx-auto right-0 z-30">
                                         <div className="flex flex-col items-start gap-2">
-                                            <span className="px-2 py-0.5 bg-primary text-white text-[9px] font-black uppercase tracking-widest" style={{ backgroundColor: B24_BLUE }}>
-                                                À LA UNE
-                                            </span>
-                                            <h2 className="text-xl md:text-5xl font-serif font-black text-white italic tracking-tighter leading-[1.1] max-w-4xl drop-shadow-lg">
-                                                {heroNews[activeIndex].title}
-                                            </h2>
+                                            <span className="px-2 py-0.5 bg-primary text-white text-[9px] font-black uppercase tracking-widest" style={{ backgroundColor: B24_BLUE }}>À LA UNE</span>
+                                            <h2 className="text-xl md:text-5xl font-serif font-black text-white italic tracking-tighter leading-[1.1] max-w-4xl drop-shadow-lg">{heroNews[activeIndex].title}</h2>
                                         </div>
                                     </div>
                                 </a>
@@ -161,58 +140,86 @@ const Home = ({ news = [], B24_BLUE }) => {
             )}
 
             <main className="container mx-auto max-w-[1200px] px-4 py-6 flex-grow">
-                {/* Section Catégories */}
-                <div className="sticky top-14 z-30 bg-[#f6f6f8]/95 backdrop-blur-md -mx-4 px-4 py-4 mb-8 border-b border-slate-200 lg:relative lg:top-0 lg:bg-transparent lg:border-none lg:px-0">
-                    <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
-                        {dynamicCategories.map((cat) => (
-                            <button 
-                                key={cat} 
-                                onClick={() => handleCategoryClick(cat)}
-                                className={`px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest transition-all ${
-                                    activeCategory === cat ? "text-white shadow-lg" : "bg-white border border-slate-200 text-slate-500"
-                                }`}
-                                style={activeCategory === cat ? { backgroundColor: B24_BLUE } : {}}
-                            >
-                                {cat}
+                
+                {/* --- DERNIÈRES PUBLICATIONS --- */}
+                {!searchTerm && activeCategory === "Tous" && (
+                    <section className="mb-16">
+                        <div className="flex items-center justify-between mb-8 border-b-2 border-slate-900 pb-2">
+                            <h2 className="text-sm font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                                <TrendingUp size={18} style={{ color: B24_BLUE }} /> Derniers articles
+                            </h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {latestNews.map(item => <ArticleCard key={item.id} item={item} />)}
+                        </div>
+                    </section>
+                )}
+
+                {/* --- SECTIONS PAR CATÉGORIES --- */}
+                {!searchTerm && activeCategory === "Tous" && categorySections.map((section) => (
+                    <section key={section.name} className="mb-16">
+                        <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-2">
+                            <h2 className="text-sm font-black uppercase tracking-[0.2em]">{section.name}</h2>
+                            <button onClick={() => handleCategoryClick(section.name)} className="text-[10px] font-bold uppercase text-slate-400 hover:text-slate-900 flex items-center gap-1 transition-colors">
+                                Voir plus <ChevronRight size={12} />
                             </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Grille d'articles */}
-                <section className="mb-12">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-                        {displayArticles.map((item) => (
-                            <article key={item.id} className="flex flex-col group bg-white border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all">
-                                <a href={`/article/${item.id}`} onClick={handleHaptic}>
-                                    <div className="relative w-full aspect-[16/10] overflow-hidden bg-slate-100">
-                                        <img alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src={item.imageUrl} loading="lazy" />
-                                        <span className="absolute top-3 left-3 px-2 py-1 bg-black/60 text-white text-[8px] font-black uppercase tracking-widest">
-                                            {item.category}
-                                        </span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                            {section.articles.map(item => (
+                                <a key={item.id} href={`/article/${item.id}`} className="group block bg-white p-3 border border-slate-100 shadow-sm">
+                                    <div className="aspect-video overflow-hidden mb-3">
+                                        <img src={item.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt="" />
                                     </div>
-                                    <div className="p-5">
-                                        <h3 className="font-serif font-black text-lg leading-tight mb-4 italic tracking-tight text-slate-950 line-clamp-3">
-                                            {item.title}
-                                        </h3>
-                                        <div className="flex items-center justify-between pt-3 border-t border-slate-50">
-                                            <span className="text-[9px] font-black uppercase text-slate-400">{item.authorName || "Rédaction Briefly"}</span>
-                                            <span className="text-[9px] text-slate-300 font-bold flex items-center gap-1">
-                                                <Clock size={10} /> {formatDate(item.date)}
-                                            </span>
-                                        </div>
-                                    </div>
+                                    <h3 className="font-bold text-sm leading-tight line-clamp-2 group-hover:text-primary italic transition-colors">
+                                        {item.title}
+                                    </h3>
                                 </a>
-                            </article>
-                        ))}
-                    </div>
-                </section>
+                            ))}
+                        </div>
+                    </section>
+                ))}
 
-                {visibleCount < filteredNews.length && !searchTerm && (
-                    <div ref={loaderRef} className="py-10 flex justify-center">
-                        <div className="w-6 h-6 border-2 border-slate-200 border-t-primary animate-spin rounded-full" style={{ borderTopColor: B24_BLUE }}></div>
+                {/* --- VUE RECHERCHE / FILTRE UNIQUE --- */}
+                {(searchTerm || activeCategory !== "Tous") && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {filteredNews.map(item => <ArticleCard key={item.id} item={item} />)}
                     </div>
                 )}
+
+                {/* --- SECTION CHIFFRES --- */}
+                <section className="mt-20 mb-12 py-12 bg-slate-900 rounded-[2.5rem] text-white px-8 md:px-16 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-around gap-12">
+                        <div className="text-center">
+                            <div className="flex items-center justify-center w-14 h-14 bg-white/10 rounded-2xl mb-4 mx-auto">
+                                <FileText size={28} />
+                            </div>
+                            <p className="text-4xl font-serif font-black italic tracking-tighter mb-1">{stats.totalArticles}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Articles publiés</p>
+                        </div>
+                        
+                        <div className="w-px h-12 bg-white/10 hidden md:block" />
+
+                        <div className="text-center">
+                            <div className="flex items-center justify-center w-14 h-14 bg-white/10 rounded-2xl mb-4 mx-auto">
+                                <Eye size={28} />
+                            </div>
+                            <p className="text-4xl font-serif font-black italic tracking-tighter mb-1">
+                                {stats.totalViews > 1000 ? `${(stats.totalViews / 1000).toFixed(1)}k` : stats.totalViews}
+                            </p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Vues totales</p>
+                        </div>
+
+                        <div className="w-px h-12 bg-white/10 hidden md:block" />
+
+                        <div className="text-center">
+                            <h4 className="text-xl font-serif italic font-black mb-2">Briefly Digital Media</h4>
+                            <p className="text-[9px] text-slate-400 max-w-[200px] leading-relaxed uppercase font-bold tracking-widest">
+                                L'essentiel de l'information, décrypté pour vous.
+                            </p>
+                        </div>
+                    </div>
+                </section>
             </main>
         </div>
     );
