@@ -1,6 +1,5 @@
 "use client";
 import React, { useMemo, useEffect } from 'react';
-import Script from 'next/script'; // Importation cruciale pour Next.js
 import AdBannerSquare from '../components/AdBannerSquare';
 import { getFirestore, doc, updateDoc, increment } from "firebase/firestore";
 import { initializeApp, getApps } from "firebase/app";
@@ -18,20 +17,6 @@ const firebaseConfig = {
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
-
-const Icon = ({ name }) => {
-    const icons = {
-        whatsapp: <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.94 3.659 1.437 5.634 1.437h.005c6.558 0 11.894-5.335 11.897-11.893a11.821 11.821 0 00-3.48-8.413z"/>,
-        facebook: <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>,
-        telegram: <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.357.265-.546.265l.182-2.58 4.68-4.23c.203-.18-.047-.28-.312-.104l-5.786 3.64-2.502-.78c-.544-.17-.554-.544.114-.81l9.76-3.76c.452-.164.847.108.71.79z"/>,
-        twitter: <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-    };
-    return (
-        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-            {icons[name]}
-        </svg>
-    );
-};
 
 const ArticleView = ({ article, news = [], B24_BLUE }) => {
 
@@ -57,11 +42,10 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
         }
     }, [article]);
 
-    const { currentIdx, encodedMessage, encodedUrl, suggestions, randomSuggestions, readTime, sortedNews, prevArticle, nextArticle, sideSuggestions } = useMemo(() => {
+    const { currentIdx, readTime, prevArticle, nextArticle, randomSuggestions, sideSuggestions, suggestions } = useMemo(() => {
         if (!article || !news.length) return {};
         const sorted = [...news].sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
         const idx = sorted.findIndex(n => n.id === article.id);
-        const articleUrl = `https://briefly-lilac.vercel.app/article/${article.id}`;
         const words = article.content?.replace(/<[^>]*>/g, '').split(/\s+/).length || 0;
         const time = Math.ceil(words / 200) || 1;
 
@@ -70,11 +54,8 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
 
         return { 
             currentIdx: idx, 
-            sortedNews: sorted,
             prevArticle: idx < sorted.length - 1 ? sorted[idx + 1] : null,
             nextArticle: idx > 0 ? sorted[idx - 1] : null,
-            encodedMessage: encodeURIComponent(` ${article.title}\n\n${articleUrl}`),
-            encodedUrl: encodeURIComponent(articleUrl),
             suggestions: others,
             randomSuggestions: shuffled.slice(0, 3),
             sideSuggestions: shuffled.slice(3, 8), 
@@ -83,13 +64,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
     }, [article, news]);
 
     if (!article) return null;
-
-    const shareOptions = [
-        { name: 'whatsapp', color: 'text-[#25D366]', bg: 'hover:bg-[#25D366]/10', url: `https://api.whatsapp.com/send?text=${encodedMessage}` },
-        { name: 'facebook', color: 'text-[#1877F2]', bg: 'hover:bg-[#1877F2]/10', url: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}` },
-        { name: 'telegram', color: 'text-[#0088cc]', bg: 'hover:bg-[#0088cc]/10', url: `https://t.me/share/url?url=${encodedUrl}&text=${encodedMessage}` },
-        { name: 'twitter', color: 'text-[#000000]', bg: 'hover:bg-black/5', url: `https://twitter.com/intent/tweet?url=${encodedUrl}` },
-    ];
 
     const displayDate = useMemo(() => {
         const ts = article.timestamp?.seconds || article.date?.seconds;
@@ -104,7 +78,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
     }, [article]);
 
     return (
-        <div className="bg-[#f6f6f8] min-h-screen">
+        <div className="bg-white min-h-screen">
             <div className="h-16 md:h-20"></div>
 
             <main className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
@@ -117,7 +91,8 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
-                    <article className="lg:col-span-8 bg-white p-6 md:p-12 rounded-[2rem] shadow-sm border border-slate-100 h-fit">
+                    {/* L'article n'a plus de bg-white, plus de shadow, et plus de padding forcé */}
+                    <article className="lg:col-span-8 h-fit">
 
                         <header className="mb-10">
                             <div className="flex items-center gap-4 mb-6">
@@ -156,8 +131,8 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </div>
                         </header>
 
-                        <figure className="mb-12 -mx-6 md:-mx-12 relative">
-                            <img src={article.imageUrl} className="w-full h-auto object-cover md:rounded-xl shadow-2xl" alt={article.title} />
+                        <figure className="mb-12 relative">
+                            <img src={article.imageUrl} className="w-full h-auto object-cover rounded-xl shadow-lg" alt={article.title} />
                             <figcaption className="text-[10px] text-center mt-4 text-slate-400 font-bold uppercase tracking-widest italic">
                                 Source : Briefly Digital Media
                             </figcaption>
@@ -201,36 +176,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                                 ))}
                             </div>
                         </section>
-
-                        {/* --- ESPACE COMMENTAIRES DISQUS (NEXT.JS OPTIMIZED) --- */}
-                        <div className="mt-12 p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 shadow-inner min-h-[300px]">
-                            <h3 className="font-serif font-black text-2xl mb-8 italic text-slate-900 flex items-center gap-2">
-                                <TrendingUp size={24} style={{ color: B24_BLUE }} /> Discussion
-                            </h3>
-
-                            <div id="disqus_thread"></div>
-
-                            <Script
-                                id="disqus-script"
-                                strategy="afterInteractive"
-                                dangerouslySetInnerHTML={{
-                                    __html: `
-                                        var disqus_config = function () {
-                                            this.page.url = "https://briefly-lilac.vercel.app/article/${article.id}";
-                                            this.page.identifier = "${article.id}";
-                                            this.page.language = "fr";
-                                        };
-                                        (function() {
-                                            var d = document, s = d.createElement('script');
-                                            s.src = 'https://briefly-infos.disqus.com/embed.js';
-                                            s.setAttribute('data-timestamp', +new Date());
-                                            (d.head || d.body).appendChild(s);
-                                        })();
-                                    `
-                                }}
-                            />
-                            <noscript>Veuillez activer JavaScript pour voir les commentaires.</noscript>
-                        </div>
 
                         <footer className="mt-16 pt-8 border-t border-slate-100">
                             <div className="flex flex-wrap gap-2 mb-8">
