@@ -4,6 +4,7 @@ import AdBannerSquare from '../components/AdBannerSquare';
 import { getFirestore, doc, updateDoc, increment } from "firebase/firestore";
 import { initializeApp, getApps } from "firebase/app";
 import { Clock, Eye, Share2, Bookmark, ChevronRight, TrendingUp, Sparkles, ChevronLeft } from 'lucide-react';
+import { DiscussionEmbed } from 'disqus-react';
 
 // --- CONFIG FIREBASE ---
 const firebaseConfig = {
@@ -64,7 +65,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
         const words = article.content?.replace(/<[^>]*>/g, '').split(/\s+/).length || 0;
         const time = Math.ceil(words / 200) || 1;
 
-        // Logique Aléatoire pour suggestions
         const others = sorted.filter(n => n.id !== article.id);
         const shuffled = [...others].sort(() => 0.5 - Math.random());
 
@@ -90,7 +90,18 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
         { name: 'twitter', color: 'text-[#000000]', bg: 'hover:bg-black/5', url: `https://twitter.com/intent/tweet?url=${encodedUrl}` },
     ];
 
-    const displayDate = article.date || (article.timestamp?.seconds ? new Date(article.timestamp.seconds * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : "Récemment");
+    // Correction de l'affichage de la date
+    const displayDate = useMemo(() => {
+        const timestamp = article.timestamp?.seconds || article.date?.seconds;
+        if (timestamp) {
+            return new Date(timestamp * 1000).toLocaleDateString('fr-FR', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+        }
+        return article.date || "Récemment";
+    }, [article]);
 
     return (
         <div className="bg-[#f6f6f8] min-h-screen">
@@ -203,6 +214,20 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </div>
                         </section>
 
+                        {/* --- SECTION COMMENTAIRES DISQUS --- */}
+                        <div className="mt-12 p-6 bg-slate-50 rounded-3xl border border-slate-100 shadow-inner">
+                            <h3 className="font-serif font-black text-2xl mb-8 italic text-slate-900">Discussion</h3>
+                            <DiscussionEmbed
+                                shortname='briefly-infos'
+                                config={{
+                                    url: `https://briefly-lilac.vercel.app/article/${article.id}`,
+                                    identifier: article.id,
+                                    title: article.title,
+                                    language: 'fr'
+                                }}
+                            />
+                        </div>
+
                         <footer className="mt-16 pt-8 border-t border-slate-100">
                             <div className="flex flex-wrap gap-2 mb-8">
                                 {['#Afrique', '#Actualité', '#Briefly'].map(tag => (
@@ -215,7 +240,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                     </article>
 
                     <aside className="lg:col-span-4 space-y-12">
-
+                        {/* Sections Aside (Plus lus, Publicité, À découvrir) */}
                         <section>
                             <div className="flex items-center gap-2 mb-8 border-b-2 border-slate-900 pb-2">
                                 <TrendingUp size={20} style={{ color: B24_BLUE }} />
