@@ -4,7 +4,6 @@ import AdBannerSquare from '../components/AdBannerSquare';
 import { getFirestore, doc, updateDoc, increment } from "firebase/firestore";
 import { initializeApp, getApps } from "firebase/app";
 import { Clock, Eye, Share2, Bookmark, ChevronRight, TrendingUp, Sparkles, ChevronLeft } from 'lucide-react';
-import { DiscussionEmbed } from 'disqus-react';
 
 // --- CONFIG FIREBASE ---
 const firebaseConfig = {
@@ -57,7 +56,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
         }
     }, [article]);
 
-    const { currentIdx, encodedMessage, encodedUrl, suggestions, randomSuggestions, readTime, sortedNews, prevArticle, nextArticle } = useMemo(() => {
+    const { currentIdx, encodedMessage, encodedUrl, suggestions, randomSuggestions, readTime, sortedNews, prevArticle, nextArticle, sideSuggestions } = useMemo(() => {
         if (!article || !news.length) return {};
         const sorted = [...news].sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
         const idx = sorted.findIndex(n => n.id === article.id);
@@ -77,6 +76,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
             encodedUrl: encodeURIComponent(articleUrl),
             suggestions: others,
             randomSuggestions: shuffled.slice(0, 3),
+            sideSuggestions: shuffled.slice(3, 8), // Aléatoire pour "À Découvrir"
             readTime: time
         };
     }, [article, news]);
@@ -90,11 +90,10 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
         { name: 'twitter', color: 'text-[#000000]', bg: 'hover:bg-black/5', url: `https://twitter.com/intent/tweet?url=${encodedUrl}` },
     ];
 
-    // Correction de l'affichage de la date
     const displayDate = useMemo(() => {
-        const timestamp = article.timestamp?.seconds || article.date?.seconds;
-        if (timestamp) {
-            return new Date(timestamp * 1000).toLocaleDateString('fr-FR', { 
+        const ts = article.timestamp?.seconds || article.date?.seconds;
+        if (ts) {
+            return new Date(ts * 1000).toLocaleDateString('fr-FR', { 
                 day: 'numeric', 
                 month: 'long', 
                 year: 'numeric' 
@@ -163,14 +162,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </figcaption>
                         </figure>
 
-                        <div className="lg:hidden flex gap-2 mb-10 overflow-x-auto no-scrollbar">
-                            {shareOptions.map(s => (
-                                <button key={s.name} onClick={() => window.open(s.url)} className={`flex-1 min-w-[50px] h-12 flex items-center justify-center rounded-2xl bg-slate-50 border border-slate-100 transition-all active:scale-95 ${s.color}`}>
-                                    <Icon name={s.name} />
-                                </button>
-                            ))}
-                        </div>
-
                         <div 
                             className="article-body font-sans text-slate-800 leading-[1.8] text-[18px] md:text-[20px] max-w-none mb-16"
                             style={{ whiteSpace: "pre-line" }}
@@ -193,11 +184,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             ) : <div />}
                         </div>
 
-                        <div className="my-12">
-                            <AdBannerSquare />
-                        </div>
-
-                        {/* --- LA SECTION SUGGESTIONS ALÉATOIRES --- */}
+                        {/* --- SECTION SUGGESTIONS ALÉATOIRES --- */}
                         <section className="mb-12">
                             <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                                 <Sparkles size={16} style={{ color: B24_BLUE }} /> Ça pourrait vous plaire
@@ -214,18 +201,30 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </div>
                         </section>
 
-                        {/* --- SECTION COMMENTAIRES DISQUS --- */}
-                        <div className="mt-12 p-6 bg-slate-50 rounded-3xl border border-slate-100 shadow-inner">
-                            <h3 className="font-serif font-black text-2xl mb-8 italic text-slate-900">Discussion</h3>
-                            <DiscussionEmbed
-                                shortname='briefly-infos'
-                                config={{
-                                    url: `https://briefly-lilac.vercel.app/article/${article.id}`,
-                                    identifier: article.id,
-                                    title: article.title,
-                                    language: 'fr'
-                                }}
-                            />
+                        {/* --- ESPACE COMMENTAIRES DISQUS (CODE UNIVERSEL) --- */}
+                        <div className="mt-12 p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 shadow-inner">
+                            <h3 className="font-serif font-black text-2xl mb-8 italic text-slate-900 flex items-center gap-2">
+                                <TrendingUp size={24} style={{ color: B24_BLUE }} /> Discussion
+                            </h3>
+                            
+                            <div id="disqus_thread"></div>
+                            
+                            <script dangerouslySetInnerHTML={{
+                                __html: `
+                                    var disqus_config = function () {
+                                        this.page.url = "https://briefly-lilac.vercel.app/article/${article.id}";
+                                        this.page.identifier = "${article.id}";
+                                        this.page.language = "fr";
+                                    };
+                                    (function() {
+                                        var d = document, s = d.createElement('script');
+                                        s.src = 'https://briefly-infos.disqus.com/embed.js';
+                                        s.setAttribute('data-timestamp', +new Date());
+                                        (d.head || d.body).appendChild(s);
+                                    })();
+                                `
+                            }} />
+                            <noscript>Veuillez activer JavaScript pour voir les commentaires.</noscript>
                         </div>
 
                         <footer className="mt-16 pt-8 border-t border-slate-100">
@@ -240,7 +239,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                     </article>
 
                     <aside className="lg:col-span-4 space-y-12">
-                        {/* Sections Aside (Plus lus, Publicité, À découvrir) */}
                         <section>
                             <div className="flex items-center gap-2 mb-8 border-b-2 border-slate-900 pb-2">
                                 <TrendingUp size={20} style={{ color: B24_BLUE }} />
@@ -251,9 +249,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                                     <a key={s.id} href={`/article/${s.id}`} className="flex gap-4 group no-underline">
                                         <span className="text-3xl font-serif font-black text-slate-200 group-hover:text-slate-900 transition-colors italic">0{i + 1}</span>
                                         <div>
-                                            <h4 className="font-bold text-slate-900 leading-tight group-hover:text-primary transition-colors line-clamp-2">
-                                                {s.title}
-                                            </h4>
+                                            <h4 className="font-bold text-slate-900 leading-tight group-hover:text-primary transition-colors line-clamp-2">{s.title}</h4>
                                             <p className="text-[9px] font-black text-slate-400 uppercase mt-2 tracking-widest">{s.category || "ACTU"}</p>
                                         </div>
                                     </a>
@@ -261,21 +257,13 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </div>
                         </section>
 
-                        <div className="bg-slate-900 p-8 rounded-[2rem] text-center text-white relative overflow-hidden">
-                            <div className="relative z-10">
-                                <h4 className="text-xl font-serif italic font-black mb-4 tracking-tighter leading-tight">L'info ne s'arrête jamais</h4>
-                                <p className="text-xs text-slate-400 mb-6 font-bold uppercase tracking-widest">Abonnez-vous à Briefly pour ne rien rater</p>
-                                <button className="w-full py-4 bg-white text-slate-900 rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all">S'abonner</button>
-                            </div>
-                        </div>
-
                         <section>
                             <div className="flex items-center gap-2 mb-8 border-b-2 border-slate-900 pb-2">
                                 <Sparkles size={20} style={{ color: B24_BLUE }} />
                                 <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">À Découvrir</h3>
                             </div>
                             <div className="space-y-6">
-                                {suggestions.slice(5, 10).map((s) => (
+                                {sideSuggestions.map((s) => (
                                     <a key={s.id} href={`/article/${s.id}`} className="block group bg-white p-4 rounded-3xl border border-slate-100 hover:shadow-xl transition-all">
                                         <div className="aspect-video rounded-2xl overflow-hidden mb-4">
                                             <img src={s.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" alt="" />
@@ -286,7 +274,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </div>
                         </section>
                     </aside>
-
                 </div>
             </main>
         </div>
