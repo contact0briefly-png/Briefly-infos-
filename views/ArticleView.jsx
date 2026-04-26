@@ -66,7 +66,8 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
     if (!article) return null;
 
     const displayDate = useMemo(() => {
-        const ts = article.timestamp?.seconds || article.date?.seconds;
+        // Correction : On vérifie timestamp OU lastUpdate (utilisé par l'admin)
+        const ts = article.timestamp?.seconds || article.lastUpdate?.seconds || article.date?.seconds;
         if (ts) {
             return new Date(ts * 1000).toLocaleDateString('fr-FR', { 
                 day: 'numeric', 
@@ -91,7 +92,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
-                    {/* L'article n'a plus de bg-white, plus de shadow, et plus de padding forcé */}
                     <article className="lg:col-span-8 h-fit">
 
                         <header className="mb-10">
