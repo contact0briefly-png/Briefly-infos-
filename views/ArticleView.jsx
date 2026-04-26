@@ -197,7 +197,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             <AdBannerSquare />
                         </div>
 
-                        {/* --- SECTION SUGGESTIONS ALÉATOIRES --- */}
+                        {/* --- LA SECTION SUGGESTIONS ALÉATOIRES --- */}
                         <section className="mb-12">
                             <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                                 <Sparkles size={16} style={{ color: B24_BLUE }} /> Ça pourrait vous plaire
