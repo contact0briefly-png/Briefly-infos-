@@ -1,5 +1,6 @@
 "use client";
 import React, { useMemo, useEffect } from 'react';
+import Script from 'next/script'; // Importation cruciale pour Next.js
 import AdBannerSquare from '../components/AdBannerSquare';
 import { getFirestore, doc, updateDoc, increment } from "firebase/firestore";
 import { initializeApp, getApps } from "firebase/app";
@@ -76,7 +77,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
             encodedUrl: encodeURIComponent(articleUrl),
             suggestions: others,
             randomSuggestions: shuffled.slice(0, 3),
-            sideSuggestions: shuffled.slice(3, 8), // Aléatoire pour "À Découvrir"
+            sideSuggestions: shuffled.slice(3, 8), 
             readTime: time
         };
     }, [article, news]);
@@ -201,29 +202,33 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </div>
                         </section>
 
-                        {/* --- ESPACE COMMENTAIRES DISQUS (CODE UNIVERSEL) --- */}
-                        <div className="mt-12 p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 shadow-inner">
+                        {/* --- ESPACE COMMENTAIRES DISQUS (NEXT.JS OPTIMIZED) --- */}
+                        <div className="mt-12 p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 shadow-inner min-h-[300px]">
                             <h3 className="font-serif font-black text-2xl mb-8 italic text-slate-900 flex items-center gap-2">
                                 <TrendingUp size={24} style={{ color: B24_BLUE }} /> Discussion
                             </h3>
-                            
+
                             <div id="disqus_thread"></div>
-                            
-                            <script dangerouslySetInnerHTML={{
-                                __html: `
-                                    var disqus_config = function () {
-                                        this.page.url = "https://briefly-lilac.vercel.app/article/${article.id}";
-                                        this.page.identifier = "${article.id}";
-                                        this.page.language = "fr";
-                                    };
-                                    (function() {
-                                        var d = document, s = d.createElement('script');
-                                        s.src = 'https://briefly-infos.disqus.com/embed.js';
-                                        s.setAttribute('data-timestamp', +new Date());
-                                        (d.head || d.body).appendChild(s);
-                                    })();
-                                `
-                            }} />
+
+                            <Script
+                                id="disqus-script"
+                                strategy="afterInteractive"
+                                dangerouslySetInnerHTML={{
+                                    __html: `
+                                        var disqus_config = function () {
+                                            this.page.url = "https://briefly-lilac.vercel.app/article/${article.id}";
+                                            this.page.identifier = "${article.id}";
+                                            this.page.language = "fr";
+                                        };
+                                        (function() {
+                                            var d = document, s = d.createElement('script');
+                                            s.src = 'https://briefly-infos.disqus.com/embed.js';
+                                            s.setAttribute('data-timestamp', +new Date());
+                                            (d.head || d.body).appendChild(s);
+                                        })();
+                                    `
+                                }}
+                            />
                             <noscript>Veuillez activer JavaScript pour voir les commentaires.</noscript>
                         </div>
 
