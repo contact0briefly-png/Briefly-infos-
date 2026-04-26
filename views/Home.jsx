@@ -48,7 +48,7 @@ const Home = ({ news = [], B24_BLUE }) => {
 
     // Logique de tri pour les sections spécifiques
     const latestNews = useMemo(() => filteredNews.slice(0, 5), [filteredNews]);
-    
+
     const categorySections = useMemo(() => {
         const targetCats = ["Togo", "International", "Lifestyle", "Décryptage", "Sport"];
         return targetCats.map(cat => ({
@@ -79,10 +79,20 @@ const Home = ({ news = [], B24_BLUE }) => {
         router.push(`?${params.toString()}`);
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return "Récemment";
-        const date = new Date(dateString);
-        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    // --- CORRECTION DE LA LOGIQUE DE DATE ---
+    const formatDate = (item) => {
+        // On vérifie toutes les sources de timestamp Firebase possibles
+        const ts = item.timestamp?.seconds || item.lastUpdate?.seconds || item.date?.seconds;
+        
+        if (ts) {
+            const date = new Date(ts * 1000);
+            return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+        }
+        
+        // Si c'est déjà une string (ancien format)
+        if (typeof item.date === 'string' && item.date !== "") return item.date;
+        
+        return "Récemment";
     };
 
     // Composant Réutilisable pour les cartes d'articles
@@ -102,7 +112,7 @@ const Home = ({ news = [], B24_BLUE }) => {
                     <div className="flex items-center justify-between pt-3 border-t border-slate-50">
                         <span className="text-[9px] font-black uppercase text-slate-400">{item.authorName || "Briefly"}</span>
                         <span className="text-[9px] text-slate-300 font-bold flex items-center gap-1">
-                            <Clock size={10} /> {formatDate(item.date)}
+                            <Clock size={10} /> {formatDate(item)}
                         </span>
                     </div>
                 </div>
@@ -140,7 +150,7 @@ const Home = ({ news = [], B24_BLUE }) => {
             )}
 
             <main className="container mx-auto max-w-[1200px] px-4 py-6 flex-grow">
-                
+
                 {/* --- DERNIÈRES PUBLICATIONS --- */}
                 {!searchTerm && activeCategory === "Tous" && (
                     <section className="mb-16">
@@ -197,7 +207,7 @@ const Home = ({ news = [], B24_BLUE }) => {
                             <p className="text-4xl font-serif font-black italic tracking-tighter mb-1">{stats.totalArticles}</p>
                             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Articles publiés</p>
                         </div>
-                        
+
                         <div className="w-px h-12 bg-white/10 hidden md:block" />
 
                         <div className="text-center">
