@@ -32,18 +32,19 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
         }
     }, [article?.id]);
 
-    // --- CORRECTION POUR TWITTER / X ---
     useEffect(() => {
-        // On charge le script Twitter s'il n'existe pas déjà
-        if (!window.twttr) {
-            const script = document.createElement("script");
-            script.src = "https://platform.twitter.com/widgets.js";
-            script.async = true;
-            document.body.appendChild(script);
-        } else {
-            // Si le script existe déjà, on demande à Twitter de re-scanner la page
-            window.twttr.widgets.load();
+        // --- LOGIQUE DE CHARGEMENT TWITTER/X ---
+        if (typeof window !== 'undefined') {
+            if (!window.twttr) {
+                const script = document.createElement("script");
+                script.src = "https://platform.twitter.com/widgets.js";
+                script.async = true;
+                document.body.appendChild(script);
+            } else if (window.twttr.widgets) {
+                window.twttr.widgets.load();
+            }
         }
+        // ---------------------------------------
 
         window.scrollTo(0, 0);
         if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -94,6 +95,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
             <div className="h-16 md:h-20"></div>
 
             <main className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+
                 <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-8 overflow-x-auto no-scrollbar">
                     <a href="/" className="hover:text-slate-900 transition-colors">Accueil</a>
                     <ChevronRight size={12} />
@@ -101,7 +103,9 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                 </nav>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
                     <article className="lg:col-span-8 h-fit">
+
                         <header className="mb-10">
                             <div className="flex items-center gap-4 mb-6">
                                 <span className="px-3 py-1 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest">
@@ -146,7 +150,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </figcaption>
                         </figure>
 
-                        {/* Rendu du contenu avec le support des tweets */}
                         <div 
                             className="article-body font-sans text-slate-800 leading-[1.8] text-[18px] md:text-[20px] max-w-none mb-16"
                             style={{ whiteSpace: "pre-line" }}
@@ -197,9 +200,41 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                         </footer>
                     </article>
 
-                    {/* ASIDE RESTE INCHANGÉ */}
                     <aside className="lg:col-span-4 space-y-12">
-                        {/* ... contenu de l'aside ... */}
+                        <section>
+                            <div className="flex items-center gap-2 mb-8 border-b-2 border-slate-900 pb-2">
+                                <TrendingUp size={20} style={{ color: B24_BLUE }} />
+                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">Plus lus</h3>
+                            </div>
+                            <div className="space-y-8">
+                                {suggestions.slice(0, 5).map((s, i) => (
+                                    <a key={s.id} href={`/article/${s.id}`} className="flex gap-4 group no-underline">
+                                        <span className="text-3xl font-serif font-black text-slate-200 group-hover:text-slate-900 transition-colors italic">0{i + 1}</span>
+                                        <div>
+                                            <h4 className="font-bold text-slate-900 leading-tight group-hover:text-primary transition-colors line-clamp-2">{s.title}</h4>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase mt-2 tracking-widest">{s.category || "ACTU"}</p>
+                                        </div>
+                                    </a>
+                                ))}
+                            </div>
+                        </section>
+
+                        <section>
+                            <div className="flex items-center gap-2 mb-8 border-b-2 border-slate-900 pb-2">
+                                <Sparkles size={20} style={{ color: B24_BLUE }} />
+                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">À Découvrir</h3>
+                            </div>
+                            <div className="space-y-6">
+                                {sideSuggestions.map((s) => (
+                                    <a key={s.id} href={`/article/${s.id}`} className="block group bg-white p-4 rounded-3xl border border-slate-100 hover:shadow-xl transition-all">
+                                        <div className="aspect-video rounded-2xl overflow-hidden mb-4">
+                                            <img src={s.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" alt="" />
+                                        </div>
+                                        <h4 className="font-bold text-slate-900 leading-tight group-hover:text-primary italic transition-colors line-clamp-2">{s.title}</h4>
+                                    </a>
+                                ))}
+                            </div>
+                        </section>
                     </aside>
                 </div>
             </main>
