@@ -33,18 +33,20 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
     }, [article?.id]);
 
     useEffect(() => {
-        // --- LOGIQUE DE CHARGEMENT TWITTER/X ---
-        if (typeof window !== 'undefined') {
-            if (!window.twttr) {
+        // --- LOGIQUE DE CHARGEMENT TWITTER AVEC SÉCURITÉ ---
+        const loadTwitter = () => {
+            if (window.twttr && window.twttr.widgets) {
+                window.twttr.widgets.load();
+            } else {
                 const script = document.createElement("script");
                 script.src = "https://platform.twitter.com/widgets.js";
                 script.async = true;
                 document.body.appendChild(script);
-            } else if (window.twttr.widgets) {
-                window.twttr.widgets.load();
             }
-        }
-        // ---------------------------------------
+        };
+
+        // On attend 500ms que React affiche le contenu avant de lancer Twitter
+        const timer = setTimeout(loadTwitter, 500);
 
         window.scrollTo(0, 0);
         if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -53,6 +55,8 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
             tg.BackButton.show();
             tg.BackButton.onClick(() => window.location.href = '/');
         }
+
+        return () => clearTimeout(timer); // Nettoyage
     }, [article]);
 
     const { currentIdx, readTime, prevArticle, nextArticle, randomSuggestions, sideSuggestions, suggestions } = useMemo(() => {
