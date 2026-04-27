@@ -1,32 +1,23 @@
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import CookieBanner from "@/components/CookieBanner"; // Import de ta nouvelle bannière
+import CookieBanner from "@/components/CookieBanner";
 import { B24_BLUE } from "@/lib/firebase";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata = {
+  // ... tes métadonnées restent inchangées
   metadataBase: new URL('https://briefly-lilac.vercel.app'),
-  alternates: {
-    canonical: '/',
-  },
+  alternates: { canonical: '/' },
   title: "Briefly | L'info à l'essentiel",
   description: "Plateforme d'actualités rapides et concises au Togo et dans le monde.",
   manifest: "/manifest.json",
   themeColor: "#0077b5",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Briefly",
-  },
-  verification: {
-    google: "cnRndWtUxDTqXs3A21i56qGSx2DWF4jNwQVFAP0Ac_I",
-  },
-  other: {
-    "google-adsense-account": "ca-pub-7972578599056246",
-  },
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Briefly" },
+  verification: { google: "cnRndWtUxDTqXs3A21i56qGSx2DWF4jNwQVFAP0Ac_I" },
+  other: { "google-adsense-account": "ca-pub-7972578599056246" },
 };
 
 export default function RootLayout({ children }) {
@@ -35,7 +26,12 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="apple-touch-icon" href="https://bbriefly-7e3b8.web.app/apple-touch-icon.png" />
         
-        {/* Google AdSense avec vérification de consentement */}
+        {/* --- AJOUT INDISPENSABLE : SCRIPT TWITTER GLOBAL --- */}
+        <Script 
+          src="https://platform.twitter.com/widgets.js" 
+          strategy="lazyOnload" 
+        />
+
         <Script
           id="adsense-init"
           strategy="afterInteractive"
@@ -56,17 +52,10 @@ export default function RootLayout({ children }) {
       </head>
       <body className="bg-white text-black min-h-screen flex flex-col antialiased">
         <Navbar B24_BLUE={B24_BLUE} />
-
-        <main className="flex-grow">
-          {children}
-        </main>
-
+        <main className="flex-grow">{children}</main>
         <Footer B24_BLUE={B24_BLUE} />
-        
-        {/* La bannière de cookies */}
         <CookieBanner B24_BLUE={B24_BLUE} />
 
-        {/* Script Webpushr avec vérification de consentement */}
         <Script id="webpushr-setup" strategy="afterInteractive">
           {`
             if (localStorage.getItem('briefly-cookie-consent') === 'true') {
