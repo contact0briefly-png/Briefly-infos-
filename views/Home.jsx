@@ -3,7 +3,9 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 import AdBannerSquare from '@/components/AdBannerSquare'; 
-import { ArrowRight, TrendingUp, Clock, FileText, Eye, ChevronRight } from 'lucide-react';
+import { ArrowRight, TrendingUp, Clock, FileText, Eye, ChevronRight, Rss } from 'lucide-react';
+
+const RSS_URL = "https://rss.app/feeds/TENwT5ha8Msc6ON4.xml";
 
 const Home = ({ news = [], B24_BLUE }) => {
     const searchParams = useSearchParams();
@@ -16,7 +18,6 @@ const Home = ({ news = [], B24_BLUE }) => {
     const [direction, setDirection] = useState(0); 
     const loaderRef = useRef(null);
 
-    // Calcul des statistiques globales
     const stats = useMemo(() => {
         const totalArticles = news.length;
         const totalViews = news.reduce((acc, curr) => acc + (curr.views || 0), 0);
@@ -46,7 +47,6 @@ const Home = ({ news = [], B24_BLUE }) => {
         });
     }, [news, searchTerm, activeCategory]);
 
-    // Logique de tri pour les sections spécifiques
     const latestNews = useMemo(() => filteredNews.slice(0, 5), [filteredNews]);
 
     const categorySections = useMemo(() => {
@@ -79,23 +79,16 @@ const Home = ({ news = [], B24_BLUE }) => {
         router.push(`?${params.toString()}`);
     };
 
-    // --- CORRECTION DE LA LOGIQUE DE DATE ---
     const formatDate = (item) => {
-        // On vérifie toutes les sources de timestamp Firebase possibles
         const ts = item.timestamp?.seconds || item.lastUpdate?.seconds || item.date?.seconds;
-        
         if (ts) {
             const date = new Date(ts * 1000);
             return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
         }
-        
-        // Si c'est déjà une string (ancien format)
         if (typeof item.date === 'string' && item.date !== "") return item.date;
-        
         return "Récemment";
     };
 
-    // Composant Réutilisable pour les cartes d'articles
     const ArticleCard = ({ item }) => (
         <article className="flex flex-col group bg-white border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all">
             <a href={`/article/${item.id}`} onClick={handleHaptic}>
@@ -123,6 +116,22 @@ const Home = ({ news = [], B24_BLUE }) => {
     return (
         <div className="w-full bg-[#f6f6f8] min-h-screen font-sans text-slate-900 flex flex-col">
             <div className="h-14 md:h-20 shrink-0"></div>
+
+            {/* ===== BANDEAU RSS (sous la navbar) ===== */}
+            <div className="w-full bg-slate-900 border-b border-white/10">
+                <div className="container mx-auto max-w-[1200px] px-4 py-2 flex items-center justify-end">
+                    <a
+                        href={RSS_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-[#f97316] transition-colors duration-200 group"
+                        title="S'abonner au flux RSS"
+                    >
+                        <Rss size={13} className="text-[#f97316] group-hover:animate-pulse" />
+                        S'abonner via RSS
+                    </a>
+                </div>
+            </div>
 
             {/* --- HERO CARROUSEL --- */}
             {!searchTerm && activeCategory === "Tous" && heroNews.length > 0 && (
@@ -196,7 +205,7 @@ const Home = ({ news = [], B24_BLUE }) => {
                     </div>
                 )}
 
-                {/* --- SECTION CHIFFRES --- */}
+                {/* --- SECTION CHIFFRES + CTA RSS --- */}
                 <section className="mt-20 mb-12 py-12 bg-slate-900 rounded-[2.5rem] text-white px-8 md:px-16 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
                     <div className="relative z-10 flex flex-col md:flex-row items-center justify-around gap-12">
@@ -222,11 +231,25 @@ const Home = ({ news = [], B24_BLUE }) => {
 
                         <div className="w-px h-12 bg-white/10 hidden md:block" />
 
-                        <div className="text-center">
-                            <h4 className="text-xl font-serif italic font-black mb-2">Briefly Digital Media</h4>
-                            <p className="text-[9px] text-slate-400 max-w-[200px] leading-relaxed uppercase font-bold tracking-widest">
-                                L'essentiel de l'information, décrypté pour vous.
-                            </p>
+                        <div className="text-center flex flex-col items-center gap-4">
+                            <div>
+                                <h4 className="text-xl font-serif italic font-black mb-2">Briefly Digital Media</h4>
+                                <p className="text-[9px] text-slate-400 max-w-[200px] leading-relaxed uppercase font-bold tracking-widest">
+                                    L'essentiel de l'information, décrypté pour vous.
+                                </p>
+                            </div>
+
+                            {/* ===== BOUTON RSS ===== */}
+                            <a
+                                href={RSS_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#f97316] hover:bg-[#ea6c0a] transition-colors rounded-full text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-orange-900/30"
+                                title="S'abonner au flux RSS"
+                            >
+                                <Rss size={13} />
+                                Flux RSS
+                            </a>
                         </div>
                     </div>
                 </section>
