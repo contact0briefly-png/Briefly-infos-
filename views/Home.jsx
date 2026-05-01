@@ -3,9 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 import AdBannerSquare from '@/components/AdBannerSquare'; 
-import { ArrowRight, TrendingUp, Clock, FileText, Eye, ChevronRight, Rss } from 'lucide-react';
-
-const RSS_URL = "https://rss.app/feeds/TENwT5ha8Msc6ON4.xml";
+import { ArrowRight, TrendingUp, Clock, FileText, Eye, ChevronRight } from 'lucide-react';
 
 const Home = ({ news = [], B24_BLUE }) => {
     const searchParams = useSearchParams();
@@ -117,22 +115,6 @@ const Home = ({ news = [], B24_BLUE }) => {
         <div className="w-full bg-[#f6f6f8] min-h-screen font-sans text-slate-900 flex flex-col">
             <div className="h-14 md:h-20 shrink-0"></div>
 
-            {/* ===== BANDEAU RSS (sous la navbar) ===== */}
-            <div className="w-full bg-slate-900 border-b border-white/10">
-                <div className="container mx-auto max-w-[1200px] px-4 py-2 flex items-center justify-end">
-                    <a
-                        href={RSS_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-[#f97316] transition-colors duration-200 group"
-                        title="S'abonner au flux RSS"
-                    >
-                        <Rss size={13} className="text-[#f97316] group-hover:animate-pulse" />
-                        S'abonner via RSS
-                    </a>
-                </div>
-            </div>
-
             {/* --- HERO CARROUSEL --- */}
             {!searchTerm && activeCategory === "Tous" && heroNews.length > 0 && (
                 <section className="w-full relative bg-black overflow-hidden shrink-0 z-10 border-b border-white/10">
@@ -198,6 +180,33 @@ const Home = ({ news = [], B24_BLUE }) => {
                     </section>
                 ))}
 
+                {/* --- SECTION NEWSLETTER (BREVO) --- */}
+                {!searchTerm && activeCategory === "Tous" && (
+                    <section className="mb-16 py-10 bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-sm">
+                        <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-8">
+                            <div className="md:w-1/2 text-left">
+                                <h2 className="text-3xl font-serif font-black italic tracking-tighter text-slate-900 mb-4">
+                                    Newsletter Briefly
+                                </h2>
+                                <p className="text-slate-500 text-[10px] leading-relaxed mb-6 uppercase font-bold tracking-[0.1em]">
+                                    Rejoignez notre communauté pour recevoir l'essentiel de l'actualité togolaise et internationale directement dans votre boîte mail.
+                                </p>
+                            </div>
+                            <div className="md:w-1/2 w-full flex justify-center">
+                                <iframe 
+                                    width="540" 
+                                    height="305" 
+                                    src="https://b33f5b02.sibforms.com/serve/MUIFAGBxCfyEwfx-cB0M9i9gOYvlwv3b9XmULA8_jGaWHLuG5zbH6c2QvO928ogIkVBjF1c1mj7KCG06Zfye3McOWoe9G04JeD_TsTFM9EDSz7QYpppQ-u5X9E5udLQ7RLKl0QOuqiTCBG1jawLH4u1WYJNwxQ1OrCbFri0xOGjcxz6ye7PhaJEy9ibaiQ4LS_foT82lqz32UOJdBw==" 
+                                    frameBorder="0" 
+                                    scrolling="auto" 
+                                    allowFullScreen 
+                                    style={{ display: 'block', marginLeft: 'auto', marginRight: 'auto', maxWidth: '100%', borderRadius: '12px' }}
+                                ></iframe>
+                            </div>
+                        </div>
+                    </section>
+                )}
+
                 {/* --- VUE RECHERCHE / FILTRE UNIQUE --- */}
                 {(searchTerm || activeCategory !== "Tous") && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -205,7 +214,7 @@ const Home = ({ news = [], B24_BLUE }) => {
                     </div>
                 )}
 
-                {/* --- SECTION CHIFFRES + CTA RSS --- */}
+                {/* --- SECTION CHIFFRES --- */}
                 <section className="mt-20 mb-12 py-12 bg-slate-900 rounded-[2.5rem] text-white px-8 md:px-16 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
                     <div className="relative z-10 flex flex-col md:flex-row items-center justify-around gap-12">
@@ -231,25 +240,11 @@ const Home = ({ news = [], B24_BLUE }) => {
 
                         <div className="w-px h-12 bg-white/10 hidden md:block" />
 
-                        <div className="text-center flex flex-col items-center gap-4">
-                            <div>
-                                <h4 className="text-xl font-serif italic font-black mb-2">Briefly Digital Media</h4>
-                                <p className="text-[9px] text-slate-400 max-w-[200px] leading-relaxed uppercase font-bold tracking-widest">
-                                    L'essentiel de l'information, décrypté pour vous.
-                                </p>
-                            </div>
-
-                            {/* ===== BOUTON RSS ===== */}
-                            <a
-                                href={RSS_URL}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#f97316] hover:bg-[#ea6c0a] transition-colors rounded-full text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-orange-900/30"
-                                title="S'abonner au flux RSS"
-                            >
-                                <Rss size={13} />
-                                Flux RSS
-                            </a>
+                        <div className="text-center">
+                            <h4 className="text-xl font-serif italic font-black mb-2">Briefly Digital Media</h4>
+                            <p className="text-[9px] text-slate-400 max-w-[200px] mx-auto leading-relaxed uppercase font-bold tracking-widest">
+                                L'essentiel de l'information, décrypté pour vous depuis Lomé.
+                            </p>
                         </div>
                     </div>
                 </section>
