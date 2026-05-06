@@ -1,15 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 1. Force la transformation du code moderne en code compatible vieux navigateurs
   transpilePackages: ['firebase', 'undici', 'lucide-react'], 
-  
+
   images: {
     unoptimized: true, 
   },
-
-  // 2. Désactiver SWC Minify peut parfois aider sur les très vieux terminaux 
-  // car le compresseur moderne génère du code très compact que Safari 12 gère mal.
-  // swcMinify: false, // À tester si le changement ci-dessous ne suffit pas
 
   async headers() {
     return [
@@ -18,12 +13,14 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            // J'ai ajouté 'unsafe-inline' et assoupli légèrement pour laisser passer les polyfills
-            value: "default-src 'self' *; script-src 'self' 'unsafe-eval' 'unsafe-inline' *; style-src 'self' 'unsafe-inline' *; img-src 'self' data: blob: *; font-src 'self' data: *; connect-src 'self' *;",
+            // Ajout de frame-ancestors 'self' * pour autoriser l'affichage dans ton app
+            value: "default-src 'self' *; script-src 'self' 'unsafe-eval' 'unsafe-inline' *; style-src 'self' 'unsafe-inline' *; img-src 'self' data: blob: *; font-src 'self' data: *; connect-src 'self' *; frame-ancestors 'self' *;",
           },
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            // On change 'DENY' par 'SAMEORIGIN' ou 'ALLOWALL'
+            // 'ALLOWALL' est le plus sûr pour débloquer ton application d'administration
+            value: 'ALLOWALL',
           },
           {
             key: 'X-Content-Type-Options',
