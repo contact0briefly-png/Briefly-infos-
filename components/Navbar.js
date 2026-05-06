@@ -47,7 +47,7 @@ const Navbar = ({ B24_BLUE }) => {
         { name: "Mentions Légales", href: "/mentionslegales" },
     ];
 
-    const menuCategories = ["Togo", "Décryptage", "Education"];
+    const menuCategories = ["Togo", "Décryptage", "Éducation"];
 
     const socialLinks = [
         {
