@@ -169,24 +169,39 @@ const Contact = ({ B24_BLUE }) => {
                             </div>
                         </div>
 
-                        {/* CARTE / VISUEL (STABLE MOBILE) */}
-                        <div className="relative h-60 md:h-72 rounded-[2.5rem] overflow-hidden border border-white shadow-lg group">
-                            <img 
-                                src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5ce?q=80&w=2000" 
-                                className="absolute inset-0 w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 scale-105"
-                                alt="Briefly Office Location"
-                            />
-                            <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-transparent transition-colors"></div>
-                            <div className="absolute bottom-5 left-5 right-5 bg-white/90 backdrop-blur-md p-4 rounded-2xl flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: B24_BLUE }}>
-                                        <Navigation size={14} />
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Nous localiser</span>
-                                </div>
-                                <ExternalLink size={14} className="text-slate-400" />
-                            </div>
-                        </div>
+                        {/* CARTE / VISUEL INTERACTIF (SANGUÉRA) */}
+<div className="relative h-60 md:h-72 rounded-[2.5rem] overflow-hidden border border-white shadow-lg group">
+    {/* Remplacement de l'image par Google Maps */}
+    <iframe
+        title="Localisation Sanguéra"
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15860.852358826!2d1.1097593!3d6.228453!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x102390314c4fab2f%3A0x8670b358d3631bc1!2sSangu%C3%A9ra%2C%20Lom%C3%A9!5e0!3m2!1sfr!2stg!4v1715328000000!5m2!1sfr!2stg"
+        className="absolute inset-0 w-full h-full border-0 grayscale transition-all duration-700 group-hover:grayscale-0"
+        allowFullScreen=""
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+    ></iframe>
+
+    {/* Overlay interactif */}
+    <div className="absolute inset-0 bg-slate-900/10 pointer-events-none group-hover:bg-transparent transition-colors"></div>
+    
+    <a 
+        href="https://www.google.com/maps/search/?api=1&query=Sanguéra,Lomé,Togo" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="absolute bottom-5 left-5 right-5 bg-white/90 backdrop-blur-md p-4 rounded-2xl flex items-center justify-between hover:bg-white transition-all"
+    >
+        <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: '#0052FF' }}>
+                <Navigation size={14} />
+            </div>
+            <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-900">Nous localiser</span>
+                <span className="text-[9px] text-slate-500 font-medium">Sanguéra, Lomé - Togo</span>
+            </div>
+        </div>
+        <ExternalLink size={14} className="text-slate-400" />
+    </a>
+</div>
 
                         {/* RESEAUX SOCIAUX (LOGOS OFFICIELS) */}
                         <div>
