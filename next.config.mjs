@@ -1,9 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['firebase', 'undici', 'lucide-react'], 
+  // Ajout de 'framer-motion' pour forcer sa conversion en ES5 compatible Smart TV
+  transpilePackages: ['firebase', 'undici', 'lucide-react', 'framer-motion'], 
 
   images: {
     unoptimized: true, 
+  },
+
+  compiler: {
+    // Supprime les console.log en production pour optimiser la mémoire des TV
+    removeConsole: process.env.NODE_ENV === 'production',
   },
 
   async headers() {
@@ -13,13 +19,11 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            // Ajout de frame-ancestors 'self' * pour autoriser l'affichage dans ton app
+            // Maintien de ton autorisation large pour l'affichage de ton app d'admin
             value: "default-src 'self' *; script-src 'self' 'unsafe-eval' 'unsafe-inline' *; style-src 'self' 'unsafe-inline' *; img-src 'self' data: blob: *; font-src 'self' data: *; connect-src 'self' *; frame-ancestors 'self' *;",
           },
           {
             key: 'X-Frame-Options',
-            // On change 'DENY' par 'SAMEORIGIN' ou 'ALLOWALL'
-            // 'ALLOWALL' est le plus sûr pour débloquer ton application d'administration
             value: 'ALLOWALL',
           },
           {
