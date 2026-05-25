@@ -1,6 +1,5 @@
 "use client";
-import React, { useMemo, useEffect } from 'react';
-import AdBannerSquare from '../components/AdBannerSquare';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { getFirestore, doc, updateDoc, increment } from "firebase/firestore";
 import { initializeApp, getApps } from "firebase/app";
 import { Clock, Eye, Share2, Bookmark, ChevronRight, TrendingUp, Sparkles, ChevronLeft, Mail } from 'lucide-react';
@@ -19,6 +18,9 @@ const db = getFirestore(app);
 
 const BREVO_ACTION = "https://b33f5b02.sibforms.com/serve/MUIFAGBxCfyEwfx-cB0M9i9gOYvlwv3b9XmULA8_jGaWHLuG5zbH6c2QvO928ogIkVBjF1c1mj7KCG06Zfye3McOWoe9G04JeD_TsTFM9EDSz7QYpppQ-u5X9E5udLQ7RLKl0QOuqiTCBG1jawLH4u1WYJNwxQ1OrCbFri0xOGjcxz6ye7PhaJEy9ibaiQ4LS_foT82lqz32UOJdBw==";
 
+/* ══════════════════════════════════════
+   STYLES QUILL
+══════════════════════════════════════ */
 const QUILL_ARTICLE_STYLES = `
     .article-body h1 { font-size: 2em; font-weight: 900; margin: 1.2em 0 .5em; line-height: 1.2; color: #0f172a; }
     .article-body h2 { font-size: 1.5em; font-weight: 800; margin: 1.2em 0 .5em; line-height: 1.3; color: #0f172a; }
@@ -47,7 +49,7 @@ const QUILL_ARTICLE_STYLES = `
     .article-body pre {
         background: #1e1e2e; color: #cdd6f4;
         border-radius: 12px; padding: 1.2em 1.4em;
-        font-family: 'Fira Code', monospace; font-size: .85em;
+        font-family: monospace; font-size: .85em;
         overflow-x: auto; margin: 1.2em 0;
     }
     .article-body code {
@@ -62,13 +64,33 @@ const QUILL_ARTICLE_STYLES = `
         box-shadow: 0 4px 20px rgba(0,0,0,.1);
     }
 
+    /* ── Vidéos / iframes ── */
+    .article-body .video-wrapper {
+        position: relative;
+        width: 100%;
+        padding-bottom: 56.25%;
+        height: 0;
+        overflow: hidden;
+        border-radius: 12px;
+        margin: 1.5em 0;
+        box-shadow: 0 4px 20px rgba(0,0,0,.15);
+        background: #000;
+    }
+    .article-body .video-wrapper iframe {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100% !important;
+        height: 100% !important;
+        border: none;
+        border-radius: 12px;
+    }
     .article-body iframe,
     .article-body .ql-video {
         display: block;
         width: 100%;
         aspect-ratio: 16 / 9;
         height: auto;
-        min-height: 200px;
+        min-height: 220px;
         border-radius: 12px;
         margin: 1.5em auto;
         border: none;
@@ -90,6 +112,85 @@ const QUILL_ARTICLE_STYLES = `
     .article-body [style*="background-color"] { padding: 1px 3px; border-radius: 3px; }
 `;
 
+/* ══════════════════════════════════════
+   SANITIZE — nettoie le HTML Quill
+══════════════════════════════════════ */
+const sanitizeContent = (html) => {
+    if (!html) return '';
+    return html
+        // Supprimer paragraphes vides
+        .replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '')
+        .replace(/<p>\s*<\/p>/gi, '')
+        // Envelopper les iframes YouTube dans un wrapper responsive
+        .replace(
+            /(<iframe[^>]*src="https:\/\/(?:www\.)?youtube(?:-nocookie)?\.com\/embed\/[^"]*"[^>]*><\/iframe>)/gi,
+            '<div class="video-wrapper">$1</div>'
+        )
+        // Ajouter allow + allowfullscreen aux iframes YouTube
+        .replace(
+            /<iframe([^>]*?)src="(https:\/\/(?:www\.)?youtube(?:-nocookie)?\.com\/embed\/[^"]*)"([^>]*?)(?:\s*\/)?>/gi,
+            (match, before, src, after) => {
+                // Nettoyer les doublons d'attributs
+                let attrs = (before + after)
+                    .replace(/allowfullscreen[^"]*(?:"[^"]*")?/gi, '')
+                    .replace(/allow="[^"]*"/gi, '')
+                    .replace(/frameborder="[^"]*"/gi, '')
+                    .trim();
+                // Normaliser l'URL en youtube-nocookie
+                const cleanSrc = src.replace('www.youtube.com', 'www.youtube-nocookie.com');
+                return `<iframe ${attrs} src="${cleanSrc}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen>`;
+            }
+        );
+};
+
+/* ══════════════════════════════════════
+   ARTICLE CONTENT — monte les iframes après rendu
+══════════════════════════════════════ */
+const ArticleContent = ({ html }) => {
+    const ref = useRef(null);
+
+    useEffect(() => {
+        if (!ref.current) return;
+
+        // Trouver tous les iframes après le rendu DOM
+        const iframes = ref.current.querySelectorAll('iframe');
+        iframes.forEach(iframe => {
+            const src = iframe.getAttribute('src') || '';
+
+            // Envelopper dans video-wrapper si pas déjà fait
+            if (!iframe.parentElement?.classList.contains('video-wrapper')) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'video-wrapper';
+                iframe.parentNode.insertBefore(wrapper, iframe);
+                wrapper.appendChild(iframe);
+            }
+
+            // Forcer les attributs
+            iframe.setAttribute('frameborder', '0');
+            iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+            iframe.setAttribute('allowfullscreen', 'true');
+            iframe.removeAttribute('height');
+            iframe.removeAttribute('width');
+
+            // Normaliser vers youtube-nocookie
+            if (src.includes('youtube.com') && !src.includes('youtube-nocookie.com')) {
+                iframe.setAttribute('src', src.replace('www.youtube.com', 'www.youtube-nocookie.com'));
+            }
+        });
+    }, [html]);
+
+    return (
+        <div
+            ref={ref}
+            className="article-body leading-[1.8] text-[17px] md:text-[19px] max-w-none mb-12"
+            dangerouslySetInnerHTML={{ __html: sanitizeContent(html) }}
+        />
+    );
+};
+
+/* ══════════════════════════════════════
+   NEWSLETTER
+══════════════════════════════════════ */
 const NewsletterInline = () => {
     const [email, setEmail] = React.useState('');
     const [status, setStatus] = React.useState(null);
@@ -168,25 +269,12 @@ const NewsletterInline = () => {
     );
 };
 
-// ── Nettoyage du contenu Quill ──
-const sanitizeContent = (html) => {
-    if (!html) return '';
-    return html
-        .replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '')
-        .replace(/<p>\s*<\/p>/gi, '')
-        .replace(/(<p>\s*<br\s*\/?>\s*<\/p>\s*){2,}/gi, '')
-        .replace(
-            /<iframe([^>]*?)src="(https:\/\/www\.youtube\.com\/embed\/[^"]*)"([^>]*?)>/gi,
-            '<iframe$1src="$2"$3 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen>'
-        )
-        .replace(
-            /<iframe([^>]*?)src="(https:\/\/www\.youtube-nocookie\.com\/embed\/[^"]*)"([^>]*?)>/gi,
-            '<iframe$1src="$2"$3 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen>'
-        );
-};
-
+/* ══════════════════════════════════════
+   ARTICLE VIEW
+══════════════════════════════════════ */
 const ArticleView = ({ article, news = [], B24_BLUE }) => {
 
+    // Injection styles Quill
     useEffect(() => {
         const id = 'quill-article-styles';
         if (!document.getElementById(id)) {
@@ -197,30 +285,33 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
         }
     }, []);
 
+    // Compteur de vues
     useEffect(() => {
         if (article?.id) {
-            const incrementView = async () => {
+            const run = async () => {
                 try {
-                    const articleRef = doc(db, 'artifacts', 'bbriefly-7e3b8', 'public', 'data', 'news', article.id);
-                    await updateDoc(articleRef, { views: increment(1) });
-                } catch (e) { console.error("Erreur compteur:", e); }
+                    await updateDoc(
+                        doc(db, 'artifacts', 'bbriefly-7e3b8', 'public', 'data', 'news', article.id),
+                        { views: increment(1) }
+                    );
+                } catch {}
             };
-            incrementView();
+            run();
         }
     }, [article?.id]);
 
+    // Twitter + scroll + Telegram
     useEffect(() => {
-        const loadTwitter = () => {
-            if (window.twttr && window.twttr.widgets) {
-                window.twttr.widgets.load();
-            } else {
-                const script = document.createElement("script");
-                script.src = "https://platform.twitter.com/widgets.js";
-                script.async = true;
-                document.body.appendChild(script);
+        const load = () => {
+            if (window.twttr?.widgets) window.twttr.widgets.load();
+            else {
+                const s = document.createElement('script');
+                s.src = 'https://platform.twitter.com/widgets.js';
+                s.async = true;
+                document.body.appendChild(s);
             }
         };
-        const timer = setTimeout(loadTwitter, 500);
+        const t = setTimeout(load, 500);
         window.scrollTo(0, 0);
         if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
             const tg = window.Telegram.WebApp;
@@ -228,7 +319,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
             tg.BackButton.show();
             tg.BackButton.onClick(() => window.location.href = '/');
         }
-        return () => clearTimeout(timer);
+        return () => clearTimeout(t);
     }, [article]);
 
     const { readTime, prevArticle, nextArticle, randomSuggestions, sideSuggestions, suggestions } = useMemo(() => {
@@ -236,11 +327,10 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
         const sorted = [...news].sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
         const idx = sorted.findIndex(n => n.id === article.id);
         const words = article.content?.replace(/<[^>]*>/g, '').split(/\s+/).length || 0;
-        const time = Math.ceil(words / 200) || 1;
         const others = sorted.filter(n => n.id !== article.id);
         const shuffled = [...others].sort(() => 0.5 - Math.random());
         return {
-            readTime: time,
+            readTime: Math.ceil(words / 200) || 1,
             prevArticle: idx < sorted.length - 1 ? sorted[idx + 1] : null,
             nextArticle: idx > 0 ? sorted[idx - 1] : null,
             suggestions: others,
@@ -252,45 +342,30 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
     const displayDate = useMemo(() => {
         const ts = article?.timestamp?.seconds || article?.lastUpdate?.seconds || article?.date?.seconds;
         if (ts) return new Date(ts * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-        return article?.date || "Récemment";
+        return article?.date || 'Récemment';
     }, [article]);
 
-    // ── Partage robuste 3 niveaux ──
+    // Partage robuste
     const [shareLabel, setShareLabel] = React.useState(null);
-
     const handleShare = async () => {
-        const url  = window.location.href;
+        const url = window.location.href;
         const text = article.title;
-
         if (navigator.share) {
-            try {
-                await navigator.share({ title: text, text, url });
-                return;
-            } catch (err) {
-                if (err.name === 'AbortError') return;
-            }
+            try { await navigator.share({ title: text, text, url }); return; }
+            catch (e) { if (e.name === 'AbortError') return; }
         }
-
-        if (navigator.clipboard?.writeText) {
-            try {
-                await navigator.clipboard.writeText(url);
-                setShareLabel('✓ Lien copié !');
-                setTimeout(() => setShareLabel(null), 2500);
-                return;
-            } catch {}
-        }
-
-        // Fallback universel
+        try {
+            await navigator.clipboard.writeText(url);
+            setShareLabel('✓ Copié !');
+            setTimeout(() => setShareLabel(null), 2500);
+            return;
+        } catch {}
         const ta = document.createElement('textarea');
         ta.value = url;
         ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
         document.body.appendChild(ta);
         ta.focus(); ta.select();
-        try {
-            document.execCommand('copy');
-            setShareLabel('✓ Lien copié !');
-            setTimeout(() => setShareLabel(null), 2500);
-        } catch {}
+        try { document.execCommand('copy'); setShareLabel('✓ Copié !'); setTimeout(() => setShareLabel(null), 2500); } catch {}
         document.body.removeChild(ta);
     };
 
@@ -302,20 +377,22 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
 
             <main className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
 
+                {/* Breadcrumb */}
                 <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-8 overflow-x-auto no-scrollbar">
                     <a href="/" className="hover:text-slate-900 transition-colors whitespace-nowrap">Accueil</a>
                     <ChevronRight size={12} />
-                    <span className="text-slate-900 truncate max-w-[200px] md:max-w-none">{article.category || "Actualité"}</span>
+                    <span className="text-slate-900 truncate max-w-[200px] md:max-w-none">{article.category || 'Actualité'}</span>
                 </nav>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
+                    {/* ── ARTICLE ── */}
                     <article className="lg:col-span-8 h-fit">
 
                         <header className="mb-10">
                             <div className="flex items-center gap-4 mb-6">
                                 <span className="px-3 py-1 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest">
-                                    {article.category || "À LA UNE"}
+                                    {article.category || 'À LA UNE'}
                                 </span>
                                 <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase">
                                     <Clock size={12} /> {readTime} min de lecture
@@ -328,13 +405,13 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
 
                             <div className="flex flex-wrap items-center justify-between gap-6 py-8 border-y border-slate-100">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-sm shadow-inner"
+                                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-sm"
                                         style={{ backgroundColor: B24_BLUE }}>
                                         {article.authorName ? article.authorName[0] : 'B'}
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-sm font-black text-slate-900 italic">
-                                            Par {article.authorName || "Rédaction Briefly"}
+                                            Par {article.authorName || 'Rédaction Briefly'}
                                         </span>
                                         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                                             {displayDate}
@@ -347,22 +424,18 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                                         <Eye size={12} className="inline mr-1" /> {article.views || 0}
                                     </span>
                                     <div className="flex gap-1 px-1 items-center">
-                                        <div className="relative">
-                                            <button
-                                                onClick={handleShare}
-                                                className="p-2 hover:bg-white rounded-xl transition-all hover:shadow-sm flex items-center gap-1"
-                                                title="Partager">
-                                                <Share2 size={16} />
-                                                {shareLabel && (
-                                                    <span className="text-[9px] font-black text-green-600 whitespace-nowrap">
-                                                        {shareLabel}
-                                                    </span>
-                                                )}
-                                            </button>
-                                        </div>
                                         <button
-                                            className="p-2 hover:bg-white rounded-xl transition-all hover:shadow-sm"
-                                            title="Sauvegarder">
+                                            onClick={handleShare}
+                                            className="p-2 hover:bg-white rounded-xl transition-all hover:shadow-sm flex items-center gap-1"
+                                            title="Partager">
+                                            <Share2 size={16} />
+                                            {shareLabel && (
+                                                <span className="text-[9px] font-black text-green-600 whitespace-nowrap">
+                                                    {shareLabel}
+                                                </span>
+                                            )}
+                                        </button>
+                                        <button className="p-2 hover:bg-white rounded-xl transition-all hover:shadow-sm" title="Sauvegarder">
                                             <Bookmark size={16} />
                                         </button>
                                     </div>
@@ -370,7 +443,8 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </div>
                         </header>
 
-                        <figure className="mb-12 relative">
+                        {/* Image principale */}
+                        <figure className="mb-12">
                             <img
                                 src={article.imageUrl}
                                 className="w-full h-auto object-cover rounded-xl shadow-lg"
@@ -381,14 +455,13 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </figcaption>
                         </figure>
 
-                        {/* ── CONTENU avec sanitizeContent ── */}
-                        <div
-                            className="article-body leading-[1.8] text-[17px] md:text-[19px] max-w-none mb-12"
-                            dangerouslySetInnerHTML={{ __html: sanitizeContent(article.content) }}
-                        />
+                        {/* ── CONTENU avec gestion iframes ── */}
+                        <ArticleContent html={article.content} />
 
+                        {/* Newsletter */}
                         <NewsletterInline />
 
+                        {/* Navigation précédent / suivant */}
                         <div className="grid grid-cols-2 gap-4 py-8 border-y border-slate-100 mb-12">
                             {prevArticle ? (
                                 <a href={`/article/${prevArticle.id}`}
@@ -414,6 +487,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             ) : <div />}
                         </div>
 
+                        {/* Suggestions */}
                         <section className="mb-12">
                             <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                                 <Sparkles size={16} style={{ color: B24_BLUE }} /> Ça pourrait vous plaire
@@ -432,6 +506,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </div>
                         </section>
 
+                        {/* Tags */}
                         <footer className="mt-8 pt-8 border-t border-slate-100">
                             <div className="flex flex-wrap gap-2">
                                 {['#Afrique', '#Actualité', '#Briefly', `#${article.category || 'Info'}`].map(tag => (
@@ -443,6 +518,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                         </footer>
                     </article>
 
+                    {/* ── SIDEBAR ── */}
                     <aside className="lg:col-span-4 space-y-12">
 
                         <section>
@@ -461,7 +537,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                                                 {s.title}
                                             </h4>
                                             <p className="text-[9px] font-black text-slate-400 uppercase mt-2 tracking-widest">
-                                                {s.category || "ACTU"}
+                                                {s.category || 'ACTU'}
                                             </p>
                                         </div>
                                     </a>
