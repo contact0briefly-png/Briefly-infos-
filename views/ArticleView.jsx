@@ -5,7 +5,6 @@ import { getFirestore, doc, updateDoc, increment } from "firebase/firestore";
 import { initializeApp, getApps } from "firebase/app";
 import { Clock, Eye, Share2, Bookmark, ChevronRight, TrendingUp, Sparkles, ChevronLeft, Mail } from 'lucide-react';
 
-// --- CONFIG FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyDOPeLjRRM88dE665rKZigk2JmA-J9YXek",
     authDomain: "bbriefly-7e3b8.firebaseapp.com",
@@ -20,20 +19,23 @@ const db = getFirestore(app);
 
 const BREVO_ACTION = "https://b33f5b02.sibforms.com/serve/MUIFAGBxCfyEwfx-cB0M9i9gOYvlwv3b9XmULA8_jGaWHLuG5zbH6c2QvO928ogIkVBjF1c1mj7KCG06Zfye3McOWoe9G04JeD_TsTFM9EDSz7QYpppQ-u5X9E5udLQ7RLKl0QOuqiTCBG1jawLH4u1WYJNwxQ1OrCbFri0xOGjcxz6ye7PhaJEy9ibaiQ4LS_foT82lqz32UOJdBw==";
 
-// ── Styles Quill injectés dans la page pour le rendu correct du contenu ──
 const QUILL_ARTICLE_STYLES = `
     .article-body h1 { font-size: 2em; font-weight: 900; margin: 1.2em 0 .5em; line-height: 1.2; color: #0f172a; }
     .article-body h2 { font-size: 1.5em; font-weight: 800; margin: 1.2em 0 .5em; line-height: 1.3; color: #0f172a; }
     .article-body h3 { font-size: 1.2em; font-weight: 700; margin: 1.1em 0 .4em; line-height: 1.4; color: #0f172a; }
-    .article-body p  { margin: 0 0 1.1em; }
-    .article-body p:empty { display: none; }
+
+    .article-body p { margin: 0 0 0.8em; }
+    .article-body p:empty { display: none; margin: 0; }
+    .article-body p br { display: none; }
+    .article-body p:has(br:only-child) { display: none; }
+
     .article-body strong, .article-body b { font-weight: 800; color: #0f172a; }
     .article-body em, .article-body i { font-style: italic; }
     .article-body s  { text-decoration: line-through; }
     .article-body u  { text-decoration: underline; }
     .article-body a  { color: #4f46e5; text-decoration: underline; font-weight: 600; }
     .article-body a:hover { opacity: .8; }
-    .article-body ul { list-style: disc;   padding-left: 1.6em; margin: .8em 0 1.2em; }
+    .article-body ul { list-style: disc; padding-left: 1.6em; margin: .8em 0 1.2em; }
     .article-body ol { list-style: decimal; padding-left: 1.6em; margin: .8em 0 1.2em; }
     .article-body li { margin-bottom: .4em; }
     .article-body blockquote {
@@ -56,8 +58,23 @@ const QUILL_ARTICLE_STYLES = `
     .article-body pre code { background: none; color: inherit; padding: 0; }
     .article-body img {
         max-width: 100%; height: auto; border-radius: 12px;
-        margin: 1.2em auto; display: block; box-shadow: 0 4px 20px rgba(0,0,0,.1);
+        margin: 1.2em auto; display: block;
+        box-shadow: 0 4px 20px rgba(0,0,0,.1);
     }
+
+    .article-body iframe,
+    .article-body .ql-video {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        height: auto;
+        min-height: 200px;
+        border-radius: 12px;
+        margin: 1.5em auto;
+        border: none;
+        box-shadow: 0 4px 20px rgba(0,0,0,.15);
+    }
+
     .article-body .ql-align-center { text-align: center; }
     .article-body .ql-align-right  { text-align: right; }
     .article-body .ql-align-justify { text-align: justify; }
@@ -69,16 +86,10 @@ const QUILL_ARTICLE_STYLES = `
     .article-body .ql-indent-1 { padding-left: 2em; }
     .article-body .ql-indent-2 { padding-left: 4em; }
     .article-body .ql-indent-3 { padding-left: 6em; }
-    .article-body hr {
-        border: none; border-top: 2px solid #e2e8f0;
-        margin: 2em 0;
-    }
-    /* Couleurs de texte et de fond générées par Quill */
-    .article-body [style*="color"] { /* hérite via inline styles */ }
+    .article-body hr { border: none; border-top: 2px solid #e2e8f0; margin: 2em 0; }
     .article-body [style*="background-color"] { padding: 1px 3px; border-radius: 3px; }
 `;
 
-// ── Composant Newsletter inline ──
 const NewsletterInline = () => {
     const [email, setEmail] = React.useState('');
     const [status, setStatus] = React.useState(null);
@@ -157,9 +168,25 @@ const NewsletterInline = () => {
     );
 };
 
+// ── Nettoyage du contenu Quill ──
+const sanitizeContent = (html) => {
+    if (!html) return '';
+    return html
+        .replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '')
+        .replace(/<p>\s*<\/p>/gi, '')
+        .replace(/(<p>\s*<br\s*\/?>\s*<\/p>\s*){2,}/gi, '')
+        .replace(
+            /<iframe([^>]*?)src="(https:\/\/www\.youtube\.com\/embed\/[^"]*)"([^>]*?)>/gi,
+            '<iframe$1src="$2"$3 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen>'
+        )
+        .replace(
+            /<iframe([^>]*?)src="(https:\/\/www\.youtube-nocookie\.com\/embed\/[^"]*)"([^>]*?)>/gi,
+            '<iframe$1src="$2"$3 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen>'
+        );
+};
+
 const ArticleView = ({ article, news = [], B24_BLUE }) => {
 
-    // ── Injection des styles Quill dans le <head> ──
     useEffect(() => {
         const id = 'quill-article-styles';
         if (!document.getElementById(id)) {
@@ -168,9 +195,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
             style.textContent = QUILL_ARTICLE_STYLES;
             document.head.appendChild(style);
         }
-        return () => {
-            // On garde le style en place pour éviter le flash au changement d'article
-        };
     }, []);
 
     useEffect(() => {
@@ -231,19 +255,43 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
         return article?.date || "Récemment";
     }, [article]);
 
-    // ── Partage natif ──
+    // ── Partage robuste 3 niveaux ──
+    const [shareLabel, setShareLabel] = React.useState(null);
+
     const handleShare = async () => {
+        const url  = window.location.href;
+        const text = article.title;
+
         if (navigator.share) {
             try {
-                await navigator.share({
-                    title: article.title,
-                    text: article.title,
-                    url: window.location.href,
-                });
-            } catch {}
-        } else {
-            await navigator.clipboard.writeText(window.location.href);
+                await navigator.share({ title: text, text, url });
+                return;
+            } catch (err) {
+                if (err.name === 'AbortError') return;
+            }
         }
+
+        if (navigator.clipboard?.writeText) {
+            try {
+                await navigator.clipboard.writeText(url);
+                setShareLabel('✓ Lien copié !');
+                setTimeout(() => setShareLabel(null), 2500);
+                return;
+            } catch {}
+        }
+
+        // Fallback universel
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        try {
+            document.execCommand('copy');
+            setShareLabel('✓ Lien copié !');
+            setTimeout(() => setShareLabel(null), 2500);
+        } catch {}
+        document.body.removeChild(ta);
     };
 
     if (!article) return null;
@@ -254,7 +302,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
 
             <main className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
 
-                {/* Breadcrumb */}
                 <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-8 overflow-x-auto no-scrollbar">
                     <a href="/" className="hover:text-slate-900 transition-colors whitespace-nowrap">Accueil</a>
                     <ChevronRight size={12} />
@@ -263,10 +310,8 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
-                    {/* ══════════ ARTICLE PRINCIPAL ══════════ */}
                     <article className="lg:col-span-8 h-fit">
 
-                        {/* En-tête */}
                         <header className="mb-10">
                             <div className="flex items-center gap-4 mb-6">
                                 <span className="px-3 py-1 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest">
@@ -282,7 +327,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </h1>
 
                             <div className="flex flex-wrap items-center justify-between gap-6 py-8 border-y border-slate-100">
-                                {/* Auteur */}
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-sm shadow-inner"
                                         style={{ backgroundColor: B24_BLUE }}>
@@ -298,18 +342,24 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                                     </div>
                                 </div>
 
-                                {/* Actions */}
                                 <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-100">
                                     <span className="text-[10px] font-black text-slate-400 px-3 border-r border-slate-200">
                                         <Eye size={12} className="inline mr-1" /> {article.views || 0}
                                     </span>
-                                    <div className="flex gap-1 px-1">
-                                        <button
-                                            onClick={handleShare}
-                                            className="p-2 hover:bg-white rounded-xl transition-all hover:shadow-sm"
-                                            title="Partager">
-                                            <Share2 size={16} />
-                                        </button>
+                                    <div className="flex gap-1 px-1 items-center">
+                                        <div className="relative">
+                                            <button
+                                                onClick={handleShare}
+                                                className="p-2 hover:bg-white rounded-xl transition-all hover:shadow-sm flex items-center gap-1"
+                                                title="Partager">
+                                                <Share2 size={16} />
+                                                {shareLabel && (
+                                                    <span className="text-[9px] font-black text-green-600 whitespace-nowrap">
+                                                        {shareLabel}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        </div>
                                         <button
                                             className="p-2 hover:bg-white rounded-xl transition-all hover:shadow-sm"
                                             title="Sauvegarder">
@@ -320,7 +370,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </div>
                         </header>
 
-                        {/* Image principale */}
                         <figure className="mb-12 relative">
                             <img
                                 src={article.imageUrl}
@@ -332,16 +381,14 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </figcaption>
                         </figure>
 
-                        {/* ── CONTENU ARTICLE (styles Quill appliqués) ── */}
+                        {/* ── CONTENU avec sanitizeContent ── */}
                         <div
                             className="article-body leading-[1.8] text-[17px] md:text-[19px] max-w-none mb-12"
-                            dangerouslySetInnerHTML={{ __html: article.content }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeContent(article.content) }}
                         />
 
-                        {/* ── NEWSLETTER après le contenu ── */}
                         <NewsletterInline />
 
-                        {/* Navigation précédent / suivant */}
                         <div className="grid grid-cols-2 gap-4 py-8 border-y border-slate-100 mb-12">
                             {prevArticle ? (
                                 <a href={`/article/${prevArticle.id}`}
@@ -367,7 +414,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             ) : <div />}
                         </div>
 
-                        {/* Suggestions aléatoires */}
                         <section className="mb-12">
                             <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                                 <Sparkles size={16} style={{ color: B24_BLUE }} /> Ça pourrait vous plaire
@@ -386,7 +432,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </div>
                         </section>
 
-                        {/* Tags */}
                         <footer className="mt-8 pt-8 border-t border-slate-100">
                             <div className="flex flex-wrap gap-2">
                                 {['#Afrique', '#Actualité', '#Briefly', `#${article.category || 'Info'}`].map(tag => (
@@ -398,10 +443,8 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                         </footer>
                     </article>
 
-                    {/* ══════════ SIDEBAR ══════════ */}
                     <aside className="lg:col-span-4 space-y-12">
 
-                        {/* Top articles */}
                         <section>
                             <div className="flex items-center gap-2 mb-8 border-b-2 border-slate-900 pb-2">
                                 <TrendingUp size={20} style={{ color: B24_BLUE }} />
@@ -426,7 +469,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </div>
                         </section>
 
-                        {/* Newsletter sidebar (desktop uniquement) */}
                         <section className="hidden lg:block">
                             <div className="relative overflow-hidden rounded-2xl bg-slate-900 p-6">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full translate-x-1/2 -translate-y-1/2 blur-2xl" />
@@ -446,7 +488,6 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                             </div>
                         </section>
 
-                        {/* À découvrir */}
                         <section>
                             <div className="flex items-center gap-2 mb-8 border-b-2 border-slate-900 pb-2">
                                 <Sparkles size={20} style={{ color: B24_BLUE }} />
