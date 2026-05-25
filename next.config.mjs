@@ -1,14 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Ajout de 'framer-motion' pour forcer sa conversion en ES5 compatible Smart TV
-  transpilePackages: ['firebase', 'undici', 'lucide-react', 'framer-motion'], 
+  transpilePackages: ['firebase', 'undici', 'lucide-react', 'framer-motion'],
 
   images: {
-    unoptimized: true, 
+    unoptimized: true,
   },
 
   compiler: {
-    // Supprime les console.log en production pour optimiser la mémoire des TV
     removeConsole: process.env.NODE_ENV === 'production',
   },
 
@@ -19,8 +17,17 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            // Maintien de ton autorisation large pour l'affichage de ton app d'admin
-            value: "default-src 'self' *; script-src 'self' 'unsafe-eval' 'unsafe-inline' *; style-src 'self' 'unsafe-inline' *; img-src 'self' data: blob: *; font-src 'self' data: *; connect-src 'self' *; frame-ancestors 'self' *;",
+            value: [
+              "default-src 'self' *",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' *",
+              "style-src 'self' 'unsafe-inline' *",
+              "img-src 'self' data: blob: *",
+              "font-src 'self' data: *",
+              "connect-src 'self' *",
+              "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.dailymotion.com *",
+              "frame-ancestors 'self' *",
+              "media-src 'self' *",
+            ].join('; '),
           },
           {
             key: 'X-Frame-Options',
