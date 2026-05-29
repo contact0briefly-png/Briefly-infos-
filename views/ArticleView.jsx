@@ -19,7 +19,7 @@ const db = getFirestore(app);
 const BREVO_ACTION = "https://b33f5b02.sibforms.com/serve/MUIFAGBxCfyEwfx-cB0M9i9gOYvlwv3b9XmULA8_jGaWHLuG5zbH6c2QvO928ogIkVBjF1c1mj7KCG06Zfye3McOWoe9G04JeD_TsTFM9EDSz7QYpppQ-u5X9E5udLQ7RLKl0QOuqiTCBG1jawLH4u1WYJNwxQ1OrCbFri0xOGjcxz6ye7PhaJEy9ibaiQ4LS_foT82lqz32UOJdBw==";
 
 /* ══════════════════════════════════════
-   STYLES QUILL
+   -STYLES QUILL
 ══════════════════════════════════════ */
 const QUILL_ARTICLE_STYLES = `
     .article-body h1 { font-size: 2em; font-weight: 900; margin: 1.2em 0 .5em; line-height: 1.2; color: #0f172a; }
