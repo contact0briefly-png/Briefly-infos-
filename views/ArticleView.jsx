@@ -204,6 +204,25 @@ const QUILL_ARTICLE_STYLES = `
     .article-body sub { vertical-align: sub;   font-size: .75em; }
     .article-body sup { vertical-align: super; font-size: .75em; }
 
+ /* ══ Embeds sociaux (TikTok, Twitter, Instagram) ══ */
+    .article-body .tiktok-wrapper {
+        margin: 2em auto;
+        display: flex;
+        justify-content: center;
+        max-width: 605px;
+    }
+    .article-body blockquote.tiktok-embed {
+        margin: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+    }
+    .article-body blockquote.twitter-tweet {
+        margin: 1.5em auto !important;
+    }
+    .article-body blockquote.instagram-media {
+        margin: 1.5em auto !important;
+    }
     /* ══════════════════════════
        VIDÉOS YOUTUBE / IFRAMES
     ══════════════════════════ */
@@ -298,7 +317,6 @@ const sanitizeContent = (html) => {
 
     return result;
 };
-
 /* ══════════════════════════════════════
    ARTICLE CONTENT — post-rendu DOM
 ══════════════════════════════════════ */
@@ -308,7 +326,7 @@ const ArticleContent = ({ html }) => {
     useEffect(() => {
         if (!ref.current) return;
 
-        // Forcer les styles inline des spans colorés
+        // ── 1. Styles inline (couleurs Quill) ──
         ref.current.querySelectorAll('span[style]').forEach(span => {
             const style = span.getAttribute('style') || '';
             if (style.includes('color') || style.includes('background')) {
@@ -316,7 +334,7 @@ const ArticleContent = ({ html }) => {
             }
         });
 
-        // Gérer les iframes
+        // ── 2. Iframes YouTube ──
         ref.current.querySelectorAll('iframe').forEach(iframe => {
             if (!iframe.parentElement?.classList.contains('video-wrapper')) {
                 const wrapper = document.createElement('div');
@@ -335,11 +353,68 @@ const ArticleContent = ({ html }) => {
             }
         });
 
-        // S'assurer que les images sont responsive
+        // ── 3. Images responsive ──
         ref.current.querySelectorAll('img').forEach(img => {
             img.style.maxWidth = '100%';
             img.style.height = 'auto';
         });
+
+        // ── 4. Embeds TikTok ──
+        const tiktokBlocks = ref.current.querySelectorAll('blockquote.tiktok-embed');
+        if (tiktokBlocks.length > 0) {
+            // Envelopper chaque blockquote TikTok pour le style
+            tiktokBlocks.forEach(block => {
+                if (!block.parentElement?.classList.contains('tiktok-wrapper')) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'tiktok-wrapper';
+                    wrapper.style.cssText = 'margin: 1.5em auto; display: flex; justify-content: center;';
+                    block.parentNode.insertBefore(wrapper, block);
+                    wrapper.appendChild(block);
+                }
+            });
+
+            // Supprimer l'ancien script TikTok s'il existe
+            const oldScript = document.querySelector('script[src*="tiktok.com/embed.js"]');
+            if (oldScript) oldScript.remove();
+
+            // Recharger le script TikTok pour activer les embeds
+            const script = document.createElement('script');
+            script.src = 'https://www.tiktok.com/embed.js';
+            script.async = true;
+            script.onload = () => {
+                // Forcer le rechargement des widgets TikTok si l'API est disponible
+                if (window.__tiktok_embed_initialized) {
+                    try {
+                        window.instgrm?.Embeds?.process?.();
+                    } catch {}
+                }
+            };
+            document.body.appendChild(script);
+        }
+
+        // ── 5. Embeds Twitter/X ──
+        const twitterBlocks = ref.current.querySelectorAll('blockquote.twitter-tweet');
+        if (twitterBlocks.length > 0) {
+            if (window.twttr?.widgets) {
+                window.twttr.widgets.load(ref.current);
+            } else {
+                const script = document.createElement('script');
+                script.src = 'https://platform.twitter.com/widgets.js';
+                script.async = true;
+                document.body.appendChild(script);
+            }
+        }
+
+        // ── 6. Embeds Instagram ──
+        const instaBlocks = ref.current.querySelectorAll('blockquote.instagram-media');
+        if (instaBlocks.length > 0) {
+            const oldScript = document.querySelector('script[src*="instagram.com/embed.js"]');
+            if (oldScript) oldScript.remove();
+            const script = document.createElement('script');
+            script.src = 'https://www.instagram.com/embed.js';
+            script.async = true;
+            document.body.appendChild(script);
+        }
 
     }, [html]);
 
@@ -352,7 +427,6 @@ const ArticleContent = ({ html }) => {
         />
     );
 };
-
 /* ══════════════════════════════════════
    NEWSLETTER
 ══════════════════════════════════════ */
