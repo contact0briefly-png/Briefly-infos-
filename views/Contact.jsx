@@ -175,7 +175,7 @@ const Contact = ({ B24_BLUE }) => {
     <iframe
         title="Localisation Sanguéra"
         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15860.852358826!2d1.1097593!3d6.228453!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x102390314c4fab2f%3A0x8670b358d3631bc1!2sSangu%C3%A9ra%2C%20Lom%C3%A9!5e0!3m2!1sfr!2stg!4v1715328000000!5m2!1sfr!2stg"
-        className="absolute inset-0 w-full h-full border-0 grayscale transition-all duration-700 group-hover:grayscale-0"
+        className="absolute inset-0 w-full h-full border-0 transition-all duration-700"
         allowFullScreen=""
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
