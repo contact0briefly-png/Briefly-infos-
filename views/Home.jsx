@@ -2,32 +2,71 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
-import AdBannerSquare from '@/components/AdBannerSquare'; 
-import { ArrowRight, TrendingUp, Clock, FileText, Eye, ChevronRight } from 'lucide-react';
+import { TrendingUp, Clock, ChevronRight, Mail, Rss, Search, X } from 'lucide-react';
 
+const RSS_URL = "https://rss.app/feeds/TENwT5ha8Msc6ON4.xml";
+const BREVO_ACTION = "https://b33f5b02.sibforms.com/serve/MUIFAGBxCfyEwfx-cB0M9i9gOYvlwv3b9XmULA8_jGaWHLuG5zbH6c2QvO928ogIkVBjF1c1mj7KCG06Zfye3McOWoe9G04JeD_TsTFM9EDSz7QYpppQ-u5X9E5udLQ7RLKl0QOuqiTCBG1jawLH4u1WYJNwxQ1OrCbFri0xOGjcxz6ye7PhaJEy9ibaiQ4LS_foT82lqz32UOJdBw==";
+
+/* ══════════════════════
+   NEWSLETTER MINI
+══════════════════════ */
+const NewsletterMini = () => {
+    const [email, setEmail] = React.useState('');
+    const [status, setStatus] = React.useState(null);
+    const [loading, setLoading] = React.useState(false);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!email.includes('@')) { setStatus('error'); return; }
+        setLoading(true);
+        try {
+            const fd = new FormData();
+            fd.append('EMAIL', email); fd.append('email_address_check', ''); fd.append('locale', 'fr');
+            await fetch(BREVO_ACTION, { method: 'POST', body: fd, mode: 'no-cors' });
+            setStatus('success'); setEmail('');
+        } catch { setStatus('error'); } finally { setLoading(false); }
+    };
+    return (
+        <div className="border-t border-b border-slate-200 py-6 my-8">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="flex items-center gap-3 flex-shrink-0">
+                    <Mail size={18} className="text-slate-400" />
+                    <div>
+                        <div className="text-[11px] font-black uppercase tracking-[.15em] text-slate-900">Newsletter Briefly</div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">L'essentiel de l'info chaque jour</div>
+                    </div>
+                </div>
+                {status === 'success' ? (
+                    <div className="text-[12px] font-bold text-green-600 flex items-center gap-2">
+                        <span>✓</span> Inscription confirmée !
+                    </div>
+                ) : (
+                    <form onSubmit={handleSubmit} className="flex gap-2 flex-1 max-w-md">
+                        <input
+                            type="email" value={email} required
+                            onChange={e => { setEmail(e.target.value); setStatus(null); }}
+                            placeholder="Votre adresse email"
+                            className="flex-1 border border-slate-300 px-3 py-2 text-[13px] focus:outline-none focus:border-slate-900 transition-colors"
+                        />
+                        <button type="submit" disabled={loading}
+                            className="bg-slate-900 text-white px-5 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 transition-colors disabled:opacity-50 whitespace-nowrap">
+                            {loading ? '…' : "S'inscrire"}
+                        </button>
+                    </form>
+                )}
+            </div>
+        </div>
+    );
+};
+
+/* ══════════════════════
+   HOME
+══════════════════════ */
 const Home = ({ news = [], B24_BLUE }) => {
     const searchParams = useSearchParams();
     const router = useRouter();
-
     const searchTerm = searchParams.get('search') || "";
     const activeCategory = searchParams.get('category') || "Tous";
-
-    const [activeIndex, setActiveIndex] = useState(0);
-    const [direction, setDirection] = useState(0); 
-    const loaderRef = useRef(null);
-
-    const stats = useMemo(() => {
-        const totalArticles = news.length;
-        const totalViews = news.reduce((acc, curr) => acc + (curr.views || 0), 0);
-        return { totalArticles, totalViews };
-    }, [news]);
-
-    const dynamicCategories = useMemo(() => {
-        const cats = news
-            .map(item => item.category)
-            .filter(cat => cat && cat.trim() !== ""); 
-        return ["Tous", ...new Set(cats)]; 
-    }, [news]);
+    const [tickerIndex, setTickerIndex] = useState(0);
 
     const handleHaptic = () => {
         if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -35,39 +74,18 @@ const Home = ({ news = [], B24_BLUE }) => {
         }
     };
 
-    const filteredNews = useMemo(() => {
-        return news.filter(n => {
-            const matchesSearch = !searchTerm || 
-                n.title?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesCategory = activeCategory === "Tous" || 
-                n.category === activeCategory;
-            return matchesSearch && matchesCategory;
-        });
-    }, [news, searchTerm, activeCategory]);
-
-    const latestNews = useMemo(() => filteredNews.slice(0, 5), [filteredNews]);
-
-    const categorySections = useMemo(() => {
-        const targetCats = ["Togo", "International", "Lifestyle", "Décryptage", "Sport"];
-        return targetCats.map(cat => ({
-            name: cat,
-            articles: news.filter(n => n.category?.toLowerCase() === cat.toLowerCase()).slice(0, 5)
-        })).filter(section => section.articles.length > 0);
-    }, [news]);
-
-    const heroNews = useMemo(() => latestNews, [latestNews]);
-
-    const nextSlide = useCallback(() => {
-        setDirection(1);
-        setActiveIndex((prev) => (prev + 1) % (heroNews.length || 1));
-    }, [heroNews.length]);
-
+    // Ticker — 8 dernières actus
+    const tickerNews = useMemo(() => news.slice(0, 8), [news]);
     useEffect(() => {
-        if (!searchTerm && heroNews.length > 1) {
-            const interval = setInterval(nextSlide, 5000);
-            return () => clearInterval(interval);
-        }
-    }, [searchTerm, heroNews.length, nextSlide]);
+        const iv = setInterval(() => setTickerIndex(p => (p + 1) % (tickerNews.length || 1)), 4000);
+        return () => clearInterval(iv);
+    }, [tickerNews.length]);
+
+    const filteredNews = useMemo(() => news.filter(n => {
+        const ms = !searchTerm || n.title?.toLowerCase().includes(searchTerm.toLowerCase());
+        const mc = activeCategory === "Tous" || n.category === activeCategory;
+        return ms && mc;
+    }), [news, searchTerm, activeCategory]);
 
     const handleCategoryClick = (cat) => {
         handleHaptic();
@@ -79,178 +97,330 @@ const Home = ({ news = [], B24_BLUE }) => {
 
     const formatDate = (item) => {
         const ts = item.timestamp?.seconds || item.lastUpdate?.seconds || item.date?.seconds;
-        if (ts) {
-            const date = new Date(ts * 1000);
-            return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-        }
-        if (typeof item.date === 'string' && item.date !== "") return item.date;
-        return "Récemment";
+        if (ts) return new Date(ts * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        return item.date || "Récemment";
     };
 
-    const ArticleCard = ({ item }) => (
-        <article className="flex flex-col group bg-white border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all">
-            <a href={`/article/${item.id}`} onClick={handleHaptic}>
-                <div className="relative w-full aspect-[16/10] overflow-hidden bg-slate-100">
-                    <img alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src={item.imageUrl} loading="lazy" />
-                    <span className="absolute top-3 left-3 px-2 py-1 bg-black/60 text-white text-[8px] font-black uppercase tracking-widest">
-                        {item.category}
-                    </span>
-                </div>
-                <div className="p-5">
-                    <h3 className="font-serif font-black text-lg leading-tight mb-4 italic tracking-tight text-slate-950 line-clamp-2">
-                        {item.title}
-                    </h3>
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-50">
-                        <span className="text-[9px] font-black uppercase text-slate-400">{item.authorName || "Briefly"}</span>
-                        <span className="text-[9px] text-slate-300 font-bold flex items-center gap-1">
-                            <Clock size={10} /> {formatDate(item)}
-                        </span>
+    const formatDateShort = (item) => {
+        const ts = item.timestamp?.seconds || item.lastUpdate?.seconds || item.date?.seconds;
+        if (ts) return new Date(ts * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+        return item.date || "Récemment";
+    };
+
+    // Sections éditoriales
+    const une = useMemo(() => filteredNews.slice(0, 1)[0] || null, [filteredNews]);
+    const uneSecondaires = useMemo(() => filteredNews.slice(1, 4), [filteredNews]);
+    const enBref = useMemo(() => filteredNews.slice(4, 9), [filteredNews]);
+
+    const RUBRIQUES = ["Togo", "International", "Politique", "Économie", "Sport", "Lifestyle", "Décryptage", "Education"];
+    const rubriquesSections = useMemo(() => {
+        return RUBRIQUES.map(cat => ({
+            name: cat,
+            articles: news.filter(n => n.category?.toLowerCase() === cat.toLowerCase()).slice(0, 4)
+        })).filter(s => s.articles.length >= 2);
+    }, [news]);
+
+    const dynamicCategories = useMemo(() => {
+        const cats = [...new Set(news.map(n => n.category).filter(Boolean))];
+        return ["Tous", ...cats];
+    }, [news]);
+
+    // Vue recherche / filtre
+    if (searchTerm || activeCategory !== "Tous") {
+        return (
+            <div className="bg-white min-h-screen">
+                <div className="h-14 md:h-20" />
+                <div className="max-w-[1200px] mx-auto px-4 py-8">
+                    <div className="border-b-2 border-slate-900 pb-2 mb-8 flex items-center justify-between">
+                        <h2 className="text-[11px] font-black uppercase tracking-[.2em] text-slate-900">
+                            {activeCategory !== "Tous" ? activeCategory : `Recherche : « ${searchTerm} »`}
+                            <span className="ml-3 font-normal text-slate-400">{filteredNews.length} résultat{filteredNews.length > 1 ? 's' : ''}</span>
+                        </h2>
+                        <button onClick={() => { const p = new URLSearchParams(); router.push(`?${p.toString()}`); }}
+                            className="text-[10px] font-bold text-slate-400 hover:text-slate-900 uppercase tracking-widest transition-colors">
+                            ← Retour à l'accueil
+                        </button>
                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {filteredNews.map(item => (
+                            <ArticleCardMedium key={item.id} item={item} formatDate={formatDateShort} handleHaptic={handleHaptic} B24_BLUE={B24_BLUE} />
+                        ))}
+                    </div>
+                    {filteredNews.length === 0 && (
+                        <div className="text-center py-20 text-slate-400">
+                            <div className="text-4xl mb-4">∅</div>
+                            <p className="text-[13px] font-medium">Aucun article trouvé.</p>
+                        </div>
+                    )}
                 </div>
-            </a>
-        </article>
-    );
+            </div>
+        );
+    }
 
     return (
-        <div className="w-full bg-[#f6f6f8] min-h-screen font-sans text-slate-900 flex flex-col">
-            <div className="h-14 md:h-20 shrink-0"></div>
+        <div className="bg-white min-h-screen font-sans text-slate-900">
+            <div className="h-14 md:h-20 shrink-0" />
 
-            {/* --- HERO CARROUSEL --- */}
-            {!searchTerm && activeCategory === "Tous" && heroNews.length > 0 && (
-                <section className="w-full relative bg-black overflow-hidden shrink-0 z-10 border-b border-white/10">
-                    <div className="relative w-full h-[50vh] md:h-[70vh]">
-                        <AnimatePresence initial={false} custom={direction}>
-                            <motion.div key={activeIndex} custom={direction} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }} className="absolute inset-0 flex items-center justify-center">
-                                <a href={`/article/${heroNews[activeIndex].id}`} onClick={handleHaptic} className="block w-full h-full relative group">
-                                    <div className="absolute inset-0 overflow-hidden">
-                                        <img src={heroNews[activeIndex].imageUrl} className="w-full h-full object-cover scale-125 blur-3xl opacity-50" alt=""/>
+            {/* ══ TICKER D'ACTUALITÉS ══ */}
+            {tickerNews.length > 0 && (
+                <div className="bg-slate-900 text-white overflow-hidden">
+                    <div className="max-w-[1200px] mx-auto px-4 flex items-center gap-4 h-9">
+                        <span className="text-[9px] font-black uppercase tracking-[.2em] text-slate-400 flex-shrink-0 border-r border-slate-700 pr-4">
+                            En direct
+                        </span>
+                        <AnimatePresence mode="wait">
+                            <motion.a
+                                key={tickerIndex}
+                                href={`/article/${tickerNews[tickerIndex]?.id}`}
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -6 }}
+                                transition={{ duration: 0.4 }}
+                                className="text-[11px] font-medium text-white/90 hover:text-white truncate transition-colors"
+                                onClick={handleHaptic}
+                            >
+                                {tickerNews[tickerIndex]?.title}
+                            </motion.a>
+                        </AnimatePresence>
+                    </div>
+                </div>
+            )}
+
+            {/* ══ BARRE DE CATÉGORIES ══ */}
+            <div className="border-b border-slate-200 sticky top-14 md:top-20 bg-white z-40">
+                <div className="max-w-[1200px] mx-auto px-4">
+                    <div className="flex items-center gap-0 overflow-x-auto no-scrollbar">
+                        {dynamicCategories.slice(0, 10).map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => handleCategoryClick(cat)}
+                                className={`flex-shrink-0 px-4 py-3 text-[11px] font-bold uppercase tracking-[.1em] border-b-2 transition-all ${
+                                    activeCategory === cat
+                                        ? 'border-slate-900 text-slate-900'
+                                        : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
+                                }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            <main className="max-w-[1200px] mx-auto px-4">
+
+                {/* ══════════════════════════════════
+                    GRANDE UNE — style Le Monde
+                    Article principal + 3 secondaires
+                ══════════════════════════════════ */}
+                {une && (
+                    <section className="py-8 border-b border-slate-200">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
+
+                            {/* Article principal */}
+                            <div className="lg:col-span-7 lg:pr-8 lg:border-r lg:border-slate-200">
+                                <a href={`/article/${une.id}`} onClick={handleHaptic} className="group block">
+                                    <div className="relative aspect-[16/10] overflow-hidden mb-4">
+                                        <img
+                                            src={une.imageUrl} alt={une.title}
+                                            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700"
+                                        />
+                                        <span className="absolute top-0 left-0 bg-slate-900 text-white text-[9px] font-black uppercase tracking-[.15em] px-2.5 py-1.5">
+                                            À la une
+                                        </span>
                                     </div>
-                                    <img src={heroNews[activeIndex].imageUrl} className="w-full h-full object-contain relative z-10 p-2 md:p-0" alt={heroNews[activeIndex].title} />
-                                    <div className="absolute inset-0 z-20 bg-gradient-to-t from-black via-black/30 to-transparent" />
-                                    <div className="absolute bottom-0 left-0 p-6 md:p-16 w-full max-w-[1200px] mx-auto right-0 z-30">
-                                        <div className="flex flex-col items-start gap-2">
-                                            <span className="px-2 py-0.5 bg-primary text-white text-[9px] font-black uppercase tracking-widest" style={{ backgroundColor: B24_BLUE }}>À LA UNE</span>
-                                            <h2 className="text-xl md:text-5xl font-serif font-black text-white italic tracking-tighter leading-[1.1] max-w-4xl drop-shadow-lg">{heroNews[activeIndex].title}</h2>
+                                    <div className="space-y-2">
+                                        <span className="text-[10px] font-black uppercase tracking-[.12em]" style={{ color: B24_BLUE }}>
+                                            {une.category}
+                                        </span>
+                                        <h1 className="font-serif text-[26px] md:text-[32px] font-bold leading-[1.15] text-slate-950 group-hover:text-slate-700 transition-colors">
+                                            {une.title}
+                                        </h1>
+                                        <div className="flex items-center gap-3 pt-1">
+                                            <span className="text-[11px] text-slate-500">{une.authorName || "Briefly"}</span>
+                                            <span className="text-slate-200">|</span>
+                                            <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                                                <Clock size={10} /> {formatDate(une)}
+                                            </span>
                                         </div>
                                     </div>
                                 </a>
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
-                </section>
-            )}
+                            </div>
 
-            <main className="container mx-auto max-w-[1200px] px-4 py-6 flex-grow">
-
-                {/* --- DERNIÈRES PUBLICATIONS --- */}
-                {!searchTerm && activeCategory === "Tous" && (
-                    <section className="mb-16">
-                        <div className="flex items-center justify-between mb-8 border-b-2 border-slate-900 pb-2">
-                            <h2 className="text-sm font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                                <TrendingUp size={18} style={{ color: B24_BLUE }} /> Derniers articles
-                            </h2>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {latestNews.map(item => <ArticleCard key={item.id} item={item} />)}
+                            {/* Articles secondaires */}
+                            <div className="lg:col-span-5 lg:pl-8 mt-6 lg:mt-0 flex flex-col gap-0">
+                                {uneSecondaires.map((item, i) => (
+                                    <a key={item.id} href={`/article/${item.id}`} onClick={handleHaptic}
+                                        className={`group flex gap-4 py-5 ${i < uneSecondaires.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                                        <div className="flex-1 min-w-0">
+                                            <span className="text-[9px] font-black uppercase tracking-[.12em] block mb-1.5" style={{ color: B24_BLUE }}>
+                                                {item.category}
+                                            </span>
+                                            <h3 className="font-serif text-[15px] font-bold leading-[1.35] text-slate-900 group-hover:text-slate-600 transition-colors line-clamp-3">
+                                                {item.title}
+                                            </h3>
+                                            <span className="text-[10px] text-slate-400 mt-2 block">{formatDateShort(item)}</span>
+                                        </div>
+                                        <div className="w-20 h-20 flex-shrink-0 overflow-hidden">
+                                            <img src={item.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                        </div>
+                                    </a>
+                                ))}
+                            </div>
                         </div>
                     </section>
                 )}
 
-                {/* --- SECTIONS PAR CATÉGORIES --- */}
-                {!searchTerm && activeCategory === "Tous" && categorySections.map((section) => (
-                    <section key={section.name} className="mb-16">
-                        <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-2">
-                            <h2 className="text-sm font-black uppercase tracking-[0.2em]">{section.name}</h2>
-                            <button onClick={() => handleCategoryClick(section.name)} className="text-[10px] font-bold uppercase text-slate-400 hover:text-slate-900 flex items-center gap-1 transition-colors">
-                                Voir plus <ChevronRight size={12} />
-                            </button>
+                {/* ══ NEWSLETTER ══ */}
+                <NewsletterMini />
+
+                {/* ══════════════════════════════════
+                    EN BREF — ligne horizontale compacte
+                ══════════════════════════════════ */}
+                {enBref.length > 0 && (
+                    <section className="mb-10">
+                        <div className="flex items-center gap-3 mb-5 border-b border-slate-900 pb-2">
+                            <h2 className="text-[11px] font-black uppercase tracking-[.2em] text-slate-900">En bref</h2>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                            {section.articles.map(item => (
-                                <a key={item.id} href={`/article/${item.id}`} className="group block bg-white p-3 border border-slate-100 shadow-sm">
-                                    <div className="aspect-video overflow-hidden mb-3">
-                                        <img src={item.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt="" />
-                                    </div>
-                                    <h3 className="font-bold text-sm leading-tight line-clamp-2 group-hover:text-primary italic transition-colors">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0">
+                            {enBref.map((item, i) => (
+                                <a key={item.id} href={`/article/${item.id}`} onClick={handleHaptic}
+                                    className={`group py-2 pr-4 ${i < enBref.length - 1 ? 'border-r border-slate-100' : ''} ${i > 0 ? 'pl-4' : ''}`}>
+                                    <span className="text-[9px] font-black uppercase tracking-[.1em] block mb-1" style={{ color: B24_BLUE }}>
+                                        {item.category}
+                                    </span>
+                                    <h4 className="font-serif text-[13px] font-bold leading-[1.35] text-slate-900 group-hover:text-slate-600 transition-colors line-clamp-3">
                                         {item.title}
-                                    </h3>
+                                    </h4>
                                 </a>
                             ))}
                         </div>
                     </section>
-                ))}
+                )}
 
-                {/* --- SECTION NEWSLETTER (BREVO) --- */}
-                {!searchTerm && activeCategory === "Tous" && (
-                    <section className="mb-16 py-10 bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-sm">
-                        <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-8">
-                            <div className="md:w-1/2 text-left">
-                                <h2 className="text-3xl font-serif font-black italic tracking-tighter text-slate-900 mb-4">
-                                    Newsletter Briefly
-                                </h2>
-                                <p className="text-slate-500 text-[10px] leading-relaxed mb-6 uppercase font-bold tracking-[0.1em]">
-                                    Rejoignez notre communauté pour recevoir l'essentiel de l'actualité togolaise et internationale directement dans votre boîte mail.
-                                </p>
+                {/* ══════════════════════════════════
+                    RUBRIQUES — grille éditoriale
+                ══════════════════════════════════ */}
+                {rubriquesSections.map((section, sIdx) => (
+                    <section key={section.name} className="mb-12 pb-12 border-b border-slate-200 last:border-0">
+
+                        {/* Header rubrique */}
+                        <div className="flex items-center justify-between mb-6 border-b-2 border-slate-900 pb-2">
+                            <h2 className="text-[13px] font-black uppercase tracking-[.18em] text-slate-900">
+                                {section.name}
+                            </h2>
+                            <button onClick={() => handleCategoryClick(section.name)}
+                                className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-900 flex items-center gap-1 transition-colors">
+                                Tout voir <ChevronRight size={11} />
+                            </button>
+                        </div>
+
+                        {/* Layout : 1 grand + 3 petits */}
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-0">
+
+                            {/* Grand article */}
+                            <div className="md:col-span-5 md:pr-6 md:border-r md:border-slate-200">
+                                {section.articles[0] && (
+                                    <a href={`/article/${section.articles[0].id}`} onClick={handleHaptic} className="group block">
+                                        <div className="aspect-[4/3] overflow-hidden mb-3">
+                                            <img src={section.articles[0].imageUrl} alt=""
+                                                className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-600" />
+                                        </div>
+                                        <h3 className="font-serif text-[18px] font-bold leading-[1.3] text-slate-900 group-hover:text-slate-600 transition-colors">
+                                            {section.articles[0].title}
+                                        </h3>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <span className="text-[10px] text-slate-400">{section.articles[0].authorName || "Briefly"}</span>
+                                            <span className="text-slate-200 text-[10px]">·</span>
+                                            <span className="text-[10px] text-slate-400">{formatDateShort(section.articles[0])}</span>
+                                        </div>
+                                    </a>
+                                )}
                             </div>
-                            <div className="md:w-1/2 w-full flex justify-center">
-                                <iframe 
-                                    width="540" 
-                                    height="305" 
-                                    src="https://b33f5b02.sibforms.com/serve/MUIFAGBxCfyEwfx-cB0M9i9gOYvlwv3b9XmULA8_jGaWHLuG5zbH6c2QvO928ogIkVBjF1c1mj7KCG06Zfye3McOWoe9G04JeD_TsTFM9EDSz7QYpppQ-u5X9E5udLQ7RLKl0QOuqiTCBG1jawLH4u1WYJNwxQ1OrCbFri0xOGjcxz6ye7PhaJEy9ibaiQ4LS_foT82lqz32UOJdBw==" 
-                                    frameBorder="0" 
-                                    scrolling="auto" 
-                                    allowFullScreen 
-                                    style={{ display: 'block', marginLeft: 'auto', marginRight: 'auto', maxWidth: '100%', borderRadius: '12px' }}
-                                ></iframe>
+
+                            {/* 3 petits articles */}
+                            <div className="md:col-span-7 md:pl-6 mt-6 md:mt-0 flex flex-col gap-0">
+                                {section.articles.slice(1, 4).map((item, i) => (
+                                    <a key={item.id} href={`/article/${item.id}`} onClick={handleHaptic}
+                                        className={`group flex gap-4 py-4 ${i < 2 ? 'border-b border-slate-100' : ''}`}>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-serif text-[14px] font-bold leading-[1.35] text-slate-900 group-hover:text-slate-600 transition-colors line-clamp-2">
+                                                {item.title}
+                                            </h4>
+                                            <span className="text-[10px] text-slate-400 mt-1.5 block">{formatDateShort(item)}</span>
+                                        </div>
+                                        <div className="w-[72px] h-[60px] flex-shrink-0 overflow-hidden">
+                                            <img src={item.imageUrl} alt=""
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                        </div>
+                                    </a>
+                                ))}
                             </div>
                         </div>
                     </section>
-                )}
+                ))}
 
-                {/* --- VUE RECHERCHE / FILTRE UNIQUE --- */}
-                {(searchTerm || activeCategory !== "Tous") && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {filteredNews.map(item => <ArticleCard key={item.id} item={item} />)}
+                {/* ══ SECTION STATS ══ */}
+                <section className="mb-16 py-10 bg-slate-50 border border-slate-200 -mx-4 px-4 md:mx-0 md:px-12">
+                    <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto text-center">
+                        <div>
+                            <div className="font-serif text-[36px] font-bold text-slate-900 leading-none mb-1">
+                                {news.length}
+                            </div>
+                            <div className="text-[9px] font-black uppercase tracking-[.15em] text-slate-400">Articles</div>
+                        </div>
+                        <div className="border-x border-slate-200">
+                            <div className="font-serif text-[36px] font-bold text-slate-900 leading-none mb-1">
+                                {(() => { const v = news.reduce((a, c) => a + (c.views || 0), 0); return v >= 1000 ? `${(v/1000).toFixed(0)}k` : v; })()}
+                            </div>
+                            <div className="text-[9px] font-black uppercase tracking-[.15em] text-slate-400">Vues</div>
+                        </div>
+                        <div>
+                            <div className="font-serif text-[36px] font-bold text-slate-900 leading-none mb-1">
+                                {new Date().getFullYear() - 2023}
+                            </div>
+                            <div className="text-[9px] font-black uppercase tracking-[.15em] text-slate-400">Ans</div>
+                        </div>
                     </div>
-                )}
-
-                {/* --- SECTION CHIFFRES --- */}
-                <section className="mt-20 mb-12 py-12 bg-slate-900 rounded-[2.5rem] text-white px-8 md:px-16 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
-                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-around gap-12">
-                        <div className="text-center">
-                            <div className="flex items-center justify-center w-14 h-14 bg-white/10 rounded-2xl mb-4 mx-auto">
-                                <FileText size={28} />
-                            </div>
-                            <p className="text-4xl font-serif font-black italic tracking-tighter mb-1">{stats.totalArticles}</p>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Articles publiés</p>
-                        </div>
-
-                        <div className="w-px h-12 bg-white/10 hidden md:block" />
-
-                        <div className="text-center">
-                            <div className="flex items-center justify-center w-14 h-14 bg-white/10 rounded-2xl mb-4 mx-auto">
-                                <Eye size={28} />
-                            </div>
-                            <p className="text-4xl font-serif font-black italic tracking-tighter mb-1">
-                                {stats.totalViews > 1000 ? `${(stats.totalViews / 1000).toFixed(1)}k` : stats.totalViews}
-                            </p>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Vues totales</p>
-                        </div>
-
-                        <div className="w-px h-12 bg-white/10 hidden md:block" />
-
-                        <div className="text-center">
-                            <h4 className="text-xl font-serif italic font-black mb-2">Briefly Digital Media</h4>
-                            <p className="text-[9px] text-slate-400 max-w-[200px] mx-auto leading-relaxed uppercase font-bold tracking-widest">
-                                L'essentiel de l'information, décrypté pour vous depuis Lomé.
-                            </p>
-                        </div>
+                    <p className="text-center text-[11px] text-slate-500 mt-6 font-medium">
+                        Briefly Digital Media — L'essentiel de l'information, décrypté pour vous depuis Lomé.
+                    </p>
+                    <div className="flex items-center justify-center gap-4 mt-4">
+                        <a href={RSS_URL} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors">
+                            <Rss size={12} /> Flux RSS
+                        </a>
                     </div>
                 </section>
+
             </main>
         </div>
     );
 };
+
+/* ══════════════════════
+   CARTE MEDIUM (filtre/recherche)
+══════════════════════ */
+const ArticleCardMedium = ({ item, formatDate, handleHaptic, B24_BLUE }) => (
+    <article className="group">
+        <a href={`/article/${item.id}`} onClick={handleHaptic} className="block">
+            <div className="aspect-[16/10] overflow-hidden mb-3">
+                <img src={item.imageUrl} alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-600" loading="lazy" />
+            </div>
+            <span className="text-[9px] font-black uppercase tracking-[.12em] block mb-1.5" style={{ color: B24_BLUE }}>
+                {item.category}
+            </span>
+            <h3 className="font-serif text-[16px] font-bold leading-[1.35] text-slate-900 group-hover:text-slate-600 transition-colors line-clamp-2 mb-2">
+                {item.title}
+            </h3>
+            <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                <span>{item.authorName || "Briefly"}</span>
+                <span>·</span>
+                <span className="flex items-center gap-1"><Clock size={9} /> {formatDate(item)}</span>
+            </div>
+        </a>
+    </article>
+);
 
 export default Home;
