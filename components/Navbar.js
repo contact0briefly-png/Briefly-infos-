@@ -111,7 +111,7 @@ const Navbar = ({ B24_BLUE }) => {
                                 </span>
                                 {!scrolled && (
                                     <span className="text-[8px] font-bold uppercase tracking-[.22em] text-slate-400 mt-0.5">
-                                        L'info essentielle
+                                        INFOS
                                     </span>
                                 )}
                             </div>
