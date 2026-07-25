@@ -37,7 +37,7 @@ const Footer = ({ B24_BLUE }) => (
                             BRIEFLY
                         </div>
                         <div className="text-[9px] font-bold uppercase tracking-[.2em] text-slate-400 mt-0.5">
-                            L'info essentielle
+                            Infos
                         </div>
                     </div>
                 </Link>
