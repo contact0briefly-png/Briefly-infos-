@@ -548,6 +548,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
     <Eye size={13} />
     <span>{(article.views || 0).toLocaleString('fr-FR')} lectures</span>
 </div>
+</div>
 </header>
 
                         {/* Image principale */}
