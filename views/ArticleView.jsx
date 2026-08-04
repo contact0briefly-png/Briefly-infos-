@@ -520,22 +520,20 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
                                         {article.authorName ? article.authorName[0].toUpperCase() : 'B'}
                                     </div>
                                     <div>
-                                        {/* Remplace l'ancien bloc auteur par celui-ci */}
-<div className="flex items-center gap-3">
-    {/* Photo de profil depuis Firebase */}
-    {article.authorPhotoUrl ? (
+                                        {/* Photo de profil depuis Firebase */}
+    {article.authorPhotoUrl? (
         <a href={`/auteur/${article.authorId || ''}`} className="flex-shrink-0">
             <img
                 src={article.authorPhotoUrl}
                 alt={article.authorName}
-                className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                className="w-10 h-10 rounded-full object-cover border-slate-200"
             />
         </a>
     ) : (
         <a href={`/auteur/${article.authorId || ''}`} className="flex-shrink-0">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
                 style={{ backgroundColor: B24_BLUE || '#0f172a' }}>
-                {article.authorName ? article.authorName[0].toUpperCase() : 'B'}
+                {article.authorName? article.authorName[0].toUpperCase() : 'B'}
             </div>
         </a>
     )}
@@ -545,14 +543,14 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
             {article.authorName || 'Rédaction Briefly'}
         </a>
         <div className="text-[11px] text-slate-400 mt-0.5">{displayDate}</div>
-    </div>          
-        </div>        </div>
-                                <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                                    <Eye size={13} />
-                                    <span>{(article.views || 0).toLocaleString('fr-FR')} lectures</span>
-                                </div>
-                            </div>
-                        </header>
+    </div>
+</div> {/* <-- IL N'Y AVAIT QU'UN SEUL DIV A FERMER ICI */}
+<div className="flex items-center gap-2 text-[11px] text-slate-400">
+    <Eye size={13} />
+    <span>{(article.views || 0).toLocaleString('fr-FR')} lectures</span>
+</div>
+</div>
+</header>
 
                         {/* Image principale */}
                         <figure className="mb-10">
