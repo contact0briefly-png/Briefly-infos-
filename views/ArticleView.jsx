@@ -545,7 +545,8 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
             {article.authorName || 'Rédaction Briefly'}
         </a>
         <div className="text-[11px] text-slate-400 mt-0.5">{displayDate}</div>
-    </div>                          </div>
+    </div>          
+        </div>        </div>
                                 <div className="flex items-center gap-2 text-[11px] text-slate-400">
                                     <Eye size={13} />
                                     <span>{(article.views || 0).toLocaleString('fr-FR')} lectures</span>
