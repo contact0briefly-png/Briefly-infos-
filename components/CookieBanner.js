@@ -1,257 +1,431 @@
-'use client';
+"use client";
+import React, { useState, useEffect } from 'react';
+import { X, ChevronDown, ChevronUp, Shield, BarChart2, Target, Settings } from 'lucide-react';
 
-import { useState, useEffect } from 'react';
-import { ShieldCheck, Cookie, Settings, Check, X } from 'lucide-react';
+/* ══════════════════════════════════════════════════════
+   CONFIGURATION DES CATÉGORIES DE COOKIES
+══════════════════════════════════════════════════════ */
+const COOKIE_CATEGORIES = [
+    {
+        id: 'necessary',
+        icon: Shield,
+        name: 'Cookies essentiels',
+        description: 'Indispensables au fonctionnement du site. Ils ne peuvent pas être désactivés.',
+        required: true,
+        services: [
+            { name: 'Session utilisateur',   purpose: 'Maintien de votre connexion et préférences de navigation' },
+            { name: 'Sécurité CSRF',         purpose: 'Protection contre les attaques de falsification de requêtes' },
+            { name: 'Consentement cookies',  purpose: 'Mémorisation de vos choix de confidentialité' },
+        ],
+    },
+    {
+        id: 'analytics',
+        icon: BarChart2,
+        name: 'Cookies analytiques',
+        description: 'Nous aident à comprendre comment les visiteurs interagissent avec le site afin d\'améliorer l\'expérience.',
+        required: false,
+        services: [
+            { name: 'Firebase Analytics',  purpose: 'Comptage des visites et articles les plus lus (anonymisé)' },
+            { name: 'Compteur de vues',    purpose: 'Suivi du nombre de lectures par article' },
+            { name: 'Performance réseau',  purpose: 'Mesure des temps de chargement pour optimiser le site' },
+        ],
+    },
+    {
+        id: 'functional',
+        icon: Settings,
+        name: 'Cookies fonctionnels',
+        description: 'Permettent des fonctionnalités améliorées comme la mémorisation de vos préférences.',
+        required: false,
+        services: [
+            { name: 'Préférences d\'affichage', purpose: 'Mémorisation de votre catégorie favorite et langue' },
+            { name: 'Notifications push',        purpose: 'Envoi d\'alertes lors de nouvelles publications (WebPushr)' },
+            { name: 'Telegram WebApp',           purpose: 'Intégration avec l\'application Telegram' },
+        ],
+    },
+    {
+        id: 'marketing',
+        icon: Target,
+        name: 'Cookies de personnalisation',
+        description: 'Utilisés pour afficher des contenus pertinents en fonction de vos intérêts.',
+        required: false,
+        services: [
+            { name: 'Embeds TikTok',     purpose: 'Affichage de vidéos TikTok intégrées dans les articles' },
+            { name: 'Embeds YouTube',    purpose: 'Lecture de vidéos YouTube intégrées dans les articles' },
+            { name: 'Embeds Instagram',  purpose: 'Affichage de publications Instagram dans les articles' },
+            { name: 'Embeds Twitter/X',  purpose: 'Affichage de tweets intégrés dans les articles' },
+        ],
+    },
+];
 
-const CONSENT_KEY = 'briefly-cookie-consent-v1';
+const CONSENT_KEY   = 'briefly_cookie_consent';
+const CONSENT_VER   = '1.0';
 
-const DEFAULT_PREFERENCES = {
-  necessary: true,
-  analytics: false,
-  notifications: true, // Webpushr / Notifications
+/* ══ Helpers ══ */
+const getStoredConsent = () => {
+    try {
+        const raw = localStorage.getItem(CONSENT_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (parsed.version !== CONSENT_VER) return null;
+        return parsed;
+    } catch { return null; }
 };
 
-export const hasConsent = (category = 'necessary') => {
-  if (typeof window === 'undefined') return false;
-  try {
-    const raw = localStorage.getItem(CONSENT_KEY);
-    if (!raw) return false;
-    const parsed = JSON.parse(raw);
-    return Boolean(parsed[category]);
-  } catch {
-    return false;
-  }
+const saveConsent = (prefs) => {
+    const data = {
+        version:   CONSENT_VER,
+        date:      new Date().toISOString(),
+        prefs,
+    };
+    localStorage.setItem(CONSENT_KEY, JSON.stringify(data));
+    // Dispatche un événement global pour que les autres composants réagissent
+    window.dispatchEvent(new CustomEvent('briefly:consent', { detail: prefs }));
+    applyConsent(prefs);
 };
 
-// ============================== //
-// CHARGEMENT DES SCRIPTS EXTERNES//
-// ============================== //
-
-/**
- * Charge le script Webpushr pour afficher la cloche et demander l'autorisation push
- */
-const loadWebpushr = () => {
-  if (typeof window === 'undefined' || window.__webpushrLoaded) return;
-
-  // Configuration Webpushr (À remplacer avec ta clé réelle si besoin)
-  window._webpushr = window._webpushr || [];
-  window._webpushr.push(['setup', { key: 'TA_CLE_WEBPUSHR' }]); // <-- Remplace par ta clé Webpushr
-
-  const script = document.createElement('script');
-  script.src = 'https://cdn.webpushr.com/app.min.js';
-  script.async = true;
-  document.head.appendChild(script);
-
-  window.__webpushrLoaded = true;
-};
-
-/**
- * Charge Google Analytics
- */
-const loadAnalytics = () => {
-  if (typeof window === 'undefined' || window.__analyticsLoaded) return;
-
-  const script = document.createElement('script');
-  script.src = "https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"; // <-- Ton ID GA
-  script.async = true;
-  document.head.appendChild(script);
-
-  window.dataLayer = window.dataLayer || [];
-  function gtag() {
-    window.dataLayer.push(arguments);
-  }
-  gtag('js', new Date());
-  gtag('config', 'G-XXXXXXX');
-
-  window.__analyticsLoaded = true;
-};
-
-/**
- * Déclenche les scripts selon les préférences enregistrées
- */
-const applyConsentSettings = (preferences) => {
-  if (typeof window === 'undefined') return;
-
-  // 1. Webpushr (Notifications Push)
-  if (preferences.notifications) {
-    loadWebpushr();
-  }
-
-  // 2. Google Analytics
-  if (preferences.analytics) {
-    loadAnalytics();
-  }
-};
-
-// ============================== //
-// COMPOSANT BANNIÈRE             //
-// ============================== //
-export default function CookieBanner({ B24_BLUE = '#2563eb' }) {
-  const [showBanner, setShowBanner] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
-
-  useEffect(() => {
-    const rawConsent = localStorage.getItem(CONSENT_KEY);
-    if (!rawConsent) {
-      setShowBanner(true);
+/* ══ Application réelle du consentement ══ */
+const applyConsent = (prefs) => {
+    // Analytics
+    if (prefs.analytics) {
+        window['ga-disable-GA_MEASUREMENT_ID'] = false;
     } else {
-      try {
-        const parsed = JSON.parse(rawConsent);
-        setPreferences(parsed);
-        applyConsentSettings(parsed);
-      } catch {
-        setShowBanner(true);
-      }
+        window['ga-disable-GA_MEASUREMENT_ID'] = true;
+        // Supprimer les cookies analytics existants
+        ['_ga', '_gid', '_gat'].forEach(name => {
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname}`;
+        });
     }
-  }, []);
 
-  const saveConsent = (newPreferences) => {
-    localStorage.setItem(CONSENT_KEY, JSON.stringify(newPreferences));
-    setPreferences(newPreferences);
-    applyConsentSettings(newPreferences);
-    setShowBanner(false);
-    setShowModal(false);
-  };
+    // Fonctionnel — notifications push
+    if (!prefs.functional) {
+        // Désactiver les notifications si refusées
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then(reg => {
+                reg.pushManager.getSubscription().then(sub => sub?.unsubscribe());
+            }).catch(() => {});
+        }
+    }
 
-  const handleAcceptAll = () => {
-    saveConsent({ necessary: true, analytics: true, notifications: true });
-  };
+    // Marketing — embeds tiers
+    if (!prefs.marketing) {
+        // Bloquer les iframes tierces déjà chargées
+        document.querySelectorAll('iframe[src*="tiktok"], iframe[src*="youtube"], iframe[src*="instagram"], iframe[src*="twitter"]').forEach(f => {
+            f.dataset.blockedSrc = f.src;
+            f.src = 'about:blank';
+        });
+    } else {
+        // Restaurer les iframes bloquées
+        document.querySelectorAll('iframe[data-blocked-src]').forEach(f => {
+            f.src = f.dataset.blockedSrc;
+            delete f.dataset.blockedSrc;
+        });
+    }
+};
 
-  const handleRefuseAll = () => {
-    // Si tu considères Webpushr comme un service essentiel ou désirable,
-    // tu peux ajuster si le refus des cookies désactive aussi les notifications.
-    saveConsent({ necessary: true, analytics: false, notifications: false });
-  };
+/* ══════════════════════════════════════════════════════
+   COMPOSANT PRINCIPAL
+══════════════════════════════════════════════════════ */
+const CookieConsent = () => {
+    const [visible,      setVisible]      = useState(false);
+    const [panel,        setPanel]        = useState(false); // panneau détaillé
+    const [expanded,     setExpanded]     = useState({});
+    const [prefs,        setPrefs]        = useState({
+        necessary:  true,
+        analytics:  false,
+        functional: false,
+        marketing:  false,
+    });
 
-  const handleSavePreferences = () => {
-    saveConsent(preferences);
-  };
+    useEffect(() => {
+        const stored = getStoredConsent();
+        if (!stored) {
+            // Afficher la bannière après un court délai
+            const t = setTimeout(() => setVisible(true), 800);
+            return () => clearTimeout(t);
+        }
+        // Appliquer les préférences stockées sans afficher la bannière
+        setPrefs(stored.prefs);
+        applyConsent(stored.prefs);
+    }, []);
 
-  if (!showBanner) return null;
+    const acceptAll = () => {
+        const all = { necessary: true, analytics: true, functional: true, marketing: true };
+        setPrefs(all);
+        saveConsent(all);
+        setVisible(false);
+        setPanel(false);
+    };
 
-  return (
-    <>
-      <div 
-        role="dialog"
-        className="fixed bottom-4 left-4 right-4 md:left-auto md:right-8 md:max-w-lg bg-white/95 backdrop-blur-md border border-slate-200 shadow-2xl p-6 z-[9999] rounded-2xl"
-      >
-        <div className="flex items-start gap-4">
-          <div 
-            className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0" 
-            style={{ color: B24_BLUE }} 
-          >
-            <Cookie size={22} />
-          </div>
+    const rejectAll = () => {
+        const minimal = { necessary: true, analytics: false, functional: false, marketing: false };
+        setPrefs(minimal);
+        saveConsent(minimal);
+        setVisible(false);
+        setPanel(false);
+    };
 
-          <div className="flex-1">
-            <h3 className="font-bold text-slate-900 text-base">
-              Respect de votre vie privée
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed mt-1">
-              Nous utilisons des cookies pour mesurer notre audience et vous envoyer des notifications d'actualité en direct.
-            </p>
-          </div>
-        </div>
+    const saveCustom = () => {
+        saveConsent(prefs);
+        setVisible(false);
+        setPanel(false);
+    };
 
-        <div className="flex flex-col sm:flex-row gap-2 mt-5">
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex-1 px-3 py-2.5 text-xs font-semibold rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-1.5"
-          >
-            <Settings size={14} />
-            Personnaliser
-          </button>
-          
-          <button
-            onClick={handleRefuseAll}
-            className="flex-1 px-3 py-2.5 text-xs font-semibold rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
-          >
-            Tout refuser
-          </button>
+    const togglePref = (id) => {
+        if (id === 'necessary') return;
+        setPrefs(p => ({ ...p, [id]: !p[id] }));
+    };
 
-          <button
-            onClick={handleAcceptAll}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-white transition-opacity hover:opacity-90 shadow-sm"
-            style={{ backgroundColor: B24_BLUE }}
-          >
-            <ShieldCheck size={14} />
-            Tout accepter
-          </button>
-        </div>
-      </div>
+    const toggleExpand = (id) => {
+        setExpanded(e => ({ ...e, [id]: !e[id] }));
+    };
 
-      {showModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <Settings size={18} style={{ color: B24_BLUE }} />
-                <h4 className="font-bold text-slate-900 text-sm">
-                  Préférences
-                </h4>
-              </div>
-              <button
-                onClick={() => setShowModal(false)}
-                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600"
-              >
-                <X size={18} />
-              </button>
-            </div>
+    if (!visible) return null;
 
-            <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto text-xs">
-              <div className="flex items-start justify-between gap-3 p-3 bg-slate-50 rounded-xl">
-                <div>
-                  <span className="font-bold text-slate-900 block">Nécessaires</span>
-                  <p className="text-slate-500 mt-0.5">Fonctionnement de base du site.</p>
-                </div>
-                <input type="checkbox" disabled checked className="mt-1 h-4 w-4 rounded" />
-              </div>
-
-              {/* Option Webpushr */}
-              <div className="flex items-start justify-between gap-3 p-3 border border-slate-100 rounded-xl">
-                <div>
-                  <span className="font-bold text-slate-900 block">Notifications Push</span>
-                  <p className="text-slate-500 mt-0.5">Autoriser la cloche et l'envoi d'alertes d'information.</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={preferences.notifications}
-                  onChange={(e) => setPreferences({ ...preferences, notifications: e.target.checked })}
-                  className="mt-1 h-4 w-4 rounded cursor-pointer"
-                  style={{ accentColor: B24_BLUE }}
+    return (
+        <>
+            {/* Overlay sombre si panneau ouvert */}
+            {panel && (
+                <div
+                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"
+                    onClick={() => setPanel(false)}
                 />
-              </div>
+            )}
 
-              {/* Option Analytics */}
-              <div className="flex items-start justify-between gap-3 p-3 border border-slate-100 rounded-xl">
-                <div>
-                  <span className="font-bold text-slate-900 block">Analytiques</span>
-                  <p className="text-slate-500 mt-0.5">Mesure d'audience (Google Analytics).</p>
+            {/* ══ BANNIÈRE PRINCIPALE ══ */}
+            {!panel && (
+                <div className="fixed bottom-0 left-0 right-0 z-[9999] p-4 md:p-6">
+                    <div className="max-w-[900px] mx-auto bg-white border border-slate-200 shadow-2xl shadow-slate-900/20">
+                        {/* Barre de titre */}
+                        <div className="bg-slate-900 px-6 py-4 flex items-center justify-between">
+                            <div className="flex items-center gap-2.5">
+                                <Shield size={16} className="text-white opacity-70" />
+                                <span className="text-[11px] font-black uppercase tracking-[.2em] text-white">
+                                    Confidentialité & Cookies
+                                </span>
+                            </div>
+                            <span className="text-[9px] font-medium text-slate-400 uppercase tracking-widest">
+                                Briefly Digital Media
+                            </span>
+                        </div>
+
+                        <div className="px-6 py-5">
+                            <p className="text-[13px] text-slate-600 leading-relaxed mb-5">
+                                Briefly utilise des cookies pour améliorer votre expérience, analyser notre audience et afficher des contenus multimédias.
+                                Vous pouvez choisir librement ce que vous acceptez. Les cookies essentiels sont toujours actifs car ils garantissent le bon fonctionnement du site.
+                            </p>
+
+                            {/* Aperçu rapide des catégories */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
+                                {COOKIE_CATEGORIES.map(cat => {
+                                    const Icon = cat.icon;
+                                    const active = prefs[cat.id];
+                                    return (
+                                        <div key={cat.id}
+                                            className={`flex items-center gap-2 px-3 py-2 border text-[10px] font-bold uppercase tracking-[.08em] transition-colors ${
+                                                active
+                                                    ? 'border-slate-900 bg-slate-900 text-white'
+                                                    : 'border-slate-200 bg-slate-50 text-slate-500'
+                                            }`}>
+                                            <Icon size={11} />
+                                            <span className="truncate">{cat.name.split(' ')[1] || cat.name.split(' ')[0]}</span>
+                                            {cat.required && <span className="ml-auto text-[8px] opacity-60">Requis</span>}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                <button onClick={acceptAll}
+                                    className="flex-1 sm:flex-none px-6 py-2.5 bg-slate-900 hover:bg-slate-700 text-white text-[11px] font-black uppercase tracking-widest transition-colors">
+                                    Tout accepter
+                                </button>
+                                <button onClick={rejectAll}
+                                    className="flex-1 sm:flex-none px-6 py-2.5 border border-slate-300 hover:border-slate-900 text-slate-600 hover:text-slate-900 text-[11px] font-bold uppercase tracking-widest transition-all">
+                                    Tout refuser
+                                </button>
+                                <button onClick={() => setPanel(true)}
+                                    className="flex-1 sm:flex-none px-6 py-2.5 border border-slate-200 hover:border-slate-400 text-slate-500 hover:text-slate-700 text-[11px] font-bold uppercase tracking-widest transition-all">
+                                    Personnaliser
+                                </button>
+                            </div>
+
+                            <p className="text-[10px] text-slate-400 mt-4">
+                                En continuant à naviguer sans faire de choix, seuls les cookies essentiels seront utilisés.
+                                Consultez notre{' '}
+                                <a href="/confidentialite" className="underline hover:text-slate-700 transition-colors">politique de confidentialité</a>.
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={preferences.analytics}
-                  onChange={(e) => setPreferences({ ...preferences, analytics: e.target.checked })}
-                  className="mt-1 h-4 w-4 rounded cursor-pointer"
-                  style={{ accentColor: B24_BLUE }}
-                />
-              </div>
-            </div>
+            )}
 
-            <div className="flex gap-2 p-4 bg-slate-50 border-t border-slate-100">
-              <button
-                onClick={handleSavePreferences}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white"
-                style={{ backgroundColor: B24_BLUE }}
-              >
-                <Check size={14} />
-                Enregistrer mes choix
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
+            {/* ══ PANNEAU DÉTAILLÉ ══ */}
+            {panel && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                    <div className="bg-white border border-slate-200 shadow-2xl w-full max-w-[680px] max-h-[90vh] flex flex-col">
+
+                        {/* Header */}
+                        <div className="bg-slate-900 px-6 py-4 flex items-center justify-between flex-shrink-0">
+                            <div className="flex items-center gap-2.5">
+                                <Shield size={16} className="text-white opacity-70" />
+                                <span className="text-[11px] font-black uppercase tracking-[.2em] text-white">
+                                    Gérer mes préférences
+                                </span>
+                            </div>
+                            <button onClick={() => setPanel(false)}
+                                className="text-slate-400 hover:text-white transition-colors">
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {/* Intro */}
+                        <div className="px-6 py-4 border-b border-slate-100 flex-shrink-0">
+                            <p className="text-[12px] text-slate-500 leading-relaxed">
+                                Sélectionnez les types de cookies que vous souhaitez autoriser. Vous pouvez modifier ces préférences à tout moment.
+                                Les cookies essentiels sont toujours actifs et ne peuvent pas être désactivés.
+                            </p>
+                        </div>
+
+                        {/* Catégories — scrollable */}
+                        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+                            {COOKIE_CATEGORIES.map(cat => {
+                                const Icon    = cat.icon;
+                                const isOn    = prefs[cat.id];
+                                const isOpen  = expanded[cat.id];
+                                return (
+                                    <div key={cat.id} className={`border transition-colors ${isOn ? 'border-slate-300' : 'border-slate-100'}`}>
+                                        {/* Ligne principale */}
+                                        <div className="flex items-start gap-4 p-4">
+                                            {/* Icône */}
+                                            <div className={`w-8 h-8 flex items-center justify-center flex-shrink-0 mt-0.5 ${isOn ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                                <Icon size={15} />
+                                            </div>
+
+                                            {/* Infos */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-[12px] font-bold text-slate-900">{cat.name}</span>
+                                                    {cat.required && (
+                                                        <span className="text-[8px] font-black uppercase tracking-[.1em] px-1.5 py-0.5 bg-slate-100 text-slate-500">
+                                                            Toujours actif
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[11px] text-slate-500 leading-relaxed">{cat.description}</p>
+
+                                                {/* Détails services */}
+                                                {isOpen && (
+                                                    <div className="mt-3 space-y-2">
+                                                        {cat.services.map((svc, i) => (
+                                                            <div key={i} className="flex gap-3 py-2 border-t border-slate-100 first:border-0">
+                                                                <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0" />
+                                                                <div>
+                                                                    <div className="text-[10px] font-bold text-slate-700">{svc.name}</div>
+                                                                    <div className="text-[10px] text-slate-400 mt-0.5">{svc.purpose}</div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Bouton voir les services */}
+                                                <button onClick={() => toggleExpand(cat.id)}
+                                                    className="mt-2 flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-slate-700 transition-colors uppercase tracking-[.08em]">
+                                                    {isOpen ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                                                    {isOpen ? 'Masquer' : `Voir ${cat.services.length} service${cat.services.length > 1 ? 's' : ''}`}
+                                                </button>
+                                            </div>
+
+                                            {/* Toggle */}
+                                            <div className="flex-shrink-0 mt-0.5">
+                                                {cat.required ? (
+                                                    <div className="w-10 h-5 bg-slate-900 rounded-full flex items-center justify-end pr-0.5 cursor-not-allowed opacity-60">
+                                                        <div className="w-4 h-4 bg-white rounded-full" />
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => togglePref(cat.id)}
+                                                        className={`relative w-10 h-5 rounded-full transition-colors duration-200 focus:outline-none ${isOn ? 'bg-slate-900' : 'bg-slate-200'}`}
+                                                        role="switch"
+                                                        aria-checked={isOn}
+                                                        aria-label={`${isOn ? 'Désactiver' : 'Activer'} ${cat.name}`}>
+                                                        <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Footer actions */}
+                        <div className="px-6 py-4 border-t border-slate-100 flex-shrink-0 bg-slate-50">
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <button onClick={saveCustom}
+                                    className="flex-1 px-6 py-2.5 bg-slate-900 hover:bg-slate-700 text-white text-[11px] font-black uppercase tracking-widest transition-colors">
+                                    Enregistrer mes choix
+                                </button>
+                                <button onClick={acceptAll}
+                                    className="flex-1 px-6 py-2.5 border border-slate-300 hover:border-slate-900 text-slate-700 hover:text-slate-900 text-[11px] font-bold uppercase tracking-widest transition-all">
+                                    Tout accepter
+                                </button>
+                                <button onClick={rejectAll}
+                                    className="flex-1 px-6 py-2.5 border border-slate-200 text-slate-400 hover:text-slate-600 text-[11px] font-bold uppercase tracking-widest transition-all">
+                                    Tout refuser
+                                </button>
+                            </div>
+                            <p className="text-[9px] text-slate-400 mt-3 text-center">
+                                Vos choix s'appliquent immédiatement et sont mémorisés pour vos prochaines visites.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+};
+
+/* ══════════════════════════════════════════════════════
+   BOUTON FLOTTANT — rouvrir les préférences
+   À placer dans le footer ou en bas de page
+══════════════════════════════════════════════════════ */
+export const CookieSettingsButton = ({ className = '' }) => {
+    const reopen = () => {
+        localStorage.removeItem(CONSENT_KEY);
+        window.location.reload();
+    };
+    return (
+        <button onClick={reopen}
+            className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[.1em] text-slate-400 hover:text-slate-700 transition-colors ${className}`}>
+            <Shield size={11} />
+            Gérer les cookies
+        </button>
+    );
+};
+
+/* ══════════════════════════════════════════════════════
+   HOOK — lire les préférences depuis n'importe où
+══════════════════════════════════════════════════════ */
+export const useCookieConsent = () => {
+    const [prefs, setPrefs] = useState({
+        necessary:  true,
+        analytics:  false,
+        functional: false,
+        marketing:  false,
+    });
+
+    useEffect(() => {
+        const stored = getStoredConsent();
+        if (stored) setPrefs(stored.prefs);
+
+        const handler = (e) => setPrefs(e.detail);
+        window.addEventListener('briefly:consent', handler);
+        return () => window.removeEventListener('briefly:consent', handler);
+    }, []);
+
+    return prefs;
+};
+
+export default CookieConsent;
