@@ -1,7 +1,6 @@
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import CookieBanner from "@/components/CookieBanner";
 import { B24_BLUE } from "@/lib/firebase";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
