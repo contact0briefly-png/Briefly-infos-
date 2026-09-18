@@ -131,7 +131,7 @@ const Home = ({ news = [], B24_BLUE }) => {
     if (searchTerm || activeCategory !== "Tous") {
         return (
             <div className="bg-white min-h-screen">
-                <div className="h-14 md:h-[113px]" />
+               
                 {/* Bannière pub même en vue filtre */}
                 <AdBanner />
                 <div className="max-w-[1280px] mx-auto px-4 py-8">
