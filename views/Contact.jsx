@@ -21,7 +21,6 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
 const appId = 'bbriefly-7e3b8';
 
- <AdBanner />
 
 // --- LOGOS OFFICIELS (SVG STRICTS) ---
 const OfficialIcons = {
@@ -81,7 +80,7 @@ const Contact = ({ B24_BLUE }) => {
 
     return (
         <div className="bg-[#f6f6f8] min-h-screen font-sans antialiased text-slate-900 w-full overflow-x-hidden">
-            
+             <AdBanner />
             <AnimatePresence>
                 {showPopup && (
                     <motion.div 
