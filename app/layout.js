@@ -1,5 +1,6 @@
 import "./globals.css";
 import AdManager from "@/components/AdManager";
+import { AdBanner } from "@/components/AdManager";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CookieBanner from "@/components/CookieBanner";
@@ -52,6 +53,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="bg-white text-black min-h-screen flex flex-col antialiased">
+        <AdBanner />
         <Navbar B24_BLUE={B24_BLUE} />
         <main className="flex-grow">{children}</main>
         <Footer B24_BLUE={B24_BLUE} />
