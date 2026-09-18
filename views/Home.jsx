@@ -3,33 +3,29 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Clock, ChevronRight, Mail, Rss } from 'lucide-react';
+import { AdBanner, AdPopup } from '@/components/AdManager';
 
 const RSS_URL = "https://rss.app/feeds/TENwT5ha8Msc6ON4.xml";
 const BREVO_ACTION = "https://b33f5b02.sibforms.com/serve/MUIFAGBxCfyEwfx-cB0M9i9gOYvlwv3b9XmULA8_jGaWHLuG5zbH6c2QvO928ogIkVBjF1c1mj7KCG06Zfye3McOWoe9G04JeD_TsTFM9EDSz7QYpppQ-u5X9E5udLQ7RLKl0QOuqiTCBG1jawLH4u1WYJNwxQ1OrCbFri0xOGjcxz6ye7PhaJEy9ibaiQ4LS_foT82lqz32UOJdBw==";
 
-/* ══ Mini avatar auteur ══ */
+/* ── Avatar auteur miniature ── */
 const AuthorAvatar = ({ item, size = 20 }) => {
     if (item.authorPhotoUrl) {
         return (
-            <img
-                src={item.authorPhotoUrl}
-                alt={item.authorName || 'Briefly'}
+            <img src={item.authorPhotoUrl} alt={item.authorName || 'Briefly'}
                 style={{ width: size, height: size }}
-                className="rounded-full object-cover flex-shrink-0 border border-slate-200"
-            />
+                className="rounded-full object-cover flex-shrink-0 border border-slate-200" />
         );
     }
     return (
-        <div
-            style={{ width: size, height: size, fontSize: size * 0.45 }}
-            className="rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 flex-shrink-0"
-        >
+        <div style={{ width: size, height: size, fontSize: size * 0.45 }}
+            className="rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 flex-shrink-0">
             {item.authorName ? item.authorName[0].toUpperCase() : 'B'}
         </div>
     );
 };
 
-/* ══ Newsletter ══ */
+/* ── Newsletter ── */
 const NewsletterMini = () => {
     const [email,   setEmail]   = useState('');
     const [status,  setStatus]  = useState(null);
@@ -62,8 +58,7 @@ const NewsletterMini = () => {
                         <input type="email" value={email} required
                             onChange={e => { setEmail(e.target.value); setStatus(null); }}
                             placeholder="Votre adresse email"
-                            className="flex-1 border border-slate-300 border-r-0 px-3 py-2 text-[13px] focus:outline-none focus:border-slate-900 transition-colors"
-                        />
+                            className="flex-1 border border-slate-300 border-r-0 px-3 py-2 text-[13px] focus:outline-none focus:border-slate-900 transition-colors" />
                         <button type="submit" disabled={loading}
                             className="bg-slate-900 text-white px-5 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 transition-colors disabled:opacity-50 whitespace-nowrap">
                             {loading ? '…' : "S'inscrire"}
@@ -75,6 +70,9 @@ const NewsletterMini = () => {
     );
 };
 
+/* ══════════════════════════════════════
+   HOME
+══════════════════════════════════════ */
 const Home = ({ news = [], B24_BLUE }) => {
     const searchParams   = useSearchParams();
     const router         = useRouter();
@@ -129,10 +127,13 @@ const Home = ({ news = [], B24_BLUE }) => {
 
     const dynamicCategories = useMemo(() => ["Tous", ...new Set(news.map(n => n.category).filter(Boolean))], [news]);
 
+    /* ── Vue recherche / filtre ── */
     if (searchTerm || activeCategory !== "Tous") {
         return (
             <div className="bg-white min-h-screen">
                 <div className="h-14 md:h-[113px]" />
+                {/* Bannière pub même en vue filtre */}
+                <AdBanner />
                 <div className="max-w-[1280px] mx-auto px-4 py-8">
                     <div className="border-b-2 border-slate-900 pb-2 mb-8 flex items-center justify-between">
                         <h2 className="text-[11px] font-black uppercase tracking-[.2em] text-slate-900">
@@ -144,8 +145,15 @@ const Home = ({ news = [], B24_BLUE }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filteredNews.map(item => <ArticleCard key={item.id} item={item} formatDate={formatDateShort} handleHaptic={handleHaptic} B24_BLUE={B24_BLUE} />)}
                     </div>
-                    {!filteredNews.length && <div className="text-center py-20 text-slate-400"><div className="text-4xl mb-4">∅</div><p className="text-[13px]">Aucun article trouvé.</p></div>}
+                    {!filteredNews.length && (
+                        <div className="text-center py-20 text-slate-400">
+                            <div className="text-4xl mb-4">∅</div>
+                            <p className="text-[13px]">Aucun article trouvé.</p>
+                        </div>
+                    )}
                 </div>
+                {/* Popup pub */}
+                <AdPopup />
             </div>
         );
     }
@@ -154,7 +162,12 @@ const Home = ({ news = [], B24_BLUE }) => {
         <div className="bg-white min-h-screen font-sans text-slate-900">
             <div className="h-14 md:h-[113px] shrink-0" />
 
-            {/* TICKER */}
+            {/* ══ BANNIÈRE PUBLICITAIRE ══
+                Exactement dans l'espace disponible entre la navbar et le ticker
+                Gérée depuis l'interface administrateur                          */}
+            <AdBanner />
+
+            {/* ══ TICKER ══ */}
             {tickerNews.length > 0 && (
                 <div className="bg-slate-900 text-white overflow-hidden">
                     <div className="max-w-[1280px] mx-auto px-4 flex items-center gap-4 h-9">
@@ -172,13 +185,15 @@ const Home = ({ news = [], B24_BLUE }) => {
                 </div>
             )}
 
-            {/* BARRE CATÉGORIES */}
+            {/* ══ BARRE CATÉGORIES ══ */}
             <div className="border-b border-slate-200 sticky top-14 md:top-[57px] bg-white z-40">
                 <div className="max-w-[1280px] mx-auto px-4">
                     <div className="flex items-center overflow-x-auto no-scrollbar">
                         {dynamicCategories.slice(0, 10).map(cat => (
                             <button key={cat} onClick={() => handleCategoryClick(cat)}
-                                className={`flex-shrink-0 px-4 py-3 text-[11px] font-bold uppercase tracking-[.1em] border-b-2 transition-all whitespace-nowrap ${activeCategory === cat ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'}`}>
+                                className={`flex-shrink-0 px-4 py-3 text-[11px] font-bold uppercase tracking-[.1em] border-b-2 transition-all whitespace-nowrap ${
+                                    activeCategory === cat ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
+                                }`}>
                                 {cat}
                             </button>
                         ))}
@@ -188,14 +203,17 @@ const Home = ({ news = [], B24_BLUE }) => {
 
             <main className="max-w-[1280px] mx-auto px-4">
 
-                {/* GRANDE UNE */}
+                {/* ══ GRANDE UNE ══ */}
                 {une && (
                     <section className="py-8 border-b border-slate-200">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
+
+                            {/* Article principal */}
                             <div className="lg:col-span-7 lg:pr-8 lg:border-r lg:border-slate-200">
                                 <a href={`/article/${une.id}`} onClick={handleHaptic} className="group block no-underline">
                                     <div className="relative aspect-[16/10] overflow-hidden mb-4">
-                                        <img src={une.imageUrl} alt={une.title} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700" />
+                                        <img src={une.imageUrl} alt={une.title}
+                                            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700" />
                                         <span className="absolute top-0 left-0 bg-slate-900 text-white text-[9px] font-black uppercase tracking-[.15em] px-2.5 py-1.5">À la une</span>
                                     </div>
                                     <span className="text-[10px] font-black uppercase tracking-[.12em]" style={{ color: B24_BLUE }}>{une.category}</span>
@@ -208,6 +226,8 @@ const Home = ({ news = [], B24_BLUE }) => {
                                     </div>
                                 </a>
                             </div>
+
+                            {/* Articles secondaires */}
                             <div className="lg:col-span-5 lg:pl-8 mt-6 lg:mt-0 flex flex-col">
                                 {uneSecondaires.map((item, i) => (
                                     <a key={item.id} href={`/article/${item.id}`} onClick={handleHaptic}
@@ -234,7 +254,7 @@ const Home = ({ news = [], B24_BLUE }) => {
 
                 <NewsletterMini />
 
-                {/* EN BREF */}
+                {/* ══ EN BREF ══ */}
                 {enBref.length > 0 && (
                     <section className="mb-10">
                         <div className="border-b-2 border-slate-900 pb-2 mb-5"><h2 className="text-[11px] font-black uppercase tracking-[.2em] text-slate-900">En bref</h2></div>
@@ -254,12 +274,13 @@ const Home = ({ news = [], B24_BLUE }) => {
                     </section>
                 )}
 
-                {/* RUBRIQUES */}
+                {/* ══ RUBRIQUES ══ */}
                 {rubriquesSections.map(section => (
                     <section key={section.name} className="mb-12 pb-12 border-b border-slate-200 last:border-0">
                         <div className="flex items-center justify-between mb-6 border-b-2 border-slate-900 pb-2">
                             <h2 className="text-[13px] font-black uppercase tracking-[.18em] text-slate-900">{section.name}</h2>
-                            <button onClick={() => handleCategoryClick(section.name)} className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-900 flex items-center gap-1 transition-colors">
+                            <button onClick={() => handleCategoryClick(section.name)}
+                                className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-900 flex items-center gap-1 transition-colors">
                                 Tout voir <ChevronRight size={11} />
                             </button>
                         </div>
@@ -303,7 +324,7 @@ const Home = ({ news = [], B24_BLUE }) => {
                     </section>
                 ))}
 
-                {/* STATS */}
+                {/* ══ STATS ══ */}
                 <section className="mb-16 py-10 bg-slate-50 border border-slate-200 -mx-4 px-4 md:mx-0 md:px-12">
                     <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto text-center">
                         <div>
@@ -330,15 +351,22 @@ const Home = ({ news = [], B24_BLUE }) => {
                     </div>
                 </section>
             </main>
+
+            {/* ══ POPUP PUBLICITAIRE ══
+                S'affiche une seule fois par visiteur
+                Mémorisé dans localStorage                */}
+            <AdPopup />
         </div>
     );
 };
 
+/* ── Carte article (vue filtre/recherche) ── */
 const ArticleCard = ({ item, formatDate, handleHaptic, B24_BLUE }) => (
     <article className="group">
         <a href={`/article/${item.id}`} onClick={handleHaptic} className="block no-underline">
             <div className="aspect-[16/10] overflow-hidden mb-3">
-                <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                <img src={item.imageUrl} alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
             </div>
             <span className="text-[9px] font-black uppercase tracking-[.12em] block mb-1.5" style={{ color: B24_BLUE }}>{item.category}</span>
             <h3 className="font-serif font-bold text-[16px] leading-[1.35] text-slate-900 group-hover:text-slate-600 transition-colors line-clamp-2 mb-2">{item.title}</h3>
