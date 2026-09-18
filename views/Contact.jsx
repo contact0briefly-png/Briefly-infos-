@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { AdBanner } from "@/components/AdManager";
 import { motion, AnimatePresence } from 'framer-motion';
 import AdBannerSquare from '../components/AdBannerSquare';
 import { initializeApp, getApps } from "firebase/app";
@@ -19,6 +20,8 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
 const appId = 'bbriefly-7e3b8';
+
+ <AdBanner />
 
 // --- LOGOS OFFICIELS (SVG STRICTS) ---
 const OfficialIcons = {
