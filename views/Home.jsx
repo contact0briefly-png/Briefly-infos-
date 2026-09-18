@@ -160,7 +160,6 @@ const Home = ({ news = [], B24_BLUE }) => {
 
     return (
         <div className="bg-white min-h-screen font-sans text-slate-900">
-            <div className="h-14 md:h-[113px] shrink-0" />
 
             {/* ══ BANNIÈRE PUBLICITAIRE ══
                 Exactement dans l'espace disponible entre la navbar et le ticker
