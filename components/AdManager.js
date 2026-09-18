@@ -55,7 +55,6 @@ export const AdBanner = () => {
     return (
         <div
             className="w-full relative overflow-hidden bg-slate-50 border-b border-slate-200"
-            style={{ height: '90px' }}
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}>
 
@@ -102,7 +101,7 @@ export const AdBanner = () => {
 const BannerSlide = ({ ad }) => {
     if (ad.type === 'image' && ad.imageUrl) {
         return (
-            <div className="relative w-full h-full">
+            <div className="relative w-full h-auto flex items-center justify-center">
                 <img src={ad.imageUrl} alt={ad.title || 'Publicité'}
                     className="w-full h-full object-cover" />
                 {ad.title && (
@@ -138,7 +137,7 @@ const BannerSlide = ({ ad }) => {
     return (
         <div className="relative w-full h-full">
             {ad.imageUrl && (
-                <img src={ad.imageUrl} alt={ad.title || ''} className="w-full h-full object-cover" />
+                <img src={ad.imageUrl} alt={ad.title || 'Publicité'} className="w-full h-auto object-contain block max-h-[220px]" />
             )}
             <div className="absolute inset-0 flex items-center"
                 style={{ backgroundColor: ad.imageUrl ? 'rgba(0,0,0,0.35)' : (ad.bgColor || '#0f172a') }}>
