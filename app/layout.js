@@ -1,4 +1,5 @@
 import "./globals.css";
+import AdManager from "@/components/AdManager";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CookieBanner from "@/components/CookieBanner";
