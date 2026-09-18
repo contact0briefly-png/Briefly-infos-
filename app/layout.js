@@ -53,7 +53,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="bg-white text-black min-h-screen flex flex-col antialiased">
-        <AdBanner />
+        <AdBanner B24_BLUE={B24_BLUE} />
         <Navbar B24_BLUE={B24_BLUE} />
         <main className="flex-grow">{children}</main>
         <Footer B24_BLUE={B24_BLUE} />
