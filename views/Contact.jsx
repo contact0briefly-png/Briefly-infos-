@@ -26,9 +26,6 @@ const Contact = ({ B24_BLUE }) => {
     const [showPopup, setShowPopup] = useState(false);
     const [isSending, setIsSending] = useState(false);
 
-    const TOKEN = "8575032027:AAFjP34vggDXwthT_OUZvjfCTUFogtV0G2M";
-    const CHAT_ID = "7048661353";
-
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         setIsSending(true);
@@ -41,14 +38,13 @@ const Contact = ({ B24_BLUE }) => {
             message: formData.get('message')
         };
 
-        const text = `📬 Nouveau message Briefly :\n\n👤 Nom: ${data.name}\n📧 Email: ${data.email}\n📝 Sujet: ${data.subject}\n💬 Message: ${data.message}`;
-
         try {
             await Promise.all([
-                fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+                // Alerte Telegram envoyée par le serveur (le jeton n'est plus dans le navigateur)
+                fetch('/api/contact', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: CHAT_ID, text: text }),
+                    body: JSON.stringify(data),
                 }),
                 addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'requests'), {
                     ...data,

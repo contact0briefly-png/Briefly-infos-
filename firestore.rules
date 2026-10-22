@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isSuperAdmin() {
+      return signedIn() && request.auth.uid == "R0BgtQqiU8QsBBoz899Th5GzJ2A3";
+    }
+    // Admin = a un document dans /admins (créé uniquement via une invitation valide)
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // --- INVITATIONS ---
+    match /invitations/{inviteId} {
+      allow get: if true;                    // le lien d'invitation lit UN document
+      allow list: if isSuperAdmin();         // plus de lecture de toutes les invitations
+      allow create, delete: if isSuperAdmin();
+      allow update: if isSuperAdmin() || (
+        signedIn()
+        && resource.data.used == false
+        && request.resource.data.used == true
+        && request.resource.data.usedBy == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['used', 'usedBy', 'usedAt'])
+      );
+    }
+
+    // --- ADMINISTRATEURS ---
+    match /admins/{adminId} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == adminId);
+
+      // Création uniquement avec une invitation NON utilisée, au rôle correspondant
+      allow create: if signedIn()
+        && request.auth.uid == adminId
+        && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'inviteToken', 'createdAt'])
+        && get(/databases/$(database)/documents/invitations/$(request.resource.data.inviteToken)).data.used == false
+        && get(/databases/$(database)/documents/invitations/$(request.resource.data.inviteToken)).data.role == request.resource.data.role;
+
+      // On peut modifier son profil, mais PAS son propre rôle
+      allow update: if isSuperAdmin() || (
+        signedIn()
+        && request.auth.uid == adminId
+        && request.resource.data.role == resource.data.role
+      );
+
+      allow delete: if isSuperAdmin();
+    }
+
+    // --- MESSAGES DE CONTACT ---
+    match /artifacts/{appId}/public/data/requests/{docId} {
+      allow create: if request.resource.data.keys().hasOnly(['name', 'email', 'subject', 'message', 'timestamp'])
+        && request.resource.data.message is string
+        && request.resource.data.message.size() < 5000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // --- CONTENU (articles, pubs, brouillons) ---
+    match /artifacts/{appId}/public/data/{collectionName}/{docId} {
+      allow read: if collectionName != "drafts";   // les brouillons restent privés
+      allow read: if isAdmin();
+      // Compteur de vues : +1 uniquement
+      allow update: if collectionName == "news"
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
+        && (
+          ('views' in resource.data && request.resource.data.views == resource.data.views + 1)
+          || (!('views' in resource.data) && request.resource.data.views == 1)
+        );
+      allow write: if isAdmin();
+    }
+
+    // Utilisateurs Telegram
+    match /users/{userId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
