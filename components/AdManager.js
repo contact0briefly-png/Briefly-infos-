@@ -1,19 +1,9 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { getFirestore, collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { initializeApp, getApps } from "firebase/app";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { db } from "../lib/firebase";
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDOPeLjRRM88dE665rKZigk2JmA-J9YXek",
-    authDomain: "bbriefly-7e3b8.firebaseapp.com",
-    projectId: "bbriefly-7e3b8",
-    storageBucket: "bbriefly-7e3b8.firebasestorage.app",
-    messagingSenderId: "634935431290",
-    appId: "1:634935431290:web:1dcb513aafc3011133ebc3"
-};
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-const db  = getFirestore(app);
 
 const AID = 'bbriefly-7e3b8';
 const COL = `artifacts/${AID}/public/data`;

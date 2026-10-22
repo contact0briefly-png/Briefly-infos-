@@ -1,19 +1,9 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { getFirestore, doc, getDoc, collection, query, where, orderBy, getDocs } from "firebase/firestore";
-import { initializeApp, getApps } from "firebase/app";
+import { doc, getDoc, collection, query, where, orderBy, getDocs } from "firebase/firestore";
+import { db } from "../../lib/firebase";
 import { Clock, ChevronRight } from 'lucide-react';
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDOPeLjRRM88dE665rKZigk2JmA-J9YXek",
-    authDomain: "bbriefly-7e3b8.firebaseapp.com",
-    projectId: "bbriefly-7e3b8",
-    storageBucket: "bbriefly-7e3b8.firebasestorage.app",
-    messagingSenderId: "634935431290",
-    appId: "1:634935431290:web:1dcb513aafc3011133ebc3"
-};
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-const db  = getFirestore(app);
 
 const SOCIAL_ICONS = {
     twitter:   { label: 'X / Twitter',  color: '#000', d: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z' },

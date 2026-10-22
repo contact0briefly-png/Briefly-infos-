@@ -1,22 +1,12 @@
 "use client";
 import React, { useMemo, useEffect, useRef } from 'react';
-import { getFirestore, doc, updateDoc, increment } from "firebase/firestore";
-import { initializeApp, getApps } from "firebase/app";
+import { doc, updateDoc, increment } from "firebase/firestore";
+import { db } from "../lib/firebase";
 import {
     Clock, Eye, Share2, ChevronRight, TrendingUp,
     Sparkles, ChevronLeft, Mail, ArrowUp, Link2, Check
 } from 'lucide-react';
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDOPeLjRRM88dE665rKZigk2JmA-J9YXek",
-    authDomain: "bbriefly-7e3b8.firebaseapp.com",
-    projectId: "bbriefly-7e3b8",
-    storageBucket: "bbriefly-7e3b8.firebasestorage.app",
-    messagingSenderId: "634935431290",
-    appId: "1:634935431290:web:1dcb513aafc3011133ebc3"
-};
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-const db  = getFirestore(app);
 
 const BREVO_ACTION = "https://b33f5b02.sibforms.com/serve/MUIFAGBxCfyEwfx-cB0M9i9gOYvlwv3b9XmULA8_jGaWHLuG5zbH6c2QvO928ogIkVBjF1c1mj7KCG06Zfye3McOWoe9G04JeD_TsTFM9EDSz7QYpppQ-u5X9E5udLQ7RLKl0QOuqiTCBG1jawLH4u1WYJNwxQ1OrCbFri0xOGjcxz6ye7PhaJEy9ibaiQ4LS_foT82lqz32UOJdBw==";
 

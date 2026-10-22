@@ -3,22 +3,10 @@ import React, { useState } from 'react';
 import { AdBanner } from "@/components/AdManager";
 import { motion, AnimatePresence } from 'framer-motion';
 import AdBannerSquare from '../components/AdBannerSquare';
-import { initializeApp, getApps } from "firebase/app";
-import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../lib/firebase";
 import { Send, MapPin, Mail, Phone, ExternalLink, Navigation } from 'lucide-react';
 
-// --- CONFIGURATION FIREBASE ---
-const firebaseConfig = {
-    apiKey: "AIzaSyDOPeLjRRM88dE665rKZigk2JmA-J9YXek",
-    authDomain: "bbriefly-7e3b8.firebaseapp.com",
-    projectId: "bbriefly-7e3b8",
-    storageBucket: "bbriefly-7e3b8.firebasestorage.app",
-    messagingSenderId: "634935431290",
-    appId: "1:634935431290:web:1dcb513aafc3011133ebc3"
-};
-
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
-const db = getFirestore(app);
 const appId = 'bbriefly-7e3b8';
 
 

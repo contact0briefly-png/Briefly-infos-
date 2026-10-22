@@ -2,7 +2,9 @@ const { GoogleAuth } = require('google-auth-library');
 const fs = require('fs');
 
 // Ton fichier de clé
-const KEY_FILE = './bbriefly-7e3b8-firebase-adminsdk-fbsvc-7a753c048c.json';
+// Chemin de la clé de service : à définir dans ton terminal, jamais dans le dépôt
+const KEY_FILE = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+if (!KEY_FILE) { console.error('Définis GOOGLE_APPLICATION_CREDENTIALS (chemin vers ta clé de service).'); process.exit(1); }
 const PROJECT_ID = 'bbriefly-7e3b8';
 
 async function run() {
