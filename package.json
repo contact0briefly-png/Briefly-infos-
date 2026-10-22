@@ -10,21 +10,19 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.28.6",
+    "@supabase/supabase-js": "2.45.4",
     "@tailwindcss/postcss": "^4.1.18",
     "@vercel/analytics": "^1.6.1",
     "@vercel/speed-insights": "^1.3.1",
     "clsx": "latest",
-    "firebase": "latest",
-    "firebase-admin": "^13.6.1",
+    "disqus-react": "^1.1.5",
     "framer-motion": "latest",
-    "google-auth-library": "^10.5.0",
     "lucide-react": "latest",
     "next": "14.2.3",
+    "prop-types": "^15.8.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "tailwind-merge": "latest",
-    "disqus-react": "^1.1.5",
-    "prop-types": "^15.8.1"
+    "tailwind-merge": "latest"
   },
   "devDependencies": {
     "autoprefixer": "latest",

@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['firebase', 'undici', 'lucide-react', 'framer-motion'],
+  transpilePackages: ['lucide-react', 'framer-motion'],
 
   images: {
     unoptimized: true,

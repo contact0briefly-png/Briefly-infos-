@@ -3,7 +3,7 @@ import { AdBanner } from "@/components/AdManager";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CookieBanner from "@/components/CookieBanner";
-import { B24_BLUE } from "@/lib/firebase";
+import { B24_BLUE } from "@/lib/constants";
 import ConsentScripts from "@/components/ConsentScripts";
 
 export const metadata = {
@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="fr">
       <head>
-        <link rel="apple-touch-icon" href="https://bbriefly-7e3b8.web.app/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body className="bg-white text-black min-h-screen flex flex-col antialiased">
        

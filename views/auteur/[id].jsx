@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { doc, getDoc, collection, query, where, orderBy, getDocs } from "firebase/firestore";
-import { db } from "../../lib/firebase";
+import { getAuthor, getNewsByAuthor } from "../../lib/news";
 import { Clock, ChevronRight } from 'lucide-react';
 
 
@@ -25,18 +24,12 @@ const AuthorPage = ({ params, B24_BLUE }) => {
         if (!authorId) return;
         const load = async () => {
             try {
-                // Charger le profil
-                const snap = await getDoc(doc(db, 'admins', authorId));
-                if (snap.exists()) setAuthor({ id: snap.id, ...snap.data() });
-
-                // Charger les articles de cet auteur
-                const q = query(
-                    collection(db, 'artifacts', 'bbriefly-7e3b8', 'public', 'data', 'news'),
-                    where('authorId', '==', authorId),
-                    orderBy('timestamp', 'desc')
-                );
-                const arts = await getDocs(q);
-                setArticles(arts.docs.map(d => ({ id: d.id, ...d.data() })));
+                // Charger le profil puis ses articles
+                const a = await getAuthor(authorId);
+                if (a) {
+                    setAuthor(a);
+                    setArticles(await getNewsByAuthor(a.id));
+                }
             } catch (e) {
                 console.error(e);
             } finally {

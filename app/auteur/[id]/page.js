@@ -1,5 +1,4 @@
-import { db } from "../../../lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { getAuthor } from "../../../lib/news";
 import AuthorPage from "../../../views/auteur/[id]";
 
 
@@ -9,18 +8,9 @@ export async function generateMetadata({ params }) {
 
     try {
 
-        const authorRef = doc(
-            db,
-            "admins",
-            id
-        );
+        const author = await getAuthor(id);
 
-        const authorSnap = await getDoc(authorRef);
-
-
-        if (authorSnap.exists()) {
-
-            const author = authorSnap.data();
+        if (author) {
 
             return {
                 title: `${author.name || "Auteur"} | Briefly Infos`,
