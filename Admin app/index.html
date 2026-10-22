@@ -808,12 +808,29 @@ const db    = getFirestore(fbApp);
 const auth  = getAuth(fbApp);
 const AID   = 'bbriefly-7e3b8';
 const COL   = `artifacts/${AID}/public/data`;
-const WPK1  = "13cd2ccf854c4046bfdaf0892da4d891", WPT1="117369";
-const WPK2  = "42cedc8d279eb06ebd3ce34de53a657d", WPT2="118484";
-const TG_TOKEN = "8575032027:AAFjP34vggDXwthT_OUZvjfCTUFogtV0G2M";
-const TG_CHAT  = "-1003507625091";
 const SITE     = "https://briefly-lilac.vercel.app";
-const IMGBB_KEY= "3f120b77128226122a9f0a48ca6ab62d";
+// Les clés secrètes (ImgBB, Telegram, WebPushr) sont désormais stockées sur Vercel (variables d'environnement).
+// L'application les utilise via des routes API sécurisées par ta connexion admin.
+const API = `${SITE}/api/admin`;
+async function adminFetch(path, init = {}) {
+    const user = auth.currentUser;
+    if (!user) throw new Error('Non connecté');
+    const token = await user.getIdToken();
+    return fetch(`${API}/${path}`, { ...init, headers: { ...(init.headers || {}), Authorization: `Bearer ${token}` } });
+}
+// Réduit les grosses photos avant l'envoi (limite de 4,5 Mo côté Vercel)
+async function shrinkImage(file) {
+    if (file.size < 1.5 * 1024 * 1024 || file.type === 'image/gif') return file;
+    try {
+        const bmp = await createImageBitmap(file);
+        const k = Math.min(1, 1920 / Math.max(bmp.width, bmp.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+        c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+        const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85));
+        return blob && blob.size < file.size ? new File([blob], 'image.jpg', { type: 'image/jpeg' }) : file;
+    } catch { return file; }
+}
 
 enableIndexedDbPersistence(db).catch(()=>{});
 setPersistence(auth, browserLocalPersistence);
@@ -832,11 +849,11 @@ function toast(msg, ok=true) {
 
 /* ── ImgBB ── */
 async function uploadToImgBB(file) {
-    const fd=new FormData(); fd.append('image',file);
-    const res=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{method:'POST',body:fd});
-    const data=await res.json();
-    if(data.success) return data.data.url;
-    throw new Error('ImgBB failed');
+    const fd=new FormData(); fd.append('image',await shrinkImage(file));
+    const res=await adminFetch('upload-image',{method:'POST',body:fd});
+    const data=await res.json().catch(()=>({}));
+    if(data.success) return data.url;
+    throw new Error(data.error||'Upload échoué');
 }
 
 /* ── Image principale ── */
@@ -1240,15 +1257,10 @@ function showLogin(){
 async function notify(title,content,img,id){
     const strip=h=>h.replace(/<[^>]*>/gm,'');
     const t=strip(title),m=strip(content).substring(0,150)+'…';
-    const url=`${SITE}/article/${id}`;
-    const cap=`📢 *NOUVEL ARTICLE*\n\n🚀 *${t.toUpperCase()}*\n\n${m}\n\n🔗 ${url}`;
     try{
-        await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendPhoto`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:TG_CHAT,photo:img,caption:cap,parse_mode:'Markdown',reply_markup:{inline_keyboard:[[{text:"📖 LIRE L'ARTICLE",url}]]}})});
-    }catch{
-        await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:TG_CHAT,text:cap,parse_mode:'Markdown'})});
-    }
-    const push=(k,tk)=>fetch("https://api.webpushr.com/v1/notification/send/all",{method:'POST',headers:{'Content-Type':'application/json',webpushrKey:k,webpushrAuthToken:tk},body:JSON.stringify({title:t,message:m,target_url:url,icon:`${SITE}/logo.jpg`,image:img||''})});
-    Promise.all([push(WPK1,WPT1),push(WPK2,WPT2)]).catch(console.error);
+        await adminFetch('notify',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({title:t,message:m,url:`${SITE}/article/${id}`,image:img||''})});
+    }catch(e){console.error(e);}
 }
 
 /* ── Charts ── */
@@ -1565,14 +1577,11 @@ window.triggerAdImg=(type)=>{
         prev.style.display='none';
         zone.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:11px">⏳ Upload en cours…</div>';
         try{
-            const fd=new FormData(); fd.append('image',file);
-            const res=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{method:'POST',body:fd});
-            const data=await res.json();
-            if(!data.success) throw new Error();
-            urlInput.value=data.data.url;
+            const imgUrl=await uploadToImgBB(file);
+            urlInput.value=imgUrl;
             // Restaurer la zone avec l'aperçu
             zone.innerHTML=`
-                <img id="${type}-img-preview" src="${data.data.url}" style="width:100%;max-height:${type==='banner'?'100':'200'}px;object-fit:cover">
+                <img id="${type}-img-preview" src="${imgUrl}" style="width:100%;max-height:${type==='banner'?'100':'200'}px;object-fit:cover">
                 <div id="${type}-img-placeholder" style="display:none"></div>
             `;
             toast('Image uploadée ✓');
