@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Briefly Admin</title>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#0c0c0e;--bg2:#141416;--bg3:#1c1c1f;
+            --border:#2a2a2e;--accent:#6c63ff;--accent-dim:rgba(108,99,255,.15);
+            --red:#ff4757;--red-dim:rgba(255,71,87,.12);
+            --green:#2ed573;--green-dim:rgba(46,213,115,.12);
+            --gold:#ffa502;--gold-dim:rgba(255,165,2,.15);
+            --text:#f0f0f2;--muted:#606068;--muted2:#404048;
+            --nav-h:72px;--header-h:60px;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+        html,body{width:100%;height:100%;overflow:hidden}
+        body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased}
+        #shell{position:fixed;inset:0;display:flex;flex-direction:column}
+        #app-header{height:var(--header-h);flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100}
+        .h-brand{font-family:'Instrument Serif',serif;font-size:22px;font-style:italic;color:var(--text);letter-spacing:-.02em}
+        .h-brand b{color:var(--accent);font-style:normal}
+        #admin-badge{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+        .btn-out{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,71,87,.2);border-radius:10px;padding:7px 14px;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:.06em;cursor:pointer}
+        #content-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 16px calc(var(--nav-h) + 16px);-webkit-overflow-scrolling:touch}
+        #bottom-nav{height:var(--nav-h);flex-shrink:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 4px}
+        .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:8px 4px;border-radius:14px;transition:background .15s}
+        .nav-btn .n-icon{width:22px;height:22px;display:block}
+        .nav-btn .n-label{font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);transition:color .15s}
+        .nav-btn .n-icon path,.nav-btn .n-icon circle,.nav-btn .n-icon rect,.nav-btn .n-icon polyline,.nav-btn .n-icon line,.nav-btn .n-icon polygon{stroke:var(--muted);transition:stroke .15s}
+        .nav-btn.active .n-label{color:var(--accent)}
+        .nav-btn.active .n-icon path,.nav-btn.active .n-icon circle,.nav-btn.active .n-icon rect,.nav-btn.active .n-icon polyline,.nav-btn.active .n-icon line,.nav-btn.active .n-icon polygon{stroke:var(--accent)}
+        .tab{display:none}.tab.active{display:block;animation:rise .25s ease}
+        @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .page-title{font-family:'Instrument Serif',serif;font-size:26px;font-style:italic;font-weight:400;color:var(--text);letter-spacing:-.02em;margin-bottom:20px}
+        .page-title span{color:var(--accent)}
+        .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:18px}
+        .card+.card{margin-top:12px}
+        .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+        .stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center}
+        .stat-val{display:block;font-family:'Instrument Serif',serif;font-size:28px;color:var(--accent);line-height:1;margin-bottom:4px}
+        .stat-lbl{display:block;font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+        .chart-wrap{width:100%;position:relative}
+        .chart-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:14px}
+        .list-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;font-weight:500}
+        .list-row:last-child{border-bottom:none}
+        .badge{font-size:9px;font-weight:700;letter-spacing:.06em;padding:3px 8px;border-radius:6px}
+        .badge-accent{background:var(--accent-dim);color:var(--accent)}
+        .badge-green{background:var(--green-dim);color:var(--green)}
+        .badge-gold{background:var(--gold-dim);color:var(--gold)}
+        .badge-red{background:var(--red-dim);color:var(--red)}
+        .field{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:13px 16px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;width:100%;outline:none;transition:border-color .2s}
+        .field::placeholder{color:var(--muted)}
+        .field:focus{border-color:var(--accent)}
+        .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .form-stack{display:flex;flex-direction:column;gap:10px}
+        textarea.field{resize:vertical;min-height:80px;line-height:1.6}
+        /* Image principale */
+        .img-upload-zone{border:2px dashed var(--border);border-radius:14px;overflow:hidden;position:relative;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:border-color .2s,background .2s}
+        .img-upload-zone:hover{border-color:var(--accent);background:var(--accent-dim)}
+        .img-upload-zone.has-image{border-style:solid;border-color:var(--border);min-height:auto}
+        .img-upload-placeholder{display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px;pointer-events:none}
+        .img-upload-placeholder svg{width:32px;height:32px;opacity:.4}
+        .img-upload-placeholder span{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+        .img-upload-placeholder small{font-size:9px;color:var(--muted2)}
+        #img-preview-main{width:100%;max-height:200px;object-fit:cover;border-radius:12px;display:none}
+        .img-upload-actions{display:none;flex-direction:row;gap:8px;padding:8px;width:100%}
+        .img-upload-actions.visible{display:flex}
+        .img-action-btn{flex:1;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:none;border-radius:8px;padding:8px;cursor:pointer;text-align:center}
+        .img-action-change{background:var(--accent-dim);color:var(--accent)}
+        .img-action-remove{background:var(--red-dim);color:var(--red)}
+        .img-progress-wrap{display:none;width:100%;padding:16px 20px;flex-direction:column;align-items:center;gap:8px}
+        .img-progress-wrap.visible{display:flex}
+        .img-progress-bar{width:100%;height:4px;background:var(--border);border-radius:4px;overflow:hidden}
+        .img-progress-fill{height:100%;background:var(--accent);border-radius:4px;width:0%;transition:width .3s ease}
+        .img-progress-label{font-size:10px;font-weight:600;color:var(--muted)}
+        /* Avatar profil */
+        .avatar-upload-zone{border:2px dashed var(--border);border-radius:50%;width:100px;height:100px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;transition:border-color .2s;margin:0 auto}
+        .avatar-upload-zone:hover{border-color:var(--accent)}
+        .avatar-upload-zone img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+        .avatar-placeholder{display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none}
+        .avatar-placeholder svg{width:24px;height:24px;opacity:.4}
+        .avatar-placeholder span{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+        /* Schedule */
+        .schedule-block{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+        .schedule-toggle-row{display:flex;align-items:center;justify-content:space-between}
+        .schedule-toggle-label{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer}
+        .schedule-toggle-label svg{width:18px;height:18px}
+        .schedule-toggle-label svg path,.schedule-toggle-label svg circle,.schedule-toggle-label svg line{stroke:var(--gold)}
+        .toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0}
+        .toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+        .toggle-track{position:absolute;inset:0;border-radius:12px;background:var(--muted2);cursor:pointer;transition:background .2s}
+        .toggle-track::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+        .toggle-switch input:checked+.toggle-track{background:var(--gold)}
+        .toggle-switch input:checked+.toggle-track::after{transform:translateX(20px)}
+        .schedule-fields{display:none;flex-direction:column;gap:10px}
+        .schedule-fields.visible{display:flex}
+        .datetime-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        input[type="date"].field,input[type="time"].field{color-scheme:dark;cursor:pointer}
+        .schedule-preview{background:var(--gold-dim);border:1px solid rgba(255,165,2,.3);border-radius:10px;padding:10px 14px;font-size:11px;font-weight:600;color:var(--gold);display:none;align-items:center;gap:8px}
+        .schedule-preview.visible{display:flex}
+        /* Editor */
+        #editor-wrap{border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#fff}
+        .ql-toolbar.ql-snow{border:none!important;background:#f4f4f6;border-bottom:1px solid #ddd!important;flex-wrap:wrap;padding:8px}
+        .ql-container.ql-snow{border:none!important}
+        .ql-editor{min-height:260px;font-size:14px;color:#111;font-family:'Space Grotesk',sans-serif;padding:14px}
+        .btn-primary{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:16px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
+        .btn-primary:active{opacity:.8}
+        .btn-gold{background:var(--gold)}
+        .btn-secondary{width:100%;background:var(--bg3);color:var(--muted);border:1px solid var(--border);border-radius:14px;padding:14px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+        .btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+        .publish-row{display:flex;gap:10px}
+        .publish-row .btn-primary{flex:1}
+        /* Article cards */
+        .art-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;gap:12px;padding:12px}
+        .art-card+.art-card{margin-top:10px}
+        .art-thumb{width:72px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--bg3)}
+        .art-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+        .art-title{font-size:13px;font-weight:600;line-height:1.4;color:var(--text)}
+        .art-meta{display:flex;align-items:center;gap:8px}
+        .art-cat{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;background:var(--accent-dim);color:var(--accent);padding:2px 7px;border-radius:5px}
+        .art-views{font-size:10px;color:var(--muted);font-weight:500}
+        .art-actions{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+        .act-btn{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+        .act-btn svg{width:11px;height:11px}
+        .act-edit{background:var(--accent-dim);color:var(--accent)}
+        .act-del{background:var(--red-dim);color:var(--red)}
+        .act-view{background:var(--green-dim);color:var(--green)}
+        .act-gold{background:var(--gold-dim);color:var(--gold)}
+        /* Search */
+        .search-row{position:relative;margin-bottom:12px}
+        .search-row input{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px 12px 40px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;width:100%;outline:none;transition:border-color .2s}
+        .search-row input:focus{border-color:var(--accent)}
+        .search-row input::placeholder{color:var(--muted)}
+        .search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;pointer-events:none}
+        .search-icon path{stroke:var(--muted)}
+        .pills-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none}
+        .pills-row::-webkit-scrollbar{display:none}
+        .pill{flex-shrink:0;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--border);background:var(--bg2);color:var(--muted);border-radius:20px;padding:6px 14px;cursor:pointer;white-space:nowrap;transition:all .15s}
+        .pill.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+        #no-results{display:none;text-align:center;padding:48px 20px;color:var(--muted);font-size:13px}
+        /* Staff */
+        .staff-row{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+        .staff-row+.staff-row{margin-top:10px}
+        .s-avatar{width:40px;height:40px;border-radius:12px;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;font-size:18px;font-style:italic;flex-shrink:0;overflow:hidden}
+        .s-avatar img{width:100%;height:100%;object-fit:cover;border-radius:12px}
+        .staff-name{font-size:13px;font-weight:600}
+        .staff-role{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+        .staff-acts{display:flex;gap:6px;margin-left:auto}
+        /* Recruit */
+        .recruit-card{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:18px;margin-top:12px}
+        .recruit-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
+        select.field{appearance:none;-webkit-appearance:none;cursor:pointer;margin-bottom:10px}
+        .invite-result{display:none;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:12px}
+        .invite-result-label{font-size:9px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+        .invite-result-link{font-family:monospace;font-size:10px;color:var(--muted);word-break:break-all;line-height:1.6}
+        .copy-btn{margin-top:10px;background:var(--accent-dim);color:var(--accent);border:none;border-radius:8px;padding:8px 14px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+        /* Inbox / messages */
+        .msg-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px}
+        .msg-card.unread{border-left:3px solid var(--green)}
+        .msg-card.replied{border-left:3px solid var(--accent)}
+        .msg-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px}
+        .msg-name{font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.08em}
+        .msg-email{font-size:10px;color:var(--muted);margin-top:2px}
+        .msg-date{font-size:9px;color:var(--muted2);white-space:nowrap}
+        .msg-body{font-size:13px;color:var(--muted);font-style:italic;line-height:1.6;margin-bottom:10px}
+        .msg-actions{display:flex;gap:6px;flex-wrap:wrap}
+        .msg-status{display:inline-flex;align-items:center;gap:4px;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:3px 8px;border-radius:6px}
+        .status-new{background:var(--green-dim);color:var(--green)}
+        .status-replied{background:var(--accent-dim);color:var(--accent)}
+        /* Draft cards */
+        .draft-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:16px;padding:14px;display:flex;gap:12px;margin-bottom:10px}
+        .draft-thumb{width:64px;height:56px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--bg3)}
+        .draft-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+        .draft-title{font-size:13px;font-weight:600;line-height:1.4;color:var(--text)}
+        .draft-time{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.08em;background:var(--gold-dim);padding:3px 8px;border-radius:6px;width:fit-content}
+        .countdown-badge{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+        /* Preview */
+        #preview-frame{width:100%;height:calc(100vh - var(--header-h) - var(--nav-h) - 80px);border:none;border-radius:14px;background:#fff;display:block}
+        .preview-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+        .refresh-btn{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;color:var(--text);font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.06em}
+        .cancel-edit-btn{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,71,87,.2);border-radius:10px;padding:8px 14px;font-size:11px;font-weight:600;cursor:pointer;display:none}
+        .studio-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+        /* Toast */
+        #toast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%) translateY(12px);background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:11px 20px;font-size:12px;font-weight:600;opacity:0;transition:all .25s;z-index:9999;white-space:nowrap;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+        #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+        /* Login */
+        #login-gate{position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;align-items:center;justify-content:center;padding:28px}
+        .login-inner{width:100%;max-width:340px}
+        .login-logo{font-family:'Instrument Serif',serif;font-size:48px;font-style:italic;color:var(--text);letter-spacing:-.04em;margin-bottom:10px}
+        .login-logo span{color:var(--accent)}
+        .login-sub{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.15em;margin-bottom:36px}
+        .login-field{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:15px 18px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;outline:none;margin-bottom:10px;transition:border-color .2s}
+        .login-field::placeholder{color:var(--muted)}
+        .login-field:focus{border-color:var(--accent)}
+        #btn-login{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:17px;margin-top:6px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+        #offline-bar{display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--red);color:#fff;text-align:center;font-size:10px;font-weight:700;padding:5px;letter-spacing:.12em;text-transform:uppercase}
+        #content-area::-webkit-scrollbar{width:3px}
+        #content-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+        /* Profile tab */
+        .profile-section{margin-bottom:20px}
+        .profile-section-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.15em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+        .social-row{display:flex;align-items:center;gap:10px}
+        .social-icon{width:32px;height:32px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .social-icon svg{width:14px;height:14px}
+        /* Empty state */
+        .empty-state{text-align:center;padding:48px 20px;color:var(--muted)}
+        .empty-state svg{width:48px;height:48px;opacity:.2;margin:0 auto 12px;display:block}
+        .empty-state p{font-size:13px;font-weight:500}
+        .empty-state small{font-size:11px;color:var(--muted2);margin-top:4px;display:block}
+
+        /* ── Publicités ── */
+        .ad-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px}
+        .ad-tab-btn{padding:10px 18px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;margin-bottom:-1px}
+        .ad-tab-btn.on{color:var(--accent);border-bottom-color:var(--accent)}
+        .ad-section{display:none}.ad-section.on{display:block}
+        .ad-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:12px}
+        .ad-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px}
+        .ad-thumb{width:80px;height:52px;object-fit:cover;border-radius:8px;flex-shrink:0;background:var(--bg3)}
+        .ad-thumb-placeholder{width:80px;height:52px;border-radius:8px;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:20px}
+        .ad-info{flex:1;min-width:0}
+        .ad-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+        .ad-meta{font-size:10px;color:var(--muted)}
+        .ad-actions{display:flex;gap:6px;flex-shrink:0}
+        .toggle-active{position:relative;width:36px;height:20px;border-radius:10px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0}
+        .toggle-active::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+        .toggle-active.on{background:var(--green)}
+        .toggle-active.off{background:var(--muted2)}
+        .toggle-active.on::after{transform:translateX(16px)}
+        .ad-form{padding:0 16px 16px}
+        .ad-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+        .ad-type-btn{background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);transition:all .2s}
+        .ad-type-btn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+        .color-row{display:flex;align-items:center;gap:10px}
+        .color-preview{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);flex-shrink:0;cursor:pointer}
+        .ad-img-zone{border:2px dashed var(--border);border-radius:12px;min-height:80px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;overflow:hidden;position:relative}
+        .ad-img-zone:hover{border-color:var(--accent);background:var(--accent-dim)}
+        .ad-img-zone img{width:100%;max-height:120px;object-fit:cover}
+        .ad-preview-box{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:10px}
+        .ad-preview-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:6px 12px;border-bottom:1px solid var(--border);background:var(--bg3)}
+        .popup-delay-row{display:flex;align-items:center;gap:10px}
+        .popup-delay-row input{width:80px}
+        /* YouTube embed modal */
+        #yt-modal{display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.7);align-items:center;justify-content:center;padding:20px}
+        #yt-modal.open{display:flex}
+        .yt-modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:24px;width:100%;max-width:400px}
+        .yt-modal-title{font-family:'Instrument Serif',serif;font-size:20px;font-style:italic;color:var(--text);margin-bottom:16px}
+        .yt-modal-actions{display:flex;gap:10px;margin-top:16px}
+    </style>
+</head>
+<body>
+<div id="offline-bar">HORS CONNEXION</div>
+<div id="toast"></div>
+
+<!-- YouTube Modal -->
+<div id="yt-modal">
+    <div class="yt-modal-box">
+        <div class="yt-modal-title">Intégrer une vidéo YouTube<span style="color:var(--accent)">.</span></div>
+        <input type="text" id="yt-url-input" class="field" placeholder="https://www.youtube.com/watch?v=...">
+        <div style="font-size:10px;color:var(--muted);margin-top:8px">Collez le lien YouTube complet ou l'ID de la vidéo</div>
+        <div class="yt-modal-actions">
+            <button onclick="insertYouTube()" class="btn-primary" style="flex:1">Insérer</button>
+            <button onclick="closeYTModal()" class="btn-secondary" style="flex:none;padding:14px 20px;width:auto">Annuler</button>
+        </div>
+    </div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-gate">
+    <div class="login-inner">
+        <div class="login-logo">Briefly<span>.</span></div>
+        <div class="login-sub">Espace Administration</div>
+        <input type="email" id="admin-email" class="login-field" placeholder="Email administrateur">
+        <input type="password" id="admin-password" class="login-field" placeholder="Mot de passe">
+        <button id="btn-login">Connexion sécurisée</button>
+    </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="shell" style="display:none">
+    <header id="app-header">
+        <div>
+            <div class="h-brand">Briefly<b>.</b></div>
+            <div id="admin-badge">—</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+            <button onclick="go('profile')" id="btn-profile-header" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px">
+                <div id="header-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;font-size:14px;color:var(--accent);overflow:hidden;font-style:italic;flex-shrink:0">B</div>
+            </button>
+            <button class="btn-out" id="btn-logout">Quitter</button>
+        </div>
+    </header>
+
+    <div id="content-area">
+
+        <!-- DASHBOARD -->
+        <div id="tab-dash" class="tab active">
+            <div class="page-title">Vue d'ensemble<span>.</span></div>
+            <div class="stat-grid">
+                <div class="stat-box"><span id="total-articles" class="stat-val">—</span><span class="stat-lbl">Articles</span></div>
+                <div class="stat-box"><span id="total-views" class="stat-val">—</span><span class="stat-lbl">Vues</span></div>
+                <div class="stat-box"><span id="total-users" class="stat-val">—</span><span class="stat-lbl">Abonnés</span></div>
+            </div>
+            <div class="card" style="margin-bottom:12px">
+                <div class="chart-label">Répartition par catégorie</div>
+                <div class="chart-wrap"><canvas id="catChart"></canvas></div>
+                <div id="cat-list" style="margin-top:14px"></div>
+            </div>
+            <div class="card">
+                <div class="chart-label">Top 5 — Vues</div>
+                <div class="chart-wrap"><canvas id="viewChart"></canvas></div>
+                <div id="view-list" style="margin-top:14px"></div>
+            </div>
+        </div>
+
+        <!-- STUDIO -->
+        <div id="tab-write" class="tab">
+            <div class="studio-header">
+                <div class="page-title" style="margin-bottom:0">Studio<span>.</span></div>
+                <button id="btn-cancel-edit" class="cancel-edit-btn" onclick="resetForm()">✕ Annuler</button>
+            </div>
+            <div class="card">
+                <div class="form-stack">
+                    <input type="text" id="news-title" class="field" placeholder="Titre de l'article">
+                    <div class="field-grid">
+                        <input list="cat-list-dl" id="news-cat" class="field" placeholder="Catégorie">
+                        <input type="text" id="news-author" class="field" placeholder="Auteur (votre nom)">
+                    </div>
+                    <!-- IMAGE PRINCIPALE -->
+                    <div class="img-upload-zone" id="img-upload-zone" onclick="triggerMainImgUpload()">
+                        <div class="img-upload-placeholder" id="img-placeholder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                                <rect x="3" y="3" width="18" height="18" rx="3"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                            <span>Image principale</span>
+                            <small>Appuyez pour choisir depuis la galerie</small>
+                        </div>
+                        <div class="img-progress-wrap" id="img-progress-wrap">
+                            <div class="img-progress-bar"><div class="img-progress-fill" id="img-progress-fill"></div></div>
+                            <div class="img-progress-label" id="img-progress-label">Upload en cours…</div>
+                        </div>
+                        <img id="img-preview-main" alt="image principale">
+                    </div>
+                    <div class="img-upload-actions" id="img-upload-actions">
+                        <button class="img-action-btn img-action-change" onclick="triggerMainImgUpload()">↺ Changer</button>
+                        <button class="img-action-btn img-action-remove" onclick="removeMainImg()">✕ Supprimer</button>
+                    </div>
+                    <input type="hidden" id="news-image">
+
+                    <!-- ÉDITEUR -->
+                    <div id="editor-wrap"><div id="editor"></div></div>
+
+                    <!-- PROGRAMMATION -->
+                    <div class="schedule-block">
+                        <div class="schedule-toggle-row">
+                            <label class="schedule-toggle-label" for="schedule-toggle">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                                Programmer la publication
+                            </label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="schedule-toggle" onchange="toggleSchedule()">
+                                <div class="toggle-track"></div>
+                            </label>
+                        </div>
+                        <div class="schedule-fields" id="schedule-fields">
+                            <div class="datetime-grid">
+                                <input type="date" id="sched-date" class="field" onchange="updateSchedulePreview()">
+                                <input type="time" id="sched-time" class="field" onchange="updateSchedulePreview()">
+                            </div>
+                            <div class="schedule-preview" id="schedule-preview">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                <span id="schedule-preview-text">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOUTONS -->
+                    <div class="publish-row">
+                        <button class="btn-primary" id="btn-publish">Publier l'article</button>
+                        <button class="btn-secondary" onclick="saveDraftLocal()" style="flex:none;padding:16px 20px;width:auto" title="Sauvegarder en brouillon local">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:inline;margin-right:6px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            Brouillon
+                        </button>
+                    </div>
+                    <!-- Brouillon local -->
+                    <div id="local-draft-bar" style="display:none;background:var(--gold-dim);border:1px solid rgba(255,165,2,.3);border-radius:10px;padding:10px 14px;font-size:11px;color:var(--gold);display:flex;align-items:center;justify-content:space-between;gap:8px">
+                        <span>📝 Brouillon local sauvegardé</span>
+                        <button onclick="loadDraftLocal()" style="background:var(--gold);color:#000;border:none;border-radius:6px;padding:4px 10px;font-size:9px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.08em">Restaurer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PLANIFIÉS -->
+        <div id="tab-drafts" class="tab">
+            <div class="page-title">Planifiés<span>.</span></div>
+            <div id="drafts-list"></div>
+        </div>
+
+        <!-- HISTORIQUE -->
+        <div id="tab-news" class="tab">
+            <div class="page-title">Historique<span>.</span></div>
+            <div class="search-row">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" id="hist-search" placeholder="Rechercher un article…" oninput="filterArts()">
+            </div>
+            <div class="pills-row" id="pills">
+                <button class="pill on" data-cat="Tous" onclick="setCat(this,'Tous')">Tous</button>
+            </div>
+            <div id="art-list"></div>
+            <div id="no-results">Aucun article trouvé.</div>
+        </div>
+
+        <!-- MESSAGES -->
+        <div id="tab-inbox" class="tab">
+            <div class="page-title">Messages<span>.</span></div>
+            <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+                <button class="pill on" data-mf="all" onclick="setMsgFilter(this,'all')">Tous</button>
+                <button class="pill" data-mf="unread" onclick="setMsgFilter(this,'unread')">Non répondus</button>
+                <button class="pill" data-mf="replied" onclick="setMsgFilter(this,'replied')">Répondus</button>
+            </div>
+            <div id="inbox-list"></div>
+            <div id="inbox-empty" style="display:none" class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <p>Aucun message</p><small>Les messages du formulaire contact apparaîtront ici</small>
+            </div>
+        </div>
+
+        <!-- APERÇU -->
+        <div id="tab-preview" class="tab">
+            <div class="preview-toolbar">
+                <div class="page-title" style="margin-bottom:0">Aperçu<span>.</span></div>
+                <button class="refresh-btn" onclick="reloadFrame()">↺ Actualiser</button>
+            </div>
+            <iframe id="preview-frame" src="https://briefly-lilac.vercel.app/" title="Briefly"></iframe>
+        </div>
+
+        <!-- PUBLICITÉS -->
+        <div id="tab-ads" class="tab">
+            <div class="page-title">Publicités<span>.</span></div>
+
+            <!-- Sous-onglets -->
+            <div class="ad-tabs">
+                <button class="ad-tab-btn on" onclick="switchAdTab(this,'ad-banners')">🖼 Bannières carrousel</button>
+                <button class="ad-tab-btn" onclick="switchAdTab(this,'ad-popup')">💬 Popup</button>
+            </div>
+
+            <!-- ── BANNIÈRES ── -->
+            <div id="ad-banners" class="ad-section on">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                    <div style="font-size:11px;color:var(--muted)">
+                        Les images s'affichent en carrousel sous la barre de navigation du site.
+                    </div>
+                    <button onclick="openAdForm('banner')" class="btn-primary" style="width:auto;padding:10px 18px;font-size:10px">+ Ajouter</button>
+                </div>
+                <div id="banners-list"></div>
+
+                <!-- Formulaire bannière -->
+                <div id="banner-form" style="display:none" class="card" style="margin-top:16px">
+                    <div style="font-family:'Instrument Serif',serif;font-size:18px;font-style:italic;color:var(--text);margin-bottom:16px" id="banner-form-title">Nouvelle bannière<span style="color:var(--accent)">.</span></div>
+                    <div class="form-stack">
+                        <input type="hidden" id="banner-edit-id">
+                        <input type="text" id="banner-title" class="field" placeholder="Titre (optionnel)">
+                        <input type="text" id="banner-subtitle" class="field" placeholder="Sous-titre (optionnel)">
+                        <input type="url"  id="banner-link" class="field" placeholder="Lien de destination (optionnel)">
+                        <input type="text" id="banner-cta" class="field" placeholder="Texte du bouton (ex: En savoir plus)">
+
+                        <!-- Type de bannière -->
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px">Type d'affichage</div>
+                        <div class="ad-type-grid">
+                            <button class="ad-type-btn on" onclick="setBannerType(this,'image')" data-type="image">🖼 Image seule</button>
+                            <button class="ad-type-btn" onclick="setBannerType(this,'text')"  data-type="text">📝 Texte seul</button>
+                            <button class="ad-type-btn" onclick="setBannerType(this,'mixed')" data-type="mixed">✨ Image + texte</button>
+                        </div>
+                        <input type="hidden" id="banner-type" value="image">
+
+                        <!-- Zone image -->
+                        <div id="banner-img-wrap">
+                            <div class="ad-img-zone" id="banner-img-zone" onclick="triggerAdImg('banner')">
+                                <div id="banner-img-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px;pointer-events:none">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".4"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                    <span style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">Image bannière</span>
+                                    <span style="font-size:9px;color:var(--muted2)">Recommandé : 900×90px</span>
+                                </div>
+                                <img id="banner-img-preview" src="" alt="" style="display:none;width:100%;max-height:100px;object-fit:cover">
+                            </div>
+                            <input type="hidden" id="banner-image-url">
+                        </div>
+
+                        <!-- Couleurs (visible si type text ou mixed) -->
+                        <div id="banner-colors-wrap" style="display:none">
+                            <div class="field-grid">
+                                <div>
+                                    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Couleur fond</div>
+                                    <div class="color-row">
+                                        <input type="color" id="banner-bgcolor" value="#0f172a" style="width:40px;height:36px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer;padding:2px">
+                                        <input type="text" id="banner-bgcolor-text" class="field" value="#0f172a" placeholder="#0f172a" style="font-family:monospace;font-size:12px">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Couleur texte</div>
+                                    <div class="color-row">
+                                        <input type="color" id="banner-textcolor" value="#ffffff" style="width:40px;height:36px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer;padding:2px">
+                                        <input type="text" id="banner-textcolor-text" class="field" value="#ffffff" placeholder="#ffffff" style="font-family:monospace;font-size:12px">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field-grid">
+                            <div>
+                                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Couleur bouton CTA</div>
+                                <div class="color-row">
+                                    <input type="color" id="banner-ctacolor" value="#6c63ff" style="width:40px;height:36px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer;padding:2px">
+                                    <input type="text" id="banner-ctacolor-text" class="field" value="#6c63ff" placeholder="#6c63ff" style="font-family:monospace;font-size:12px">
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Ordre d'affichage</div>
+                                <input type="number" id="banner-order" class="field" value="0" min="0" placeholder="0">
+                            </div>
+                        </div>
+
+                        <div style="display:flex;gap:10px">
+                            <button onclick="saveBanner()" class="btn-primary" style="flex:1">Enregistrer la bannière</button>
+                            <button onclick="closeAdForm('banner')" class="btn-secondary" style="flex:none;padding:16px 20px;width:auto">Annuler</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── POPUP ── -->
+            <div id="ad-popup" class="ad-section">
+                <div style="font-size:11px;color:var(--muted);margin-bottom:14px">
+                    Un seul popup actif à la fois. S'affiche une fois par visiteur (mémorisé dans le navigateur).
+                </div>
+
+                <div id="popups-list"></div>
+
+                <!-- Formulaire popup -->
+                <div id="popup-form" style="display:none" class="card">
+                    <div style="font-family:'Instrument Serif',serif;font-size:18px;font-style:italic;color:var(--text);margin-bottom:16px" id="popup-form-title">Nouveau popup<span style="color:var(--accent)">.</span></div>
+                    <div class="form-stack">
+                        <input type="hidden" id="popup-edit-id">
+                        <input type="text" id="popup-title" class="field" placeholder="Titre du popup">
+                        <textarea id="popup-subtitle" class="field" placeholder="Message / description" style="min-height:70px"></textarea>
+                        <input type="url"  id="popup-link" class="field" placeholder="Lien du bouton (optionnel)">
+                        <input type="text" id="popup-cta"  class="field" placeholder="Texte du bouton (ex: Découvrir)">
+
+                        <!-- Type -->
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px">Type</div>
+                        <div class="ad-type-grid">
+                            <button class="ad-type-btn on" onclick="setPopupType(this,'image')" data-type="image">🖼 Image</button>
+                            <button class="ad-type-btn" onclick="setPopupType(this,'text')"  data-type="text">📝 Texte</button>
+                            <button class="ad-type-btn" onclick="setPopupType(this,'mixed')" data-type="mixed">✨ Mixte</button>
+                        </div>
+                        <input type="hidden" id="popup-type" value="image">
+
+                        <!-- Image -->
+                        <div id="popup-img-wrap">
+                            <div class="ad-img-zone" id="popup-img-zone" onclick="triggerAdImg('popup')">
+                                <div id="popup-img-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px;pointer-events:none">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".4"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                    <span style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">Image du popup</span>
+                                    <span style="font-size:9px;color:var(--muted2)">Recommandé : 420×300px</span>
+                                </div>
+                                <img id="popup-img-preview" src="" alt="" style="display:none;width:100%;max-height:200px;object-fit:cover">
+                            </div>
+                            <input type="hidden" id="popup-image-url">
+                        </div>
+
+                        <!-- Couleurs -->
+                        <div class="field-grid">
+                            <div>
+                                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Couleur fond</div>
+                                <div class="color-row">
+                                    <input type="color" id="popup-bgcolor" value="#0f172a" style="width:40px;height:36px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer;padding:2px">
+                                    <input type="text" id="popup-bgcolor-text" class="field" value="#0f172a" style="font-family:monospace;font-size:12px">
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Couleur texte</div>
+                                <div class="color-row">
+                                    <input type="color" id="popup-textcolor" value="#ffffff" style="width:40px;height:36px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer;padding:2px">
+                                    <input type="text" id="popup-textcolor-text" class="field" value="#ffffff" style="font-family:monospace;font-size:12px">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field-grid">
+                            <div>
+                                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Couleur bouton</div>
+                                <div class="color-row">
+                                    <input type="color" id="popup-ctacolor" value="#ffffff" style="width:40px;height:36px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer;padding:2px">
+                                    <input type="text" id="popup-ctacolor-text" class="field" value="#ffffff" style="font-family:monospace;font-size:12px">
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Délai d'affichage</div>
+                                <div class="popup-delay-row">
+                                    <input type="number" id="popup-delay" class="field" value="3" min="0" max="30" style="width:80px">
+                                    <span style="font-size:11px;color:var(--muted)">secondes</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;gap:10px">
+                            <button onclick="savePopup()" class="btn-primary" style="flex:1">Enregistrer le popup</button>
+                            <button onclick="closeAdForm('popup')" class="btn-secondary" style="flex:none;padding:16px 20px;width:auto">Annuler</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="openAdForm('popup')" class="btn-secondary" style="margin-top:12px">+ Nouveau popup</button>
+            </div>
+        </div>
+
+        <!-- MON PROFIL -->
+        <div id="tab-profile" class="tab">
+            <div class="page-title">Mon profil<span>.</span></div>
+            <div class="card">
+                <div class="form-stack">
+                    <!-- Photo de profil -->
+                    <div class="profile-section">
+                        <div class="profile-section-label">Photo de profil</div>
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+                            <div class="avatar-upload-zone" id="avatar-zone" onclick="triggerAvatarUpload()">
+                                <div class="avatar-placeholder" id="avatar-placeholder">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                    <span>Photo</span>
+                                </div>
+                                <img id="avatar-preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
+                            </div>
+                            <div style="font-size:10px;color:var(--muted);text-align:center">La photo est convertie et stockée sur Firebase</div>
+                        </div>
+                    </div>
+
+                    <!-- Infos de base -->
+                    <div class="profile-section">
+                        <div class="profile-section-label">Informations</div>
+                        <div class="form-stack">
+                            <input type="text" id="profile-name" class="field" placeholder="Nom complet">
+                            <input type="text" id="profile-location" class="field" placeholder="Localisation (ex: Lomé, Togo)">
+                            <textarea id="profile-bio" class="field" placeholder="Biographie courte — décrivez-vous en quelques phrases…" style="min-height:100px"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Réseaux sociaux -->
+                    <div class="profile-section">
+                        <div class="profile-section-label">Réseaux sociaux</div>
+                        <div class="form-stack">
+                            <div class="social-row">
+                                <div class="social-icon">
+                                    <svg viewBox="0 0 24 24" fill="#1877f2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                </div>
+                                <input type="url" id="social-facebook" class="field" placeholder="https://facebook.com/votre-page">
+                            </div>
+                            <div class="social-row">
+                                <div class="social-icon">
+                                    <svg viewBox="0 0 24 24" fill="#000"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                </div>
+                                <input type="url" id="social-twitter" class="field" placeholder="https://x.com/votre-compte">
+                            </div>
+                            <div class="social-row">
+                                <div class="social-icon">
+                                    <svg viewBox="0 0 24 24" fill="#e1306c"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                                </div>
+                                <input type="url" id="social-instagram" class="field" placeholder="https://instagram.com/votre-compte">
+                            </div>
+                            <div class="social-row">
+                                <div class="social-icon">
+                                    <svg viewBox="0 0 24 24" fill="#010101"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+                                </div>
+                                <input type="url" id="social-tiktok" class="field" placeholder="https://tiktok.com/@votre-compte">
+                            </div>
+                            <div class="social-row">
+                                <div class="social-icon">
+                                    <svg viewBox="0 0 24 24" fill="#0077b5"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                                </div>
+                                <input type="url" id="social-linkedin" class="field" placeholder="https://linkedin.com/in/votre-profil">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" onclick="saveProfile()">Enregistrer mon profil</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STAFF -->
+        <div id="tab-staff" class="tab">
+            <div class="page-title">Équipe<span>.</span></div>
+            <div id="staff-list"></div>
+            <div class="recruit-card">
+                <div class="recruit-label">Générer une invitation</div>
+                <select id="inv-role" class="field" style="margin-bottom:10px">
+                    <option value="redacteur">Rédacteur</option>
+                    <option value="admin_general">Admin Général</option>
+                </select>
+                <button class="btn-primary" onclick="genInvite()">Créer le lien d'invitation</button>
+                <div id="invite-result" class="invite-result">
+                    <div class="invite-result-label">Lien généré</div>
+                    <div id="invite-link" class="invite-result-link"></div>
+                    <button class="copy-btn" onclick="copyInvite()">Copier le lien</button>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /content-area -->
+
+    <!-- BOTTOM NAV -->
+    <nav id="bottom-nav">
+        <button class="nav-btn active" id="btn-dash" onclick="go('dash')">
+            <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span class="n-label">Stats</span>
+        </button>
+        <button class="nav-btn" id="btn-write" onclick="go('write')">
+            <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/>
+            </svg>
+            <span class="n-label">Studio</span>
+        </button>
+        <button class="nav-btn" id="btn-drafts" onclick="go('drafts')">
+            <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span class="n-label">Planifiés</span>
+        </button>
+        <button class="nav-btn" id="btn-news" onclick="go('news')">
+            <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            <span class="n-label">Docs</span>
+        </button>
+        <button class="nav-btn" id="btn-inbox" onclick="go('inbox')">
+            <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <span class="n-label">Messages</span>
+        </button>
+        <button class="nav-btn" id="btn-staff" style="display:none" onclick="go('staff')">
+            <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+            <span class="n-label">Staff</span>
+        </button>
+        <button class="nav-btn" id="btn-ads" onclick="go('ads')">
+            <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+                <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+            </svg>
+            <span class="n-label">Pub</span>
+        </button>
+        <button class="nav-btn" id="btn-profile" onclick="go('profile')">
+            <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span class="n-label">Profil</span>
+        </button>
+    </nav>
+</div>
+
+<datalist id="cat-list-dl">
+    <option value="Togo"><option value="International"><option value="Politique">
+    <option value="Économie"><option value="Société"><option value="Sport">
+    <option value="Culture"><option value="Technologie"><option value="Lifestyle">
+    <option value="Décryptage"><option value="Education">
+</datalist>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import {
+    getFirestore, enableIndexedDbPersistence, collection, addDoc,
+    onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp,
+    getDoc, setDoc, query, orderBy, where
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import {
+    getAuth, signInWithEmailAndPassword, onAuthStateChanged,
+    signOut, setPersistence, browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+const FB = {
+    apiKey:"AIzaSyDOPeLjRRM88dE665rKZigk2JmA-J9YXek",
+    authDomain:"bbriefly-7e3b8.firebaseapp.com",
+    projectId:"bbriefly-7e3b8",
+    storageBucket:"bbriefly-7e3b8.firebasestorage.app",
+    messagingSenderId:"634935431290",
+    appId:"1:634935431290:web:1dcb513aafc3011133ebc3"
+};
+const fbApp = initializeApp(FB);
+const db    = getFirestore(fbApp);
+const auth  = getAuth(fbApp);
+const AID   = 'bbriefly-7e3b8';
+const COL   = `artifacts/${AID}/public/data`;
+const WPK1  = "13cd2ccf854c4046bfdaf0892da4d891", WPT1="117369";
+const WPK2  = "42cedc8d279eb06ebd3ce34de53a657d", WPT2="118484";
+const TG_TOKEN = "8575032027:AAFjP34vggDXwthT_OUZvjfCTUFogtV0G2M";
+const TG_CHAT  = "-1003507625091";
+const SITE     = "https://briefly-lilac.vercel.app";
+const IMGBB_KEY= "3f120b77128226122a9f0a48ca6ab62d";
+
+enableIndexedDbPersistence(db).catch(()=>{});
+setPersistence(auth, browserLocalPersistence);
+
+window.addEventListener('online',  ()=>document.getElementById('offline-bar').style.display='none');
+window.addEventListener('offline', ()=>document.getElementById('offline-bar').style.display='block');
+
+/* ── Toast ── */
+function toast(msg, ok=true) {
+    const el=document.getElementById('toast');
+    el.textContent=msg;
+    el.style.borderColor=ok?'var(--green)':'var(--red)';
+    el.classList.add('show');
+    setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+/* ── ImgBB ── */
+async function uploadToImgBB(file) {
+    const fd=new FormData(); fd.append('image',file);
+    const res=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{method:'POST',body:fd});
+    const data=await res.json();
+    if(data.success) return data.data.url;
+    throw new Error('ImgBB failed');
+}
+
+/* ── Image principale ── */
+window.triggerMainImgUpload=()=>{
+    const input=document.createElement('input');
+    input.type='file';input.accept='image/*';input.click();
+    input.onchange=async()=>{
+        const file=input.files[0];if(!file)return;
+        const zone=document.getElementById('img-upload-zone');
+        const ph=document.getElementById('img-placeholder');
+        const pw=document.getElementById('img-progress-wrap');
+        const pf=document.getElementById('img-progress-fill');
+        const pl=document.getElementById('img-progress-label');
+        const prev=document.getElementById('img-preview-main');
+        const acts=document.getElementById('img-upload-actions');
+        ph.style.display='none';prev.style.display='none';
+        acts.classList.remove('visible');pw.classList.add('visible');
+        let p=0;
+        const iv=setInterval(()=>{p=Math.min(p+Math.random()*15,85);pf.style.width=p+'%';pl.textContent=`Upload… ${Math.round(p)}%`;},200);
+        try{
+            const url=await uploadToImgBB(file);
+            clearInterval(iv);pf.style.width='100%';pl.textContent='Terminé ✓';
+            await new Promise(r=>setTimeout(r,400));
+            prev.src=url;prev.style.display='block';
+            pw.classList.remove('visible');acts.classList.add('visible');
+            zone.classList.add('has-image');
+            document.getElementById('news-image').value=url;
+            toast('Image uploadée ✓');
+        } catch{clearInterval(iv);pw.classList.remove('visible');ph.style.display='flex';toast('Erreur upload',false);}
+    };
+};
+window.removeMainImg=()=>{
+    document.getElementById('img-preview-main').style.display='none';
+    document.getElementById('img-preview-main').src='';
+    document.getElementById('img-placeholder').style.display='flex';
+    document.getElementById('img-upload-actions').classList.remove('visible');
+    document.getElementById('img-upload-zone').classList.remove('has-image');
+    document.getElementById('news-image').value='';
+};
+
+/* ── Photo de profil (Base64) ── */
+window.triggerAvatarUpload=()=>{
+    const input=document.createElement('input');
+    input.type='file';input.accept='image/*';input.click();
+    input.onchange=()=>{
+        const file=input.files[0];if(!file)return;
+        // Redimensionner avant de convertir en base64
+        const reader=new FileReader();
+        reader.onload=e=>{
+            const img=new Image();
+            img.onload=()=>{
+                const canvas=document.createElement('canvas');
+                const MAX=200;
+                let w=img.width,h=img.height;
+                if(w>h){if(w>MAX){h=h*(MAX/w);w=MAX;}}else{if(h>MAX){w=w*(MAX/h);h=MAX;}}
+                canvas.width=Math.round(w);canvas.height=Math.round(h);
+                canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+                const b64=canvas.toDataURL('image/jpeg',0.7);
+                document.getElementById('avatar-preview').src=b64;
+                document.getElementById('avatar-preview').style.display='block';
+                document.getElementById('avatar-placeholder').style.display='none';
+                window._avatarB64=b64;
+            };
+            img.src=e.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+};
+
+/* ── YouTube embed handler ── */
+window.openYTModal=()=>{document.getElementById('yt-modal').classList.add('open');document.getElementById('yt-url-input').focus();}
+window.closeYTModal=()=>{document.getElementById('yt-modal').classList.remove('open');document.getElementById('yt-url-input').value='';}
+window.insertYouTube=()=>{
+    const raw=document.getElementById('yt-url-input').value.trim();
+    if(!raw)return toast('Entrez un lien YouTube',false);
+    let videoId='';
+    try{
+        if(raw.includes('youtube.com/watch')){videoId=new URL(raw).searchParams.get('v');}
+        else if(raw.includes('youtu.be/')){videoId=raw.split('youtu.be/')[1].split('?')[0];}
+        else if(raw.includes('youtube.com/embed/')){videoId=raw.split('/embed/')[1].split('?')[0];}
+        else{videoId=raw;} // Assume direct ID
+    }catch{videoId=raw;}
+    if(!videoId){return toast('Lien YouTube invalide',false);}
+    const embedSrc=`https://www.youtube-nocookie.com/embed/${videoId}`;
+    const range=quill.getSelection(true);
+    quill.insertEmbed(range.index,'video',embedSrc,'user');
+    quill.setSelection(range.index+1);
+    closeYTModal();
+    toast('Vidéo YouTube insérée ✓');
+};
+
+/* ── Quill avec bouton YouTube custom ── */
+const toolbarOptions={
+    container:[
+        [{header:[1,2,3,false]}],
+        [{font:[]},{size:['small',false,'large','huge']}],
+        ['bold','italic','underline','strike'],
+        [{color:[]},{background:[]}],
+        [{script:'sub'},{script:'super'}],
+        [{list:'ordered'},{list:'bullet'}],
+        [{indent:'-1'},{indent:'+1'}],
+        [{align:[]}],
+        ['blockquote','code-block'],
+        ['link','image','video'],
+        [{'youtube':'youtube'}],
+        ['clean']
+    ],
+    handlers:{
+        image:imgbbImageHandler,
+        youtube:()=>window.openYTModal()
+    }
+};
+
+const quill=new Quill('#editor',{
+    theme:'snow',
+    placeholder:'Rédigez votre article ici…',
+    modules:{toolbar:toolbarOptions}
+});
+
+// Ajouter le bouton YouTube à la toolbar
+setTimeout(()=>{
+    const tb=document.querySelector('.ql-toolbar');
+    if(tb){
+        const ytBtn=document.querySelector('.ql-youtube');
+        if(ytBtn){
+            ytBtn.innerHTML=`<svg viewBox="0 0 24 24" width="16" height="16" fill="red"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`;
+            ytBtn.setAttribute('title','Intégrer une vidéo YouTube');
+        }
+    }
+},200);
+
+function imgbbImageHandler(){
+    const input=document.createElement('input');
+    input.type='file';input.accept='image/*';input.click();
+    input.onchange=async()=>{
+        const file=input.files[0];if(!file)return;
+        const range=quill.getSelection(true);
+        quill.insertText(range.index,'⏳ Upload image…',{bold:true},true);
+        quill.setSelection(range.index+16);
+        try{
+            const url=await uploadToImgBB(file);
+            quill.deleteText(range.index,16);
+            quill.insertEmbed(range.index,'image',url);
+            quill.setSelection(range.index+1);
+            toast('Image insérée ✓');
+        }catch{quill.deleteText(range.index,16);toast('Erreur upload image',false);}
+    };
+}
+
+/* ── Brouillon LOCAL (localStorage) ── */
+const DRAFT_KEY='briefly_local_draft';
+window.saveDraftLocal=()=>{
+    const data={
+        title:document.getElementById('news-title').value,
+        cat:document.getElementById('news-cat').value,
+        author:document.getElementById('news-author').value,
+        imageUrl:document.getElementById('news-image').value,
+        content:quill.root.innerHTML,
+        savedAt:new Date().toISOString()
+    };
+    localStorage.setItem(DRAFT_KEY,JSON.stringify(data));
+    toast('Brouillon sauvegardé localement ✓');
+    checkLocalDraft();
+};
+window.loadDraftLocal=()=>{
+    const raw=localStorage.getItem(DRAFT_KEY);
+    if(!raw){toast('Aucun brouillon trouvé',false);return;}
+    const d=JSON.parse(raw);
+    document.getElementById('news-title').value=d.title||'';
+    document.getElementById('news-cat').value=d.cat||'';
+    document.getElementById('news-author').value=d.author||'';
+    document.getElementById('news-image').value=d.imageUrl||'';
+    quill.clipboard.dangerouslyPasteHTML(d.content||'');
+    if(d.imageUrl){
+        const prev=document.getElementById('img-preview-main');
+        prev.src=d.imageUrl;prev.style.display='block';
+        document.getElementById('img-placeholder').style.display='none';
+        document.getElementById('img-upload-actions').classList.add('visible');
+        document.getElementById('img-upload-zone').classList.add('has-image');
+    }
+    toast('Brouillon restauré ✓');
+};
+function checkLocalDraft(){
+    const raw=localStorage.getItem(DRAFT_KEY);
+    const bar=document.getElementById('local-draft-bar');
+    if(raw&&bar){bar.style.display='flex';}
+    else if(bar){bar.style.display='none';}
+}
+
+/* ── Programmation ── */
+window.toggleSchedule=()=>{
+    const on=document.getElementById('schedule-toggle').checked;
+    const fields=document.getElementById('schedule-fields');
+    const btn=document.getElementById('btn-publish');
+    fields.classList.toggle('visible',on);
+    btn.textContent=on?'Enregistrer (programmé)':'Publier l\'article';
+    btn.className=on?'btn-primary btn-gold':'btn-primary';
+    if(on){
+        const tom=new Date();tom.setDate(tom.getDate()+1);
+        document.getElementById('sched-date').value=tom.toISOString().split('T')[0];
+        document.getElementById('sched-time').value='08:00';
+        updateSchedulePreview();
+    }else{document.getElementById('schedule-preview').classList.remove('visible');}
+};
+window.updateSchedulePreview=()=>{
+    const d=document.getElementById('sched-date').value;
+    const t=document.getElementById('sched-time').value;
+    const prev=document.getElementById('schedule-preview');
+    const txt=document.getElementById('schedule-preview-text');
+    if(!d||!t){prev.classList.remove('visible');return;}
+    const dt=new Date(`${d}T${t}`);
+    const diff=dt-new Date();
+    if(diff<=0){txt.textContent='⚠️ Date dans le passé !';prev.classList.add('visible');return;}
+    const h=Math.floor(diff/3600000);const m=Math.floor((diff%3600000)/60000);
+    txt.textContent=`${dt.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})} à ${t} — dans ${h}h${m<10?'0'+m:m}`;
+    prev.classList.add('visible');
+};
+function formatCountdown(scheduledAt){
+    const diff=scheduledAt-Date.now();
+    if(diff<=0)return'Publication imminente…';
+    const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+    if(h>0)return`dans ${h}h ${m<10?'0'+m:m}min`;
+    if(m>0)return`dans ${m}min ${s<10?'0'+s:s}s`;
+    return`dans ${s}s`;
+}
+let _schedChecker=null;
+function startScheduleChecker(){
+    if(_schedChecker)clearInterval(_schedChecker);
+    _schedChecker=setInterval(async()=>{
+        const now=Date.now();
+        const due=(window._drafts||[]).filter(d=>d.scheduledAt&&d.scheduledAt<=now);
+        for(const draft of due){
+            try{
+                const pubData={title:draft.title,content:draft.content,category:draft.category,imageUrl:draft.imageUrl,authorName:draft.authorName,authorId:draft.authorId,authorPhotoUrl:draft.authorPhotoUrl||'',timestamp:serverTimestamp(),lastUpdate:serverTimestamp(),views:0};
+                const ref=await addDoc(collection(db,`${COL}/news`),pubData);
+                await notify(draft.title,draft.content,draft.imageUrl,ref.id);
+                await deleteDoc(doc(db,`${COL}/drafts`,draft.id));
+                toast(`"${draft.title.substring(0,30)}…" publié automatiquement ✓`);
+            }catch(e){console.error(e);}
+        }
+        document.querySelectorAll('.countdown-badge[data-id]').forEach(el=>{
+            const d=(window._drafts||[]).find(x=>x.id===el.dataset.id);
+            if(d)el.textContent=formatCountdown(d.scheduledAt);
+        });
+    },10000);
+}
+function renderDrafts(items){
+    const el=document.getElementById('drafts-list');
+    if(!items.length){
+        el.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><p>Aucune publication programmée</p><small>Rédigez un article et activez la programmation</small></div>`;
+        return;
+    }
+    el.innerHTML=items.map(d=>{
+        const dt=new Date(d.scheduledAt);
+        const label=dt.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})+' à '+dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+        return`<div class="draft-card">
+            <img class="draft-thumb" src="${d.imageUrl||''}" alt="" onerror="this.style.display='none'">
+            <div class="draft-body">
+                <div class="draft-title">${d.title}</div>
+                <div class="draft-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:10px;height:10px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${label}</div>
+                <div class="countdown-badge" data-id="${d.id}">${formatCountdown(d.scheduledAt)}</div>
+                <div class="art-actions" style="margin-top:8px">
+                    <button onclick="editDraft('${d.id}')" class="act-btn act-edit">Modifier</button>
+                    <button onclick="publishNowDraft('${d.id}')" class="act-btn act-gold">Publier maintenant</button>
+                    <button onclick="delDraft('${d.id}')" class="act-btn act-del">Annuler</button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+/* ── Messages / Contact ── */
+let msgFilter='all';
+window.setMsgFilter=(el,f)=>{
+    msgFilter=f;
+    document.querySelectorAll('[data-mf]').forEach(b=>b.classList.remove('on'));
+    el.classList.add('on');
+    renderMessages(window._messages||[]);
+};
+function renderMessages(items){
+    const el=document.getElementById('inbox-list');
+    const empty=document.getElementById('inbox-empty');
+    let filtered=items;
+    if(msgFilter==='unread')filtered=items.filter(m=>!m.replied);
+    if(msgFilter==='replied')filtered=items.filter(m=>m.replied);
+    if(!filtered.length){el.innerHTML='';empty.style.display='block';return;}
+    empty.style.display='none';
+    el.innerHTML=filtered.map(m=>{
+        const ts=m.timestamp?.seconds?new Date(m.timestamp.seconds*1000).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+        return`<div class="msg-card ${m.replied?'replied':'unread'}">
+            <div class="msg-top">
+                <div>
+                    <div class="msg-name">${m.name||'Anonyme'}</div>
+                    ${m.email?`<div class="msg-email">${m.email}</div>`:''}
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+                    <span class="msg-status ${m.replied?'status-replied':'status-new'}">${m.replied?'✓ Répondu':'● Nouveau'}</span>
+                    <span class="msg-date">${ts}</span>
+                </div>
+            </div>
+            <div class="msg-body">"${m.message||''}"</div>
+            <div class="msg-actions">
+                ${m.email?`<a href="mailto:${m.email}?subject=Re: Votre message sur Briefly&body=Bonjour ${m.name||''},%0A%0A" class="act-btn act-edit" onclick="markReplied('${m.id}')">✉ Répondre</a>`:''}
+                ${!m.replied?`<button onclick="markReplied('${m.id}')" class="act-btn act-gold">✓ Marquer comme répondu</button>`:''}
+                <button onclick="delMsg('${m.id}')" class="act-btn act-del">🗑 Supprimer</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+window.markReplied=async(id)=>{
+    await updateDoc(doc(db,`${COL}/requests`,id),{replied:true,repliedAt:serverTimestamp()});
+    toast('Marqué comme répondu ✓');
+};
+window.delMsg=async(id)=>{
+    if(!confirm('Supprimer ce message ?'))return;
+    await deleteDoc(doc(db,`${COL}/requests`,id));
+    toast('Message supprimé');
+};
+
+/* ── Profil ── */
+window.saveProfile=async()=>{
+    if(!me)return;
+    const profileData={
+        name:document.getElementById('profile-name').value.trim(),
+        bio:document.getElementById('profile-bio').value.trim(),
+        location:document.getElementById('profile-location').value.trim(),
+        socials:{
+            facebook:document.getElementById('social-facebook').value.trim(),
+            twitter:document.getElementById('social-twitter').value.trim(),
+            instagram:document.getElementById('social-instagram').value.trim(),
+            tiktok:document.getElementById('social-tiktok').value.trim(),
+            linkedin:document.getElementById('social-linkedin').value.trim(),
+        },
+        updatedAt:serverTimestamp()
+    };
+    if(window._avatarB64){profileData.photoUrl=window._avatarB64;}
+    try{
+        await updateDoc(doc(db,'admins',me.id),profileData);
+        me={...me,...profileData};
+        updateHeaderAvatar();
+        toast('Profil enregistré ✓');
+    }catch(e){toast('Erreur lors de la sauvegarde',false);console.error(e);}
+};
+function loadProfileIntoForm(admin){
+    if(!admin)return;
+    document.getElementById('profile-name').value=admin.name||'';
+    document.getElementById('profile-bio').value=admin.bio||'';
+    document.getElementById('profile-location').value=admin.location||'';
+    const s=admin.socials||{};
+    document.getElementById('social-facebook').value=s.facebook||'';
+    document.getElementById('social-twitter').value=s.twitter||'';
+    document.getElementById('social-instagram').value=s.instagram||'';
+    document.getElementById('social-tiktok').value=s.tiktok||'';
+    document.getElementById('social-linkedin').value=s.linkedin||'';
+    if(admin.photoUrl){
+        document.getElementById('avatar-preview').src=admin.photoUrl;
+        document.getElementById('avatar-preview').style.display='block';
+        document.getElementById('avatar-placeholder').style.display='none';
+        window._avatarB64=admin.photoUrl;
+    }
+    updateHeaderAvatar();
+}
+function updateHeaderAvatar(){
+    const ha=document.getElementById('header-avatar');
+    if(!ha)return;
+    if(me?.photoUrl){
+        ha.innerHTML=`<img src="${me.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    }else{
+        ha.textContent=me?.name?me.name[0].toUpperCase():'B';
+    }
+}
+
+/* ── Auth ── */
+let me=null,catChart,viewChart;
+onAuthStateChanged(auth,async u=>{
+    if(!u){showLogin();return;}
+    const snap=await getDoc(doc(db,'admins',u.uid));
+    if(!snap.exists()){await signOut(auth);return;}
+    me={id:u.uid,...snap.data()};
+    document.getElementById('admin-badge').textContent=me.name+' · '+me.role;
+    if(me.role==='admin_general')document.getElementById('btn-staff').style.display='flex';
+    document.getElementById('login-gate').style.display='none';
+    document.getElementById('shell').style.display='flex';
+    loadProfileIntoForm(me);
+    checkLocalDraft();
+    boot();
+});
+document.getElementById('btn-login').onclick=async()=>{
+    const e=document.getElementById('admin-email').value;
+    const p=document.getElementById('admin-password').value;
+    try{await signInWithEmailAndPassword(auth,e,p);}
+    catch{toast('Identifiants incorrects',false);}
+};
+document.getElementById('btn-logout').onclick=()=>signOut(auth);
+function showLogin(){
+    document.getElementById('login-gate').style.display='flex';
+    document.getElementById('shell').style.display='none';
+}
+
+/* ── Notifications ── */
+async function notify(title,content,img,id){
+    const strip=h=>h.replace(/<[^>]*>/gm,'');
+    const t=strip(title),m=strip(content).substring(0,150)+'…';
+    const url=`${SITE}/article/${id}`;
+    const cap=`📢 *NOUVEL ARTICLE*\n\n🚀 *${t.toUpperCase()}*\n\n${m}\n\n🔗 ${url}`;
+    try{
+        await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendPhoto`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:TG_CHAT,photo:img,caption:cap,parse_mode:'Markdown',reply_markup:{inline_keyboard:[[{text:"📖 LIRE L'ARTICLE",url}]]}})});
+    }catch{
+        await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:TG_CHAT,text:cap,parse_mode:'Markdown'})});
+    }
+    const push=(k,tk)=>fetch("https://api.webpushr.com/v1/notification/send/all",{method:'POST',headers:{'Content-Type':'application/json',webpushrKey:k,webpushrAuthToken:tk},body:JSON.stringify({title:t,message:m,target_url:url,icon:`${SITE}/logo.jpg`,image:img||''})});
+    Promise.all([push(WPK1,WPT1),push(WPK2,WPT2)]).catch(console.error);
+}
+
+/* ── Charts ── */
+const COLORS=['#6c63ff','#ff4757','#2ed573','#ffa502','#a29bfe','#00cec9','#fd79a8'];
+Chart.defaults.color='#606068';
+Chart.defaults.font.family="'Space Grotesk', sans-serif";
+function buildCharts(arts){
+    document.getElementById('total-articles').textContent=arts.length;
+    const tv=arts.reduce((s,a)=>s+(a.views||0),0);
+    document.getElementById('total-views').textContent=tv>=1000?(tv/1000).toFixed(1)+'k':tv;
+    const counts={};
+    arts.forEach(a=>{const k=a.category||'Autre';counts[k]=(counts[k]||0)+1;});
+    const cL=Object.keys(counts),cD=Object.values(counts);
+    if(catChart)catChart.destroy();
+    catChart=new Chart(document.getElementById('catChart'),{type:'doughnut',data:{labels:cL,datasets:[{data:cD,backgroundColor:COLORS,borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:10,font:{size:10}}}}}});
+    document.getElementById('cat-list').innerHTML=cL.map((l,i)=>`<div class="list-row"><span>${l}</span><span class="badge badge-accent">${cD[i]}</span></div>`).join('');
+    const top=[...arts].sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,5);
+    if(viewChart)viewChart.destroy();
+    viewChart=new Chart(document.getElementById('viewChart'),{type:'bar',data:{labels:top.map(a=>a.title.substring(0,16)+'…'),datasets:[{data:top.map(a=>a.views||0),backgroundColor:'#6c63ff',borderRadius:6,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{color:'#2a2a2e'},ticks:{font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+    document.getElementById('view-list').innerHTML=top.map(a=>`<div class="list-row"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%">${a.title}</span><span class="badge badge-green">${a.views||0} vues</span></div>`).join('');
+}
+
+/* ── Filtres historique ── */
+let curCat='Tous';
+window.setCat=(el,cat)=>{curCat=cat;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');filterArts();};
+window.filterArts=()=>{
+    const q=document.getElementById('hist-search').value.toLowerCase();
+    const filtered=(window._arts||[]).filter(a=>{const mc=curCat==='Tous'||a.category===curCat;const ms=!q||a.title?.toLowerCase().includes(q)||a.category?.toLowerCase().includes(q);return mc&&ms;});
+    renderArts(filtered);
+};
+function renderArts(items){
+    const el=document.getElementById('art-list');const nr=document.getElementById('no-results');
+    if(!items.length){el.innerHTML='';nr.style.display='block';return;}
+    nr.style.display='none';
+    el.innerHTML=items.map(a=>`
+        <div class="art-card">
+            <img class="art-thumb" src="${a.imageUrl||''}" alt="" onerror="this.style.display='none'">
+            <div class="art-body">
+                <div class="art-title">${a.title}</div>
+                <div class="art-meta"><span class="art-cat">${a.category||'—'}</span><span class="art-views">👁 ${a.views||0}</span></div>
+                <div class="art-actions">
+                    <a href="${SITE}/article/${a.id}" target="_blank" class="act-btn act-view">Voir</a>
+                    <button onclick="editArt('${a.id}')" class="act-btn act-edit">Modifier</button>
+                    <button onclick="delArt('${a.id}')" class="act-btn act-del">Supprimer</button>
+                </div>
+            </div>
+        </div>`).join('');
+}
+
+/* ── Boot ── */
+function boot(){
+    onSnapshot(query(collection(db,`${COL}/news`),orderBy('timestamp','desc')),snap=>{
+        const arts=snap.docs.map(d=>({id:d.id,...d.data()}));
+        window._arts=arts;buildCharts(arts);filterArts();
+        const pills=document.getElementById('pills');
+        const have=[...pills.querySelectorAll('.pill')].map(p=>p.dataset.cat);
+        [...new Set(arts.map(a=>a.category).filter(Boolean))].forEach(c=>{
+            if(!have.includes(c)){const b=document.createElement('button');b.className='pill';b.dataset.cat=c;b.textContent=c;b.onclick=()=>setCat(b,c);pills.appendChild(b);}
+        });
+    });
+    onSnapshot(query(collection(db,`${COL}/drafts`),orderBy('scheduledAt','asc')),snap=>{
+        const drafts=snap.docs.map(d=>({id:d.id,...d.data()}));
+        window._drafts=drafts;renderDrafts(drafts);
+        const label=document.querySelector('#btn-drafts .n-label');
+        if(label)label.textContent=drafts.length>0?`Planifiés (${drafts.length})`:'Planifiés';
+    });
+    onSnapshot(collection(db,'users'),s=>{document.getElementById('total-users').textContent=s.size;});
+    if(me.role==='admin_general'){
+        onSnapshot(collection(db,'admins'),s=>{
+            document.getElementById('staff-list').innerHTML=s.docs.map(d=>{
+                const st=d.data();const self=d.id===me.id;
+                const avatarHtml=st.photoUrl?`<img src="${st.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">`:`<span style="font-style:italic">${st.name?st.name[0].toUpperCase():'?'}</span>`;
+                return`<div class="staff-row"><div class="s-avatar">${avatarHtml}</div><div><div class="staff-name">${st.name}${self?' <span style="color:var(--muted);font-size:11px">(vous)</span>':''}</div><div class="staff-role">${st.role}</div></div>${!self?`<div class="staff-acts"><button onclick="chRole('${d.id}','${st.role}')" class="act-btn act-edit">Rôle</button><button onclick="delItem('admins','${d.id}')" class="act-btn act-del">Retirer</button></div>`:''}</div>`;
+            }).join('');
+        });
+    }
+    onSnapshot(query(collection(db,`${COL}/requests`),orderBy('timestamp','desc')),s=>{
+        const msgs=s.docs.map(d=>({id:d.id,...d.data()}));
+        window._messages=msgs;
+        renderMessages(msgs);
+        // Badge nb messages non répondus
+        const unread=msgs.filter(m=>!m.replied).length;
+        const label=document.querySelector('#btn-inbox .n-label');
+        if(label)label.textContent=unread>0?`Messages (${unread})`:'Messages';
+    });
+    startScheduleChecker();
+    bootAds();
+}
+
+/* ── Publish ── */
+document.getElementById('btn-publish').onclick=async()=>{
+    const title=document.getElementById('news-title').value.trim();
+    const category=document.getElementById('news-cat').value.trim();
+    const imageUrl=document.getElementById('news-image').value.trim();
+    const author=document.getElementById('news-author').value.trim();
+    const content=quill.root.innerHTML;
+    const scheduled=document.getElementById('schedule-toggle').checked;
+    if(!title||!category)return toast('Titre et catégorie requis',false);
+    if(!imageUrl)return toast('Image principale requise',false);
+    if(content.replace(/<[^>]*>/g,'').trim().length<10)return toast('Contenu trop court',false);
+    const data={title,category,imageUrl,content,lastUpdate:serverTimestamp(),authorName:author||me.name,authorId:me.id,authorPhotoUrl:me.photoUrl||''};
+    if(scheduled){
+        const d=document.getElementById('sched-date').value;
+        const t=document.getElementById('sched-time').value;
+        if(!d||!t)return toast('Choisissez date et heure',false);
+        const scheduledAt=new Date(`${d}T${t}`).getTime();
+        if(scheduledAt<=Date.now())return toast('La date doit être dans le futur',false);
+        data.scheduledAt=scheduledAt;data.createdAt=serverTimestamp();
+        try{
+            if(window._editDraftId){await updateDoc(doc(db,`${COL}/drafts`,window._editDraftId),data);toast('Publication reprogrammée ✓');}
+            else{await addDoc(collection(db,`${COL}/drafts`),data);toast('Publication programmée ✓');}
+            resetForm();go('drafts');
+        }catch{toast('Erreur programmation',false);}
+        return;
+    }
+    try{
+        if(window._editId){
+            await updateDoc(doc(db,`${COL}/news`,window._editId),data);
+            toast('Article mis à jour ✓');
+            if(confirm('Renvoyer les notifications ?'))await notify(title,content,imageUrl,window._editId);
+        }else{
+            data.timestamp=serverTimestamp();data.views=0;
+            const ref=await addDoc(collection(db,`${COL}/news`),data);
+            await notify(title,content,imageUrl,ref.id);
+            toast('Article publié ✓');
+            // Supprimer brouillon local après publication
+            localStorage.removeItem(DRAFT_KEY);checkLocalDraft();
+        }
+        resetForm();go('news');
+    }catch(e){toast('Erreur publication',false);console.error(e);}
+};
+
+window.editArt=id=>{
+    const a=(window._arts||[]).find(x=>x.id===id);if(!a)return;
+    document.getElementById('news-title').value=a.title||'';
+    document.getElementById('news-cat').value=a.category||'';
+    document.getElementById('news-image').value=a.imageUrl||'';
+    document.getElementById('news-author').value=a.authorName||'';
+    quill.clipboard.dangerouslyPasteHTML(a.content||'');
+    if(a.imageUrl){
+        const prev=document.getElementById('img-preview-main');
+        prev.src=a.imageUrl;prev.style.display='block';
+        document.getElementById('img-placeholder').style.display='none';
+        document.getElementById('img-upload-actions').classList.add('visible');
+        document.getElementById('img-upload-zone').classList.add('has-image');
+    }
+    window._editId=id;window._editDraftId=null;
+    document.getElementById('btn-publish').textContent='Mettre à jour';
+    document.getElementById('btn-cancel-edit').style.display='flex';
+    go('write');
+};
+window.editDraft=id=>{
+    const a=(window._drafts||[]).find(x=>x.id===id);if(!a)return;
+    document.getElementById('news-title').value=a.title||'';
+    document.getElementById('news-cat').value=a.category||'';
+    document.getElementById('news-image').value=a.imageUrl||'';
+    document.getElementById('news-author').value=a.authorName||'';
+    quill.clipboard.dangerouslyPasteHTML(a.content||'');
+    if(a.imageUrl){const prev=document.getElementById('img-preview-main');prev.src=a.imageUrl;prev.style.display='block';document.getElementById('img-placeholder').style.display='none';document.getElementById('img-upload-actions').classList.add('visible');document.getElementById('img-upload-zone').classList.add('has-image');}
+    const dt=new Date(a.scheduledAt);
+    document.getElementById('schedule-toggle').checked=true;
+    document.getElementById('schedule-fields').classList.add('visible');
+    document.getElementById('sched-date').value=dt.toISOString().split('T')[0];
+    document.getElementById('sched-time').value=dt.toTimeString().substring(0,5);
+    document.getElementById('btn-publish').textContent='Mettre à jour (programmé)';
+    document.getElementById('btn-publish').className='btn-primary btn-gold';
+    updateSchedulePreview();
+    window._editDraftId=id;window._editId=null;
+    document.getElementById('btn-cancel-edit').style.display='flex';
+    go('write');
+};
+window.publishNowDraft=async id=>{
+    const d=(window._drafts||[]).find(x=>x.id===id);
+    if(!d||!confirm('Publier maintenant ?'))return;
+    const pubData={title:d.title,content:d.content,category:d.category,imageUrl:d.imageUrl,authorName:d.authorName,authorId:d.authorId||'',authorPhotoUrl:d.authorPhotoUrl||'',timestamp:serverTimestamp(),lastUpdate:serverTimestamp(),views:0};
+    const ref=await addDoc(collection(db,`${COL}/news`),pubData);
+    await notify(d.title,d.content,d.imageUrl,ref.id);
+    await deleteDoc(doc(db,`${COL}/drafts`,id));
+    toast('Article publié ✓');
+};
+window.delDraft=async id=>{
+    if(!confirm('Annuler cette publication ?'))return;
+    await deleteDoc(doc(db,`${COL}/drafts`,id));toast('Publication annulée');
+};
+window.resetForm=()=>{
+    window._editId=null;window._editDraftId=null;
+    ['news-title','news-cat','news-image','news-author'].forEach(id=>document.getElementById(id).value='');
+    quill.setContents([]);
+    document.getElementById('img-preview-main').style.display='none';
+    document.getElementById('img-preview-main').src='';
+    document.getElementById('img-placeholder').style.display='flex';
+    document.getElementById('img-upload-actions').classList.remove('visible');
+    document.getElementById('img-upload-zone').classList.remove('has-image');
+    document.getElementById('schedule-toggle').checked=false;
+    document.getElementById('schedule-fields').classList.remove('visible');
+    document.getElementById('schedule-preview').classList.remove('visible');
+    document.getElementById('btn-publish').textContent='Publier l\'article';
+    document.getElementById('btn-publish').className='btn-primary';
+    document.getElementById('btn-cancel-edit').style.display='none';
+};
+window.delArt=async id=>{if(!confirm('Supprimer cet article ?'))return;await deleteDoc(doc(db,`${COL}/news`,id));toast('Article supprimé');};
+window.delItem=async(col,id)=>{if(!confirm('Confirmer ?'))return;const path=col==='admins'?`admins/${id}`:`${COL}/${col}/${id}`;await deleteDoc(doc(db,path));toast('Supprimé');};
+window.chRole=async(id,cur)=>{const next=cur==='admin_general'?'redacteur':'admin_general';if(confirm(`Passer en ${next} ?`)){await updateDoc(doc(db,'admins',id),{role:next});toast('Rôle mis à jour');}};
+window.genInvite=async()=>{const role=document.getElementById('inv-role').value;const token=Math.random().toString(36).substring(2,14);await setDoc(doc(db,'invitations',token),{role,used:false,createdAt:serverTimestamp()});const link=`${SITE}/public/signup.html?invite=${token}`;document.getElementById('invite-link').textContent=link;document.getElementById('invite-result').style.display='block';};
+window.copyInvite=()=>{navigator.clipboard.writeText(document.getElementById('invite-link').textContent).then(()=>toast('Lien copié ✓'));};
+window.go=id=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+    const navBtn=document.getElementById('btn-'+id);
+    if(navBtn)navBtn.classList.add('active');
+    document.getElementById('content-area').scrollTop=0;
+};
+window.reloadFrame=()=>{const f=document.getElementById('preview-frame');f.src=f.src;};
+
+/* ══════════════════════════════════════
+   PUBLICITÉS — logique complète
+══════════════════════════════════════ */
+
+/* ── Sous-onglets ── */
+window.switchAdTab=(el,id)=>{
+    document.querySelectorAll('.ad-tab-btn').forEach(b=>b.classList.remove('on'));
+    document.querySelectorAll('.ad-section').forEach(s=>s.classList.remove('on'));
+    el.classList.add('on');
+    document.getElementById(id).classList.add('on');
+};
+
+/* ── Ouvrir / fermer formulaires ── */
+window.openAdForm=(type)=>{
+    const formId = type==='banner'?'banner-form':'popup-form';
+    document.getElementById(formId).style.display='block';
+    document.getElementById(formId).scrollIntoView({behavior:'smooth',block:'nearest'});
+};
+window.closeAdForm=(type)=>{
+    const formId = type==='banner'?'banner-form':'popup-form';
+    document.getElementById(formId).style.display='none';
+    resetAdForm(type);
+};
+
+function resetAdForm(type){
+    if(type==='banner'){
+        ['banner-edit-id','banner-title','banner-subtitle','banner-link','banner-cta','banner-image-url'].forEach(id=>{
+            const el=document.getElementById(id); if(el) el.value='';
+        });
+        document.getElementById('banner-order').value='0';
+        document.getElementById('banner-type').value='image';
+        document.getElementById('banner-bgcolor').value='#0f172a';
+        document.getElementById('banner-bgcolor-text').value='#0f172a';
+        document.getElementById('banner-textcolor').value='#ffffff';
+        document.getElementById('banner-textcolor-text').value='#ffffff';
+        document.getElementById('banner-ctacolor').value='#6c63ff';
+        document.getElementById('banner-ctacolor-text').value='#6c63ff';
+        document.getElementById('banner-img-preview').style.display='none';
+        document.getElementById('banner-img-preview').src='';
+        document.getElementById('banner-img-placeholder').style.display='flex';
+        document.getElementById('banner-colors-wrap').style.display='none';
+        document.querySelectorAll('.ad-type-btn[onclick*="setBannerType"]').forEach((b,i)=>b.classList.toggle('on',i===0));
+        document.getElementById('banner-form-title').innerHTML='Nouvelle bannière<span style="color:var(--accent)">.</span>';
+    } else {
+        ['popup-edit-id','popup-title','popup-subtitle','popup-link','popup-cta','popup-image-url'].forEach(id=>{
+            const el=document.getElementById(id); if(el) el.value='';
+        });
+        document.getElementById('popup-delay').value='3';
+        document.getElementById('popup-type').value='image';
+        document.getElementById('popup-bgcolor').value='#0f172a';
+        document.getElementById('popup-bgcolor-text').value='#0f172a';
+        document.getElementById('popup-textcolor').value='#ffffff';
+        document.getElementById('popup-textcolor-text').value='#ffffff';
+        document.getElementById('popup-ctacolor').value='#ffffff';
+        document.getElementById('popup-ctacolor-text').value='#ffffff';
+        document.getElementById('popup-img-preview').style.display='none';
+        document.getElementById('popup-img-preview').src='';
+        document.getElementById('popup-img-placeholder').style.display='flex';
+        document.querySelectorAll('.ad-type-btn[onclick*="setPopupType"]').forEach((b,i)=>b.classList.toggle('on',i===0));
+        document.getElementById('popup-form-title').innerHTML='Nouveau popup<span style="color:var(--accent)">.</span>';
+    }
+}
+
+/* ── Types ── */
+window.setBannerType=(el,type)=>{
+    document.querySelectorAll('.ad-type-btn[onclick*="setBannerType"]').forEach(b=>b.classList.remove('on'));
+    el.classList.add('on');
+    document.getElementById('banner-type').value=type;
+    document.getElementById('banner-img-wrap').style.display=(type==='text')?'none':'block';
+    document.getElementById('banner-colors-wrap').style.display=(type==='image')?'none':'flex';
+};
+window.setPopupType=(el,type)=>{
+    document.querySelectorAll('.ad-type-btn[onclick*="setPopupType"]').forEach(b=>b.classList.remove('on'));
+    el.classList.add('on');
+    document.getElementById('popup-type').value=type;
+    document.getElementById('popup-img-wrap').style.display=(type==='text')?'none':'block';
+};
+
+/* ── Synchronisation color picker ↔ input texte ── */
+['banner-bgcolor','banner-textcolor','banner-ctacolor','popup-bgcolor','popup-textcolor','popup-ctacolor'].forEach(id=>{
+    const picker=document.getElementById(id);
+    const text=document.getElementById(id+'-text');
+    if(!picker||!text) return;
+    picker.addEventListener('input',()=>text.value=picker.value);
+    text.addEventListener('input',()=>{if(/^#[0-9a-fA-F]{6}$/.test(text.value))picker.value=text.value;});
+});
+
+/* ── Upload image publicitaire via ImgBB ── */
+window.triggerAdImg=(type)=>{
+    const input=document.createElement('input');
+    input.type='file'; input.accept='image/*'; input.click();
+    input.onchange=async()=>{
+        const file=input.files[0]; if(!file)return;
+        const zone=document.getElementById(type+'-img-zone');
+        const ph=document.getElementById(type+'-img-placeholder');
+        const prev=document.getElementById(type+'-img-preview');
+        const urlInput=document.getElementById(type+'-image-url');
+        ph.style.display='none';
+        prev.style.display='none';
+        zone.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:11px">⏳ Upload en cours…</div>';
+        try{
+            const fd=new FormData(); fd.append('image',file);
+            const res=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{method:'POST',body:fd});
+            const data=await res.json();
+            if(!data.success) throw new Error();
+            urlInput.value=data.data.url;
+            // Restaurer la zone avec l'aperçu
+            zone.innerHTML=`
+                <img id="${type}-img-preview" src="${data.data.url}" style="width:100%;max-height:${type==='banner'?'100':'200'}px;object-fit:cover">
+                <div id="${type}-img-placeholder" style="display:none"></div>
+            `;
+            toast('Image uploadée ✓');
+        }catch{
+            zone.innerHTML=`
+                <div id="${type}-img-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px;pointer-events:none">
+                    <span style="font-size:10px;color:var(--red)">Erreur upload — réessayer</span>
+                </div>
+                <img id="${type}-img-preview" src="" style="display:none">
+            `;
+            toast('Erreur upload image',false);
+        }
+    };
+};
+
+/* ── Sauvegarder une bannière ── */
+window.saveBanner=async()=>{
+    const editId=document.getElementById('banner-edit-id').value;
+    const data={
+        title:      document.getElementById('banner-title').value.trim(),
+        subtitle:   document.getElementById('banner-subtitle').value.trim(),
+        link:       document.getElementById('banner-link').value.trim(),
+        cta:        document.getElementById('banner-cta').value.trim(),
+        type:       document.getElementById('banner-type').value,
+        imageUrl:   document.getElementById('banner-image-url').value.trim(),
+        bgColor:    document.getElementById('banner-bgcolor').value,
+        textColor:  document.getElementById('banner-textcolor').value,
+        ctaColor:   document.getElementById('banner-ctacolor').value,
+        order:      parseInt(document.getElementById('banner-order').value)||0,
+        active:     true,
+        updatedAt:  serverTimestamp(),
+    };
+    if(data.type!=='text' && !data.imageUrl) return toast('Ajoutez une image ou choisissez le type Texte',false);
+    if(!data.title && !data.imageUrl) return toast('Titre ou image requis',false);
+    try{
+        if(editId){
+            await updateDoc(doc(db,`${COL}/ads_banner`,editId),data);
+            toast('Bannière mise à jour ✓');
+        }else{
+            data.createdAt=serverTimestamp();
+            await addDoc(collection(db,`${COL}/ads_banner`),data);
+            toast('Bannière créée ✓');
+        }
+        closeAdForm('banner');
+    }catch(e){toast('Erreur sauvegarde',false);console.error(e);}
+};
+
+/* ── Sauvegarder un popup ── */
+window.savePopup=async()=>{
+    const editId=document.getElementById('popup-edit-id').value;
+    const data={
+        title:     document.getElementById('popup-title').value.trim(),
+        subtitle:  document.getElementById('popup-subtitle').value.trim(),
+        link:      document.getElementById('popup-link').value.trim(),
+        cta:       document.getElementById('popup-cta').value.trim(),
+        type:      document.getElementById('popup-type').value,
+        imageUrl:  document.getElementById('popup-image-url').value.trim(),
+        bgColor:   document.getElementById('popup-bgcolor').value,
+        textColor: document.getElementById('popup-textcolor').value,
+        ctaColor:  document.getElementById('popup-ctacolor').value,
+        delay:     parseInt(document.getElementById('popup-delay').value)||3,
+        active:    true,
+        updatedAt: serverTimestamp(),
+    };
+    if(!data.title && !data.imageUrl) return toast('Titre ou image requis',false);
+    try{
+        if(editId){
+            await updateDoc(doc(db,`${COL}/ads_popup`,editId),data);
+            toast('Popup mis à jour ✓');
+        }else{
+            data.createdAt=serverTimestamp();
+            await addDoc(collection(db,`${COL}/ads_popup`),data);
+            toast('Popup créé ✓');
+        }
+        closeAdForm('popup');
+    }catch(e){toast('Erreur sauvegarde',false);console.error(e);}
+};
+
+/* ── Rendu liste bannières ── */
+function renderBanners(items){
+    const el=document.getElementById('banners-list');
+    if(!items.length){
+        el.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg><p>Aucune bannière</p><small>Créez votre première bannière publicitaire</small></div>`;
+        return;
+    }
+    el.innerHTML=items.map(a=>`
+        <div class="ad-card">
+            <div class="ad-card-header">
+                ${a.imageUrl
+                    ? `<img class="ad-thumb" src="${a.imageUrl}" alt="" onerror="this.style.display='none'">`
+                    : `<div class="ad-thumb-placeholder" style="background:${a.bgColor||'#0f172a'};color:${a.textColor||'#fff'}">🖼</div>`}
+                <div class="ad-info">
+                    <div class="ad-name">${a.title||'Sans titre'}</div>
+                    <div class="ad-meta">
+                        Type: ${a.type||'image'} · Ordre: ${a.order??0}
+                        ${a.link?` · <a href="${a.link}" target="_blank" style="color:var(--accent);text-decoration:none">Lien ↗</a>`:''}
+                    </div>
+                </div>
+                <div class="ad-actions">
+                    <button class="toggle-active ${a.active!==false?'on':'off'}" onclick="toggleAdActive('ads_banner','${a.id}',${a.active!==false})" title="${a.active!==false?'Désactiver':'Activer'}"></button>
+                    <button onclick="editBanner('${a.id}')" class="act-btn act-edit">Modifier</button>
+                    <button onclick="delAd('ads_banner','${a.id}')" class="act-btn act-del">Supprimer</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+/* ── Rendu liste popups ── */
+function renderPopups(items){
+    const el=document.getElementById('popups-list');
+    if(!items.length){
+        el.innerHTML=`<div class="empty-state" style="padding:24px"><p>Aucun popup créé</p><small>Créez un popup pour accueillir vos nouveaux visiteurs</small></div>`;
+        return;
+    }
+    el.innerHTML=items.map(a=>`
+        <div class="ad-card">
+            <div class="ad-card-header">
+                ${a.imageUrl
+                    ? `<img class="ad-thumb" src="${a.imageUrl}" alt="" onerror="this.style.display='none'">`
+                    : `<div class="ad-thumb-placeholder" style="background:${a.bgColor||'#0f172a'};color:${a.textColor||'#fff'}">💬</div>`}
+                <div class="ad-info">
+                    <div class="ad-name">${a.title||'Sans titre'}</div>
+                    <div class="ad-meta">
+                        Délai: ${a.delay??3}s · Type: ${a.type||'image'}
+                        ${a.active!==false?'<span style="color:var(--green);font-weight:700"> · ACTIF</span>':'<span style="color:var(--muted)"> · Inactif</span>'}
+                    </div>
+                </div>
+                <div class="ad-actions">
+                    <button class="toggle-active ${a.active!==false?'on':'off'}" onclick="toggleAdActive('ads_popup','${a.id}',${a.active!==false})" title="${a.active!==false?'Désactiver':'Activer'}"></button>
+                    <button onclick="editPopup('${a.id}')" class="act-btn act-edit">Modifier</button>
+                    <button onclick="delAd('ads_popup','${a.id}')" class="act-btn act-del">Supprimer</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+/* ── Actions ── */
+window.toggleAdActive=async(col,id,current)=>{
+    await updateDoc(doc(db,`${COL}/${col}`,id),{active:!current,updatedAt:serverTimestamp()});
+    toast(current?'Désactivé':'Activé ✓',!current);
+};
+window.delAd=async(col,id)=>{
+    if(!confirm('Supprimer cette publicité ?'))return;
+    await deleteDoc(doc(db,`${COL}/${col}`,id));
+    toast('Supprimé');
+};
+window.editBanner=id=>{
+    const a=(window._banners||[]).find(x=>x.id===id); if(!a)return;
+    document.getElementById('banner-edit-id').value=id;
+    document.getElementById('banner-title').value=a.title||'';
+    document.getElementById('banner-subtitle').value=a.subtitle||'';
+    document.getElementById('banner-link').value=a.link||'';
+    document.getElementById('banner-cta').value=a.cta||'';
+    document.getElementById('banner-order').value=a.order||0;
+    document.getElementById('banner-type').value=a.type||'image';
+    document.getElementById('banner-image-url').value=a.imageUrl||'';
+    document.getElementById('banner-bgcolor').value=a.bgColor||'#0f172a';
+    document.getElementById('banner-bgcolor-text').value=a.bgColor||'#0f172a';
+    document.getElementById('banner-textcolor').value=a.textColor||'#ffffff';
+    document.getElementById('banner-textcolor-text').value=a.textColor||'#ffffff';
+    document.getElementById('banner-ctacolor').value=a.ctaColor||'#6c63ff';
+    document.getElementById('banner-ctacolor-text').value=a.ctaColor||'#6c63ff';
+    if(a.imageUrl){
+        document.getElementById('banner-img-preview').src=a.imageUrl;
+        document.getElementById('banner-img-preview').style.display='block';
+        document.getElementById('banner-img-placeholder').style.display='none';
+    }
+    document.getElementById('banner-img-wrap').style.display=(a.type==='text')?'none':'block';
+    document.getElementById('banner-colors-wrap').style.display=(a.type==='image')?'none':'flex';
+    document.querySelectorAll('.ad-type-btn[onclick*="setBannerType"]').forEach(b=>b.classList.toggle('on',b.dataset.type===a.type));
+    document.getElementById('banner-form-title').innerHTML='Modifier la bannière<span style="color:var(--accent)">.</span>';
+    openAdForm('banner');
+};
+window.editPopup=id=>{
+    const a=(window._popups||[]).find(x=>x.id===id); if(!a)return;
+    document.getElementById('popup-edit-id').value=id;
+    document.getElementById('popup-title').value=a.title||'';
+    document.getElementById('popup-subtitle').value=a.subtitle||'';
+    document.getElementById('popup-link').value=a.link||'';
+    document.getElementById('popup-cta').value=a.cta||'';
+    document.getElementById('popup-delay').value=a.delay||3;
+    document.getElementById('popup-type').value=a.type||'image';
+    document.getElementById('popup-image-url').value=a.imageUrl||'';
+    document.getElementById('popup-bgcolor').value=a.bgColor||'#0f172a';
+    document.getElementById('popup-bgcolor-text').value=a.bgColor||'#0f172a';
+    document.getElementById('popup-textcolor').value=a.textColor||'#ffffff';
+    document.getElementById('popup-textcolor-text').value=a.textColor||'#ffffff';
+    document.getElementById('popup-ctacolor').value=a.ctaColor||'#ffffff';
+    document.getElementById('popup-ctacolor-text').value=a.ctaColor||'#ffffff';
+    if(a.imageUrl){
+        document.getElementById('popup-img-preview').src=a.imageUrl;
+        document.getElementById('popup-img-preview').style.display='block';
+        document.getElementById('popup-img-placeholder').style.display='none';
+    }
+    document.getElementById('popup-img-wrap').style.display=(a.type==='text')?'none':'block';
+    document.querySelectorAll('.ad-type-btn[onclick*="setPopupType"]').forEach(b=>b.classList.toggle('on',b.dataset.type===a.type));
+    document.getElementById('popup-form-title').innerHTML='Modifier le popup<span style="color:var(--accent)">.</span>';
+    closeAdForm('banner');
+    openAdForm('popup');
+};
+
+/* ── Listeners Firestore pour les pubs ── */
+function bootAds(){
+    onSnapshot(query(collection(db,`${COL}/ads_banner`),orderBy('order','asc')),snap=>{
+        window._banners=snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderBanners(window._banners);
+    });
+    onSnapshot(query(collection(db,`${COL}/ads_popup`),orderBy('createdAt','desc')),snap=>{
+        window._popups=snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderPopups(window._popups);
+    });
+}
+</script>
+</body>
+</html>
