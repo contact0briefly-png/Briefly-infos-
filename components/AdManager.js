@@ -44,7 +44,7 @@ export const AdBanner = () => {
 
     return (
         <div
-            className="w-full relative overflow-hidden bg-slate-50 border-b border-slate-200"
+            className="w-full relative overflow-hidden bg-slate-50 border-b border-slate-200 h-[56px] sm:h-[72px] md:h-[90px]"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}>
 
@@ -89,14 +89,15 @@ export const AdBanner = () => {
 };
 
 const BannerSlide = ({ ad }) => {
+    // Le conteneur a une hauteur fixe : l'image s'y adapte sans jamais être étirée ni agrandie
     if (ad.type === 'image' && ad.imageUrl) {
         return (
-            <div className="relative w-full h-auto flex items-center justify-center">
+            <div className="relative w-full h-full flex items-center justify-center">
                 <img src={ad.imageUrl} alt={ad.title || 'Publicité'}
-                    className="w-full h-full object-cover" />
+                    className="h-full w-auto max-w-full object-contain" />
                 {ad.title && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-                        <span className="text-white font-bold text-[13px] drop-shadow">{ad.title}</span>
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/10 pointer-events-none">
+                        <span className="text-white font-bold text-[12px] md:text-[13px] drop-shadow">{ad.title}</span>
                     </div>
                 )}
             </div>
@@ -104,19 +105,19 @@ const BannerSlide = ({ ad }) => {
     }
     if (ad.type === 'text') {
         return (
-            <div className="w-full h-full flex items-center justify-center px-8"
+            <div className="w-full h-full flex items-center justify-center px-8 overflow-hidden"
                 style={{ backgroundColor: ad.bgColor || '#f8f9fa' }}>
                 <div className="text-center">
                     {ad.title && (
-                        <div className="font-bold text-[14px] mb-0.5"
+                        <div className="font-bold text-[12px] md:text-[14px] leading-tight truncate"
                             style={{ color: ad.textColor || '#0f172a' }}>{ad.title}</div>
                     )}
                     {ad.subtitle && (
-                        <div className="text-[11px]"
+                        <div className="text-[10px] md:text-[11px] truncate hidden sm:block"
                             style={{ color: ad.textColor ? ad.textColor + 'aa' : '#64748b' }}>{ad.subtitle}</div>
                     )}
                     {ad.cta && (
-                        <div className="inline-block mt-2 px-4 py-1 text-[10px] font-black uppercase tracking-widest text-white"
+                        <div className="inline-block mt-1 px-3 py-0.5 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white hidden sm:inline-block"
                             style={{ backgroundColor: ad.ctaColor || '#0f172a' }}>{ad.cta}</div>
                     )}
                 </div>
@@ -125,23 +126,19 @@ const BannerSlide = ({ ad }) => {
     }
     // Type mixte image + texte superposé
     return (
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full overflow-hidden"
+            style={{ backgroundColor: ad.bgColor || '#0f172a' }}>
             {ad.imageUrl && (
-                <img src={ad.imageUrl} alt={ad.title || 'Publicité'} className="w-full h-auto object-contain block max-h-[220px]" />
+                <img src={ad.imageUrl} alt={ad.title || 'Publicité'} className="absolute inset-0 w-full h-full object-cover" />
             )}
-            <div className="absolute inset-0 flex items-center"
-                style={{ backgroundColor: ad.imageUrl ? 'rgba(0,0,0,0.35)' : (ad.bgColor || '#0f172a') }}>
-                <div className="px-6">
+            <div className="relative h-full flex items-center"
+                style={{ backgroundColor: ad.imageUrl ? 'rgba(0,0,0,0.35)' : 'transparent' }}>
+                <div className="px-4 md:px-6 min-w-0">
                     {ad.title && (
-                        <div className="font-black text-[15px] text-white leading-tight">{ad.title}</div>
+                        <div className="font-black text-[12px] md:text-[15px] text-white leading-tight truncate">{ad.title}</div>
                     )}
                     {ad.subtitle && (
-                        <div className="text-[11px] text-white/80 mt-0.5">{ad.subtitle}</div>
-                    )}
-                    {ad.cta && (
-                        <div className="inline-block mt-2 px-3 py-1 text-[9px] font-black uppercase tracking-widest bg-white text-slate-900">
-                            {ad.cta}
-                        </div>
+                        <div className="text-[10px] md:text-[11px] text-white/80 truncate hidden sm:block">{ad.subtitle}</div>
                     )}
                 </div>
             </div>

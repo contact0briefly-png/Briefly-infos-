@@ -45,10 +45,11 @@ const COOKIE_CATEGORIES = [
     {
         id: 'marketing',
         icon: Target,
-        name: 'Contenus tiers',
-        description: 'Permettent l\'affichage de vidéos et publications provenant de plateformes externes.',
+        name: 'Publicités & contenus tiers',
+        description: 'Permettent l\'affichage des publicités ainsi que des vidéos et publications provenant de plateformes externes.',
         required: false,
         services: [
+            { name: 'Google AdSense', purpose: 'Affichage de publicités (peut utiliser des cookies publicitaires)' },
             { name: 'YouTube',    purpose: 'Lecture de vidéos intégrées dans les articles' },
             { name: 'TikTok',    purpose: 'Affichage de vidéos TikTok intégrées dans les articles' },
             { name: 'Instagram', purpose: 'Affichage de publications Instagram dans les articles' },
@@ -58,7 +59,7 @@ const COOKIE_CATEGORIES = [
 ];
 
 const CONSENT_KEY = 'briefly_cookie_consent';
-const CONSENT_VER = '1.1';
+const CONSENT_VER = '1.2';
 
 /* ── Lire le consentement stocké ── */
 const getStoredConsent = () => {

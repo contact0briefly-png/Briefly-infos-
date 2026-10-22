@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from 'react';
-import { AdBanner } from "@/components/AdManager";
 import { motion, AnimatePresence } from 'framer-motion';
 import AdBannerSquare from '../components/AdBannerSquare';
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -68,7 +67,6 @@ const Contact = ({ B24_BLUE }) => {
 
     return (
         <div className="bg-[#f6f6f8] min-h-screen font-sans antialiased text-slate-900 w-full overflow-x-hidden">
-             <AdBanner />
             <AnimatePresence>
                 {showPopup && (
                     <motion.div 

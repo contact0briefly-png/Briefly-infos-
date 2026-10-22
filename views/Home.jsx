@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Clock, ChevronRight, Mail, Rss } from 'lucide-react';
-import { AdBanner, AdPopup } from '@/components/AdManager';
+import { AdPopup } from '@/components/AdManager';
 
 const RSS_URL = "https://rss.app/feeds/TENwT5ha8Msc6ON4.xml";
 const BREVO_ACTION = "https://b33f5b02.sibforms.com/serve/MUIFAGBxCfyEwfx-cB0M9i9gOYvlwv3b9XmULA8_jGaWHLuG5zbH6c2QvO928ogIkVBjF1c1mj7KCG06Zfye3McOWoe9G04JeD_TsTFM9EDSz7QYpppQ-u5X9E5udLQ7RLKl0QOuqiTCBG1jawLH4u1WYJNwxQ1OrCbFri0xOGjcxz6ye7PhaJEy9ibaiQ4LS_foT82lqz32UOJdBw==";
@@ -133,7 +133,6 @@ const Home = ({ news = [], B24_BLUE }) => {
             <div className="bg-white min-h-screen">
                
                 {/* Bannière pub même en vue filtre */}
-                <AdBanner />
                 <div className="max-w-[1280px] mx-auto px-4 py-8">
                     <div className="border-b-2 border-slate-900 pb-2 mb-8 flex items-center justify-between">
                         <h2 className="text-[11px] font-black uppercase tracking-[.2em] text-slate-900">
@@ -164,7 +163,6 @@ const Home = ({ news = [], B24_BLUE }) => {
             {/* ══ BANNIÈRE PUBLICITAIRE ══
                 Exactement dans l'espace disponible entre la navbar et le ticker
                 Gérée depuis l'interface administrateur                          */}
-            <AdBanner />
 
             {/* ══ TICKER ══ */}
             {tickerNews.length > 0 && (

@@ -69,10 +69,8 @@ const Navbar = ({ B24_BLUE }) => {
 
     return (
         <>
-               {/* Spacer dynamique */}
-            <div className={`transition-all duration-300 shrink-0 ${scrolled ? 'h-[57px]' : 'h-[57px] md:h-[113px]'}`} />
 
-            <header className={`fixed top-0 left-0 right-0 z-[900] bg-white transition-shadow duration-300 ${scrolled ? 'shadow-[0_1px_0_#e2e8f0]' : ''}`}>
+            <header className={`sticky top-0 z-[900] w-full bg-white transition-shadow duration-300 ${scrolled ? 'shadow-[0_1px_0_#e2e8f0]' : ''}`}>
 
                 {/* ── Barre supérieure date + réseaux (desktop, disparaît au scroll) ── */}
                 <div className={`transition-all duration-300 overflow-hidden border-b border-slate-100 ${scrolled ? 'max-h-0 opacity-0 border-0' : 'max-h-10 opacity-100'}`}>

@@ -1,13 +1,11 @@
 "use client";
 import React from 'react';
-import { AdBanner } from "@/components/AdManager";
 import { motion } from 'framer-motion';
 import { ShieldCheck, Cookie, Share2, Mail, Lock } from 'lucide-react';
 
 const Confidentialite = ({ B24_BLUE }) => {
     return (
         <div className="bg-[#f6f6f8] min-h-screen font-sans antialiased text-slate-900 overflow-x-hidden">
- <AdBanner />
             <main className="max-w-4xl mx-auto px-6 py-16 lg:py-24">
                 <header className="mb-16 text-center md:text-left">
                     <span className="inline-block rounded-full bg-blue-100 px-4 py-1 text-[9px] font-black uppercase tracking-widest text-primary mb-5" style={{ color: B24_BLUE }}>
