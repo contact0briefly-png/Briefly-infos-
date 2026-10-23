@@ -17,5 +17,6 @@ jobs:
           node --check /tmp/admin.mjs
       - run: npm run build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          # valeurs publiques (clé « publishable »), protégées par les règles RLS
+          NEXT_PUBLIC_SUPABASE_URL: https://woybcqvekkycduagphef.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_RBZJOywJ7g_lv_alT6xiuA_Y2ryLEBZ
