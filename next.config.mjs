@@ -10,8 +10,14 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
 
+  async rewrites() {
+    return [{ source: '/admin', destination: '/admin/index.html' }, { source: '/admin/', destination: '/admin/index.html' }];
+  },
+
   async headers() {
     return [
+      { source: '/admin/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
+      { source: '/admin/sw.js', headers: [{ key: 'Cache-Control', value: 'no-cache' }, { key: 'Service-Worker-Allowed', value: '/admin/' }] },
       {
         source: '/(.*)',
         headers: [
