@@ -1,7 +1,6 @@
 "use client";
 import React, { useMemo, useEffect, useRef } from 'react';
-import { doc, updateDoc, increment } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { addView } from "../lib/news";
 import {
     Clock, Eye, Share2, ChevronRight, TrendingUp,
     Sparkles, ChevronLeft, Mail, ArrowUp, Link2, Check
@@ -316,7 +315,7 @@ const ArticleView = ({ article, news = [], B24_BLUE }) => {
 
     useEffect(() => {
         if (!article?.id) return;
-        updateDoc(doc(db, 'artifacts', 'bbriefly-7e3b8', 'public', 'data', 'news', article.id), { views: increment(1) }).catch(() => {});
+        addView(article.id).then(() => {}, () => {});
     }, [article?.id]);
 
     useEffect(() => {

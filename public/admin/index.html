@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Briefly Admin</title>
+    <link rel="manifest" href="/admin/manifest.webmanifest">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="robots" content="noindex,nofollow">
+    <link rel="icon" href="/admin/icon-192.png">
+    <link rel="apple-touch-icon" href="/admin/icon-192.png">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -641,7 +646,7 @@
                                 </div>
                                 <img id="avatar-preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
                             </div>
-                            <div style="font-size:10px;color:var(--muted);text-align:center">La photo est convertie et stockée sur Firebase</div>
+                            <div style="font-size:10px;color:var(--muted);text-align:center">La photo est convertie et stockée dans Supabase</div>
                         </div>
                     </div>
 
@@ -784,41 +789,122 @@
 </datalist>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import {
-    getFirestore, enableIndexedDbPersistence, collection, addDoc,
-    onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp,
-    getDoc, setDoc, query, orderBy, where
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import {
-    getAuth, signInWithEmailAndPassword, onAuthStateChanged,
-    signOut, setPersistence, browserLocalPersistence
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
 
-const FB = {
-    apiKey:"AIzaSyDOPeLjRRM88dE665rKZigk2JmA-J9YXek",
-    authDomain:"bbriefly-7e3b8.firebaseapp.com",
-    projectId:"bbriefly-7e3b8",
-    storageBucket:"bbriefly-7e3b8.firebasestorage.app",
-    messagingSenderId:"634935431290",
-    appId:"1:634935431290:web:1dcb513aafc3011133ebc3"
-};
-const fbApp = initializeApp(FB);
-const db    = getFirestore(fbApp);
-const auth  = getAuth(fbApp);
-const AID   = 'bbriefly-7e3b8';
-const COL   = `artifacts/${AID}/public/data`;
-const SITE     = "https://briefly-lilac.vercel.app";
-// Les clés secrètes (ImgBB, Telegram, WebPushr) sont désormais stockées sur Vercel (variables d'environnement).
-// L'application les utilise via des routes API sécurisées par ta connexion admin.
-const API = `${SITE}/api/admin`;
+/* Clé « publishable » : publique par conception. La sécurité repose sur les règles RLS de la base. */
+const SUPABASE_URL = "https://woybcqvekkycduagphef.supabase.co";
+const SUPABASE_KEY = "sb_publishable_RBZJOywJ7g_lv_alT6xiuA_Y2ryLEBZ";
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, storageKey: 'briefly-admin-auth' }
+});
+const SITE = "https://briefly-lilac.vercel.app";
+const API  = `${SITE}/api/admin`;
+const COL  = 'artifacts/bbriefly-7e3b8/public/data';   // chemins conservés pour la couche de compatibilité
+const db   = null;
+
+// Les secrets (Telegram, WebPushr) restent sur le serveur : l'admin les appelle via /api/admin avec ta session
 async function adminFetch(path, init = {}) {
-    const user = auth.currentUser;
-    if (!user) throw new Error('Non connecté');
-    const token = await user.getIdToken();
-    return fetch(`${API}/${path}`, { ...init, headers: { ...(init.headers || {}), Authorization: `Bearer ${token}` } });
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) throw new Error('Non connecté');
+    return fetch(`${API}/${path}`, { ...init, headers: { ...(init.headers || {}), Authorization: `Bearer ${session.access_token}` } });
 }
-// Réduit les grosses photos avant l'envoi (limite de 4,5 Mo côté Vercel)
+
+/* ════════════════════════════════════════════════════════════
+   COUCHE DE COMPATIBILITÉ
+   Le reste de l'application garde ses appels (collection, doc, addDoc, onSnapshot…)
+   mais ils sont traduits en requêtes Supabase. Les données gardent les mêmes noms de champs.
+════════════════════════════════════════════════════════════ */
+const TS = iso => iso ? { seconds: Math.floor(new Date(iso).getTime() / 1000), toDate: () => new Date(iso), toMillis: () => new Date(iso).getTime() } : null;
+const serverTimestamp = () => ({ __ts: true });
+const clean = v => (v && v.__ts) ? new Date().toISOString() : v;
+const newId = () => Array.from(crypto.getRandomValues(new Uint8Array(15)), b => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[b % 62]).join('');
+
+const MAP = {
+    news: { table: 'news', textId: true, order: { timestamp: 'created_at' }, uuid: ['author_id'],
+        from: r => ({ id: r.id, title: r.title, content: r.content, category: r.category, imageUrl: r.image_url || '', authorName: r.author_name || '',
+            authorId: r.author_id || '', authorPhotoUrl: r.author_photo_url || '', views: r.views || 0, tags: r.tags || [], timestamp: TS(r.created_at), lastUpdate: TS(r.updated_at) }),
+        to: { title: 'title', content: 'content', category: 'category', imageUrl: 'image_url', authorName: 'author_name', authorId: 'author_id',
+            authorPhotoUrl: 'author_photo_url', views: 'views', tags: 'tags', timestamp: 'created_at', lastUpdate: 'updated_at' } },
+    ads_banner: { table: 'ads_banner', order: { order: 'sort_order', createdAt: 'created_at' },
+        from: r => ({ id: r.id, type: r.type, title: r.title || '', subtitle: r.subtitle || '', cta: r.cta || '', ctaColor: r.cta_color, bgColor: r.bg_color, textColor: r.text_color,
+            imageUrl: r.image_url || '', link: r.link || '', order: r.sort_order, active: r.active, createdAt: TS(r.created_at), updatedAt: TS(r.updated_at) }),
+        to: { type: 'type', title: 'title', subtitle: 'subtitle', cta: 'cta', ctaColor: 'cta_color', bgColor: 'bg_color', textColor: 'text_color', imageUrl: 'image_url',
+            link: 'link', order: 'sort_order', active: 'active', createdAt: 'created_at', updatedAt: 'updated_at' } },
+    ads_popup: { table: 'ads_popup', order: { createdAt: 'created_at' },
+        from: r => ({ id: r.id, type: r.type, title: r.title || '', subtitle: r.subtitle || '', cta: r.cta || '', ctaColor: r.cta_color, bgColor: r.bg_color, textColor: r.text_color,
+            imageUrl: r.image_url || '', link: r.link || '', delay: r.delay_seconds, active: r.active, createdAt: TS(r.created_at), updatedAt: TS(r.updated_at) }),
+        to: { type: 'type', title: 'title', subtitle: 'subtitle', cta: 'cta', ctaColor: 'cta_color', bgColor: 'bg_color', textColor: 'text_color', imageUrl: 'image_url',
+            link: 'link', delay: 'delay_seconds', active: 'active', createdAt: 'created_at', updatedAt: 'updated_at' } },
+    requests: { table: 'requests', order: { timestamp: 'created_at' },
+        from: r => ({ id: r.id, name: r.name, email: r.email, subject: r.subject, message: r.message, replied: r.replied, repliedAt: TS(r.replied_at), timestamp: TS(r.created_at) }),
+        to: { replied: 'replied', repliedAt: 'replied_at', name: 'name', email: 'email', subject: 'subject', message: 'message' } },
+    drafts: { table: 'drafts', json: true, from: r => ({ id: r.id, ...r.data }) },
+    admins: { table: 'profiles', from: r => ({ id: r.id, userId: r.user_id, name: r.name, role: r.role, photoUrl: r.photo_url || '', bio: r.bio || '', location: r.location || '', socials: r.socials || {} }),
+        to: { name: 'name', role: 'role', photoUrl: 'photo_url', bio: 'bio', location: 'location', socials: 'socials' } },
+    users: { none: true },
+};
+const colName = p => p.split('/').pop();
+const collection = (_db, path) => ({ cfg: MAP[colName(path)], name: colName(path), order: null });
+const doc = (_db, a, b) => { if (b !== undefined) return { cfg: MAP[colName(a)], id: b }; const p = a.split('/'); return { cfg: MAP[p[p.length - 2]], id: p[p.length - 1] }; };
+const orderBy = (field, dir = 'asc') => ({ field, dir });
+const query = (col, ...cs) => ({ ...col, order: cs.find(c => c && c.field) || null });
+
+const toRow = (cfg, data) => {
+    const row = {};
+    for (const [k, v] of Object.entries(data)) {
+        const c = cfg.to[k]; if (!c) continue;
+        let val = clean(v);
+        if (cfg.uuid && cfg.uuid.includes(c) && !val) val = null;
+        row[c] = val;
+    }
+    return row;
+};
+const cleanJson = d => Object.fromEntries(Object.entries(d).map(([k, v]) => [k, clean(v)]));
+const fail = e => { if (e) throw e; };
+
+const subs = new Set();
+async function fetchSnap(t) {
+    if (!t.cfg || t.cfg.none) return { docs: [], size: 0 };
+    let q = sb.from(t.cfg.table).select('*');
+    if (t.order && t.cfg.order && t.cfg.order[t.order.field]) q = q.order(t.cfg.order[t.order.field], { ascending: t.order.dir !== 'desc' });
+    const { data, error } = await q; fail(error);
+    let items = (data || []).map(r => t.cfg.from(r));
+    if (t.cfg.json && t.order && t.order.field) { const f = t.order.field; items.sort((x, y) => ((x[f] || 0) - (y[f] || 0)) * (t.order.dir === 'desc' ? -1 : 1)); }
+    const docs = items.map(o => { const { id, ...rest } = o; return { id, data: () => rest }; });
+    return { docs, size: docs.length };
+}
+function onSnapshot(t, cb) {
+    const s = { t, cb }; subs.add(s);
+    fetchSnap(t).then(cb).catch(e => console.error('Lecture', e));
+    return () => subs.delete(s);
+}
+const refreshAll = () => subs.forEach(s => fetchSnap(s.t).then(s.cb).catch(() => {}));
+setInterval(() => { if (!document.hidden) refreshAll(); }, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshAll(); });
+
+async function addDoc(col, data) {
+    const cfg = col.cfg; let row, id;
+    if (cfg.json) { row = { data: cleanJson(data) }; }
+    else { row = toRow(cfg, data); if (cfg.textId) { id = newId(); row.id = id; } }
+    const { data: ins, error } = await sb.from(cfg.table).insert(row).select('id').single(); fail(error);
+    refreshAll(); return { id: ins.id };
+}
+async function updateDoc(ref, data) {
+    const cfg = ref.cfg; let row;
+    if (cfg.json) {
+        const { data: cur, error: e1 } = await sb.from(cfg.table).select('data').eq('id', ref.id).single(); fail(e1);
+        row = { data: { ...cur.data, ...cleanJson(data) }, updated_at: new Date().toISOString() };
+    } else row = toRow(cfg, data);
+    if (!Object.keys(row).length) return;
+    const { error } = await sb.from(cfg.table).update(row).eq('id', ref.id); fail(error);
+    refreshAll();
+}
+async function deleteDoc(ref) {
+    const { error } = await sb.from(ref.cfg.table).delete().eq('id', ref.id); fail(error);
+    refreshAll();
+}
+
+// Réduit les grosses photos avant l'envoi
 async function shrinkImage(file) {
     if (file.size < 1.5 * 1024 * 1024 || file.type === 'image/gif') return file;
     try {
@@ -832,8 +918,8 @@ async function shrinkImage(file) {
     } catch { return file; }
 }
 
-enableIndexedDbPersistence(db).catch(()=>{});
-setPersistence(auth, browserLocalPersistence);
+window.addEventListener('online',  ()=>document.getElementById('offline-bar').style.display='none');
+window.addEventListener('offline', ()=>document.getElementById('offline-bar').style.display='block');
 
 window.addEventListener('online',  ()=>document.getElementById('offline-bar').style.display='none');
 window.addEventListener('offline', ()=>document.getElementById('offline-bar').style.display='block');
@@ -847,13 +933,14 @@ function toast(msg, ok=true) {
     setTimeout(()=>el.classList.remove('show'),2600);
 }
 
-/* ── ImgBB ── */
-async function uploadToImgBB(file) {
-    const fd=new FormData(); fd.append('image',await shrinkImage(file));
-    const res=await adminFetch('upload-image',{method:'POST',body:fd});
-    const data=await res.json().catch(()=>({}));
-    if(data.success) return data.url;
-    throw new Error(data.error||'Upload échoué');
+/* ── Images : stockage Supabase (bucket « media ») ── */
+async function uploadImage(file) {
+    const f = await shrinkImage(file);
+    const ext = (f.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+    const path = `uploads/${new Date().toISOString().slice(0, 7)}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await sb.storage.from('media').upload(path, f, { contentType: f.type });
+    if (error) throw new Error(error.message);
+    return sb.storage.from('media').getPublicUrl(path).data.publicUrl;
 }
 
 /* ── Image principale ── */
@@ -874,7 +961,7 @@ window.triggerMainImgUpload=()=>{
         let p=0;
         const iv=setInterval(()=>{p=Math.min(p+Math.random()*15,85);pf.style.width=p+'%';pl.textContent=`Upload… ${Math.round(p)}%`;},200);
         try{
-            const url=await uploadToImgBB(file);
+            const url=await uploadImage(file);
             clearInterval(iv);pf.style.width='100%';pl.textContent='Terminé ✓';
             await new Promise(r=>setTimeout(r,400));
             prev.src=url;prev.style.display='block';
@@ -994,7 +1081,7 @@ function imgbbImageHandler(){
         quill.insertText(range.index,'⏳ Upload image…',{bold:true},true);
         quill.setSelection(range.index+16);
         try{
-            const url=await uploadToImgBB(file);
+            const url=await uploadImage(file);
             quill.deleteText(range.index,16);
             quill.insertEmbed(range.index,'image',url);
             quill.setSelection(range.index+1);
@@ -1189,8 +1276,19 @@ window.saveProfile=async()=>{
         },
         updatedAt:serverTimestamp()
     };
-    if(window._avatarB64){profileData.photoUrl=window._avatarB64;}
     try{
+        if(window._avatarB64){
+            let p=window._avatarB64;
+            if(p.startsWith('data:')){
+                const blob=await (await fetch(p)).blob();
+                const path=`avatars/${me.id}-${Date.now()}.jpg`;
+                const {error}=await sb.storage.from('media').upload(path,blob,{contentType:blob.type||'image/jpeg'});
+                if(error)throw error;
+                p=sb.storage.from('media').getPublicUrl(path).data.publicUrl;
+                window._avatarB64=p;
+            }
+            profileData.photoUrl=p;
+        }
         await updateDoc(doc(db,'admins',me.id),profileData);
         me={...me,...profileData};
         updateHeaderAvatar();
@@ -1228,11 +1326,21 @@ function updateHeaderAvatar(){
 
 /* ── Auth ── */
 let me=null,catChart,viewChart;
-onAuthStateChanged(auth,async u=>{
-    if(!u){showLogin();return;}
-    const snap=await getDoc(doc(db,'admins',u.uid));
-    if(!snap.exists()){await signOut(auth);return;}
-    me={id:u.uid,...snap.data()};
+async function onSession(session){
+    if(!session){me=null;showLogin();return;}
+    const u=session.user;
+    if(me&&me.userId===u.id)return;                       // simple renouvellement du jeton
+    let {data:prof}=await sb.from('profiles').select('*').eq('user_id',u.id).maybeSingle();
+    if(!prof){                                             // invitation en attente (inscription puis confirmation e-mail)
+        const inv=localStorage.getItem('briefly_invite');
+        if(inv){
+            await sb.rpc('claim_invitation',{p_token:inv,p_name:(u.user_metadata&&u.user_metadata.name)||''});
+            localStorage.removeItem('briefly_invite');
+            ({data:prof}=await sb.from('profiles').select('*').eq('user_id',u.id).maybeSingle());
+        }
+    }
+    if(!prof){await sb.auth.signOut();toast("Ce compte n'a pas accès à l'administration",false);showLogin();return;}
+    me=MAP.admins.from(prof);me.email=u.email;
     document.getElementById('admin-badge').textContent=me.name+' · '+me.role;
     if(me.role==='admin_general')document.getElementById('btn-staff').style.display='flex';
     document.getElementById('login-gate').style.display='none';
@@ -1240,14 +1348,15 @@ onAuthStateChanged(auth,async u=>{
     loadProfileIntoForm(me);
     checkLocalDraft();
     boot();
-});
+}
+sb.auth.onAuthStateChange((_evt,session)=>{setTimeout(()=>onSession(session),0);});
 document.getElementById('btn-login').onclick=async()=>{
-    const e=document.getElementById('admin-email').value;
+    const e=document.getElementById('admin-email').value.trim();
     const p=document.getElementById('admin-password').value;
-    try{await signInWithEmailAndPassword(auth,e,p);}
-    catch{toast('Identifiants incorrects',false);}
+    const {error}=await sb.auth.signInWithPassword({email:e,password:p});
+    if(error)toast('Identifiants incorrects',false);
 };
-document.getElementById('btn-logout').onclick=()=>signOut(auth);
+document.getElementById('btn-logout').onclick=()=>sb.auth.signOut();
 function showLogin(){
     document.getElementById('login-gate').style.display='flex';
     document.getElementById('shell').style.display='none';
@@ -1464,7 +1573,14 @@ window.resetForm=()=>{
 window.delArt=async id=>{if(!confirm('Supprimer cet article ?'))return;await deleteDoc(doc(db,`${COL}/news`,id));toast('Article supprimé');};
 window.delItem=async(col,id)=>{if(!confirm('Confirmer ?'))return;const path=col==='admins'?`admins/${id}`:`${COL}/${col}/${id}`;await deleteDoc(doc(db,path));toast('Supprimé');};
 window.chRole=async(id,cur)=>{const next=cur==='admin_general'?'redacteur':'admin_general';if(confirm(`Passer en ${next} ?`)){await updateDoc(doc(db,'admins',id),{role:next});toast('Rôle mis à jour');}};
-window.genInvite=async()=>{const role=document.getElementById('inv-role').value;const token=Math.random().toString(36).substring(2,14);await setDoc(doc(db,'invitations',token),{role,used:false,createdAt:serverTimestamp()});const link=`${SITE}/public/signup.html?invite=${token}`;document.getElementById('invite-link').textContent=link;document.getElementById('invite-result').style.display='block';};
+window.genInvite=async()=>{
+    const role=document.getElementById('inv-role').value;
+    const {data,error}=await sb.from('invitations').insert({role}).select('token').single();
+    if(error){toast("Impossible de créer l'invitation",false);return;}
+    const link=`${SITE}/admin/signup.html?invite=${data.token}`;
+    document.getElementById('invite-link').textContent=link;
+    document.getElementById('invite-result').style.display='block';
+};
 window.copyInvite=()=>{navigator.clipboard.writeText(document.getElementById('invite-link').textContent).then(()=>toast('Lien copié ✓'));};
 window.go=id=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1563,7 +1679,7 @@ window.setPopupType=(el,type)=>{
     text.addEventListener('input',()=>{if(/^#[0-9a-fA-F]{6}$/.test(text.value))picker.value=text.value;});
 });
 
-/* ── Upload image publicitaire via ImgBB ── */
+/* ── Upload image publicitaire dans Supabase ── */
 window.triggerAdImg=(type)=>{
     const input=document.createElement('input');
     input.type='file'; input.accept='image/*'; input.click();
@@ -1577,7 +1693,7 @@ window.triggerAdImg=(type)=>{
         prev.style.display='none';
         zone.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:11px">⏳ Upload en cours…</div>';
         try{
-            const imgUrl=await uploadToImgBB(file);
+            const imgUrl=await uploadImage(file);
             urlInput.value=imgUrl;
             // Restaurer la zone avec l'aperçu
             zone.innerHTML=`
@@ -1796,6 +1912,14 @@ function bootAds(){
         renderPopups(window._popups);
     });
 }
+
+/* ── Application installable (PWA) ── */
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/admin/sw.js',{scope:'/admin/'}).catch(()=>{});}
+let _installEvt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();_installEvt=e;const b=document.getElementById('install-btn');if(b)b.style.display='flex';});
+window.installApp=async()=>{if(!_installEvt)return;_installEvt.prompt();await _installEvt.userChoice;_installEvt=null;const b=document.getElementById('install-btn');if(b)b.style.display='none';};
+window.addEventListener('appinstalled',()=>{const b=document.getElementById('install-btn');if(b)b.style.display='none';});
 </script>
+<button id="install-btn" onclick="installApp()" style="display:none;position:fixed;right:16px;bottom:16px;z-index:9999;align-items:center;gap:8px;background:#0f172a;color:#fff;border:0;padding:12px 18px;font:600 13px 'Space Grotesk',sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.35);cursor:pointer">⬇ Installer l'application</button>
 </body>
 </html>

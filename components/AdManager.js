@@ -1,12 +1,15 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { supabase } from "../lib/supabase";
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 
-const AID = 'bbriefly-7e3b8';
-const COL = `artifacts/${AID}/public/data`;
+// Les colonnes Supabase (snake_case) sont ramenées aux noms utilisés par les composants ci-dessous
+const mapAd = (r) => ({
+    id: r.id, type: r.type, title: r.title || '', subtitle: r.subtitle || '', cta: r.cta || '',
+    ctaColor: r.cta_color, bgColor: r.bg_color, textColor: r.text_color,
+    imageUrl: r.image_url, link: r.link, active: r.active, delay: r.delay_seconds,
+});
 
 /* ═══════════════════════════════════════
    BANNIÈRE CARROUSEL (espace sous la nav)
@@ -18,15 +21,10 @@ export const AdBanner = () => {
     const timerRef = useRef(null);
 
     useEffect(() => {
-        const q = query(collection(db, `${COL}/ads_banner`), orderBy('order', 'asc'));
-        const unsub = onSnapshot(q, snap => {
-            const items = snap.docs
-                .map(d => ({ id: d.id, ...d.data() }))
-                .filter(a => a.active !== false);
-            setAds(items);
-            setCurrent(0);
-        });
-        return () => unsub();
+        let alive = true;
+        supabase.from('ads_banner').select('*').eq('active', true).order('sort_order', { ascending: true })
+            .then(({ data }) => { if (alive) { setAds((data || []).map(mapAd)); setCurrent(0); } });
+        return () => { alive = false; };
     }, []);
 
     const next = useCallback(() => setCurrent(c => (c + 1) % ads.length), [ads.length]);
@@ -160,24 +158,17 @@ export const AdPopup = () => {
     const [closing, setClosing] = useState(false);
 
     useEffect(() => {
-        const q = query(collection(db, `${COL}/ads_popup`), orderBy('createdAt', 'desc'));
-        const unsub = onSnapshot(q, snap => {
-            const active = snap.docs
-                .map(d => ({ id: d.id, ...d.data() }))
-                .find(p => p.active !== false);
-            if (!active) return;
-            setPopup(active);
-
-            // Vérifier si déjà vu (clé = id du popup pour reset si nouveau popup)
-            const seen = localStorage.getItem(POPUP_KEY);
-            if (seen === active.id) return;
-
-            // Afficher après le délai configuré (défaut 3s)
-            const delay = (active.delay ?? 3) * 1000;
-            const t = setTimeout(() => setVisible(true), delay);
-            return () => clearTimeout(t);
-        });
-        return () => unsub();
+        let alive = true, timer;
+        supabase.from('ads_popup').select('*').eq('active', true).order('created_at', { ascending: false }).limit(1)
+            .then(({ data }) => {
+                const active = data && data[0] ? mapAd(data[0]) : null;
+                if (!alive || !active) return;
+                setPopup(active);
+                // Déjà vu ? (clé = id du popup pour réafficher si un nouveau popup est créé)
+                try { if (localStorage.getItem(POPUP_KEY) === active.id) return; } catch {}
+                timer = setTimeout(() => setVisible(true), (active.delay ?? 3) * 1000);
+            });
+        return () => { alive = false; clearTimeout(timer); };
     }, []);
 
     const close = () => {

@@ -2,11 +2,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdBannerSquare from '../components/AdBannerSquare';
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { supabase } from "../lib/supabase";
 import { Send, MapPin, Mail, Phone, ExternalLink, Navigation } from 'lucide-react';
 
-const appId = 'bbriefly-7e3b8';
 
 
 // --- LOGOS OFFICIELS (SVG STRICTS) ---
@@ -46,10 +44,7 @@ const Contact = ({ B24_BLUE }) => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data),
                 }),
-                addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'requests'), {
-                    ...data,
-                    timestamp: serverTimestamp()
-                })
+                supabase.from('requests').insert(data).then(({ error }) => { if (error) throw error; })
             ]);
             setShowPopup(true);
             e.target.reset();
