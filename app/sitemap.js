@@ -37,7 +37,19 @@ export default async function sitemap() {
         priority: 0.5,
       },
       {
-        url: `${baseUrl}/mentions-legales`,
+        url: `${baseUrl}/a-propos`,
+        lastModified: new Date('2026-10-23'),
+        changeFrequency: 'monthly',
+        priority: 0.5,
+      },
+      {
+        url: `${baseUrl}/contact`,
+        lastModified: new Date('2026-10-23'),
+        changeFrequency: 'monthly',
+        priority: 0.4,
+      },
+      {
+        url: `${baseUrl}/mentionslegales`,
         lastModified: new Date('2026-04-22'),
         changeFrequency: 'monthly',
         priority: 0.5,

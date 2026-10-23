@@ -14,7 +14,7 @@ const Confidentialite = ({ B24_BLUE }) => {
                     <h1 className="text-5xl md:text-8xl font-serif font-black italic tracking-tighter leading-none mb-6">
                         Privacy<span style={{ color: B24_BLUE }}>.</span>
                     </h1>
-                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400">Dernière mise à jour : 22 Avril 2026</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400">Dernière mise à jour : 23 Octobre 2026</p>
                 </header>
 
                 <div className="space-y-10">
@@ -39,9 +39,20 @@ const Confidentialite = ({ B24_BLUE }) => {
                             </div>
                             <h2 className="text-xl font-black uppercase tracking-widest">02. Cookies</h2>
                         </div>
-                        <p className="text-slate-600 leading-relaxed mb-6">
-                            Ce site utilise des cookies techniques nécessaires à la navigation et au bon fonctionnement du système publicitaire (Google AdSense & Adsterra).
-                        </p>
+                        <div className="text-slate-600 leading-relaxed mb-6 space-y-4 text-sm">
+                            <p>
+                                Briefly utilise des cookies et technologies similaires. Les cookies <strong>essentiels</strong> sont nécessaires au fonctionnement du site. Les autres (mesure d'audience, fonctionnalités, publicité) ne sont déposés qu'<strong>après votre consentement</strong>, que vous pouvez modifier à tout moment via le bandeau cookies.
+                            </p>
+                            <p>
+                                <strong>Publicité (Google AdSense).</strong> Des fournisseurs tiers, dont Google, utilisent des cookies pour diffuser des annonces en fonction de vos visites sur ce site et sur d'autres sites. L'utilisation de cookies publicitaires permet à Google et à ses partenaires de diffuser des annonces basées sur votre navigation. Vous pouvez désactiver la publicité personnalisée dans les <a className="underline" href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer">Paramètres des annonces Google</a>, ou consulter <a className="underline" href="https://www.aboutads.info" target="_blank" rel="noopener noreferrer">aboutads.info</a>. Pour en savoir plus : <a className="underline" href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">comment Google utilise les données des sites partenaires</a>.
+                            </p>
+                            <p>
+                                <strong>Mesure d'audience.</strong> Vercel Analytics et Speed Insights mesurent la fréquentation et les performances de manière anonymisée, uniquement si vous l'acceptez.
+                            </p>
+                            <p>
+                                <strong>Notifications.</strong> Si vous activez les notifications, le service WebPushr enregistre un identifiant technique de votre navigateur pour vous envoyer les alertes.
+                            </p>
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="p-4 bg-slate-50 rounded-2xl text-sm font-bold text-slate-500 flex items-center gap-3">
                                 <div className="w-2 h-2 rounded-full bg-green-400"></div> Essentiels (Sécurité)
@@ -63,9 +74,9 @@ const Confidentialite = ({ B24_BLUE }) => {
                         </div>
                         <div className="p-10 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
                             <Share2 className="mb-6" size={32} style={{ color: B24_BLUE }} />
-                            <h3 className="font-serif italic font-black text-2xl mb-4">Sécurité Telegram</h3>
+                            <h3 className="font-serif italic font-black text-2xl mb-4">Hébergement des données</h3>
                             <p className="text-slate-500 text-sm leading-relaxed">
-                                Vos messages sont acheminés via l'API sécurisée de Telegram avec un chiffrement SSL/TLS pour garantir l'intégrité de vos échanges.
+                                Les articles et messages du formulaire de contact sont stockés dans une base Supabase, et le site est hébergé par Vercel. Les échanges sont chiffrés (SSL/TLS). Un message de contact peut aussi être transmis à l'équipe via Telegram.
                             </p>
                         </div>
                     </div>

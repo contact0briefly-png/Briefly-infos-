@@ -14,7 +14,7 @@ const SOCIAL = [
 
 const RUBRIQUES = ['Togo', 'International', 'Sport', 'Économie', 'Lifestyle', 'Décryptage', 'Éducation'];
 const LIENS     = [
-    { name: 'À propos',         href: '/contact' },
+    { name: 'À propos',         href: '/a-propos' },
     { name: 'Contact',          href: '/contact' },
     { name: 'Mentions légales', href: '/mentionslegales' },
     { name: 'Confidentialité',  href: '/confidentialite' },
