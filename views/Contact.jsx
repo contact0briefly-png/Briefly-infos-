@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import AdBannerSquare from '../components/AdBannerSquare';
 import { supabase } from "../lib/supabase";
 import { Send, MapPin, Mail, Phone, ExternalLink, Navigation } from 'lucide-react';
 
@@ -209,9 +208,6 @@ const Contact = ({ B24_BLUE }) => {
                             </div>
                         </div>
 
-                        <div className="flex justify-center w-full overflow-hidden rounded-2xl">
-                            <AdBannerSquare />
-                        </div>
                     </div>
 
                 </div>

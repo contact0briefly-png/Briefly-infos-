@@ -25,7 +25,7 @@ const COOKIE_CATEGORIES = [
         description: 'Nous aident à comprendre comment les visiteurs utilisent le site pour l\'améliorer.',
         required: false,
         services: [
-            { name: 'Firebase Analytics', purpose: 'Comptage des visites et articles les plus lus (anonymisé)' },
+            { name: 'Vercel Analytics', purpose: 'Comptage des visites et performances du site (anonymisé)' },
             { name: 'Compteur de vues',   purpose: 'Suivi du nombre de lectures par article' },
         ],
     },
@@ -89,9 +89,9 @@ const saveConsent = (prefs) => {
 ══════════════════════════════════════════════════════ */
 const applyConsent = (prefs) => {
 
-    /* ── Analytics Firebase ──
+    /* ── Analytics ──
        On désactive seulement si explicitement refusé.
-       Firebase est déjà initialisé — on utilise le flag disable.         */
+       Les mesures sont rendues par ConsentScripts (Vercel).              */
     if (typeof window !== 'undefined') {
         window['ga-disable'] = !prefs.analytics;
     }
