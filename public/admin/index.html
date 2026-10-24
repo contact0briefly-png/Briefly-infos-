@@ -387,6 +387,7 @@
                 </div>
                 <div id="code-step2" style="display:none">
                     <div class="su-role"><span id="su-role-label">—</span></div>
+                    <div class="note" id="su-reprise" style="display:none;text-align:center;margin:-6px 0 14px"></div>
                     <div class="su-avatar" id="su-avatar" onclick="document.getElementById('su-photo').click()"><span id="su-avatar-txt">Ajouter une photo</span></div>
                     <input type="file" id="su-photo" accept="image/*" style="display:none">
                     <div class="field-grid">
@@ -834,6 +835,7 @@
                 <button class="btn-primary" onclick="genInvite()">Générer un code d'invitation</button>
                 <div id="invite-result" class="invite-result">
                     <div class="invite-result-label">Code d'invitation — valable une seule fois</div>
+                    <div class="note" id="invite-for" style="margin:0 0 8px"></div>
                     <div id="invite-code" class="invite-code"></div>
                     <div class="note">La personne installe l'application, ouvre « J'ai un code d'invitation », colle ce code et choisit sa photo, son nom et son mot de passe. Son rôle s'affiche automatiquement.</div>
                     <button class="copy-btn" onclick="copyInvite('code')">Copier le code</button>
@@ -1480,10 +1482,18 @@ let inviteToken=null,signupPhoto=null;
 document.getElementById('btn-code').onclick=async()=>{
     const code=document.getElementById('inv-code').value.trim().toLowerCase().replace(/\s+/g,'');
     if(!code)return authMsg("Entrez votre code d'invitation");
-    const {data:role,error}=await sb.rpc('check_invitation',{p_token:code});
-    if(error||!role)return authMsg('Code invalide, expiré ou déjà utilisé');
+    const {data:info,error}=await sb.rpc('invitation_info',{p_token:code});
+    const row=Array.isArray(info)?info[0]:info;
+    if(error||!row||!row.role)return authMsg('Code invalide, expiré ou déjà utilisé');
     inviteToken=code;authMsg('');
-    document.getElementById('su-role-label').textContent='Votre rôle : '+(ROLE_LBL[role]||role);
+    document.getElementById('su-role-label').textContent='Votre rôle : '+(ROLE_LBL[row.role]||row.role);
+    const rp=document.getElementById('su-reprise');
+    if(row.name){
+        const parts=row.name.trim().split(/\s+/);
+        document.getElementById('su-first').value=parts.shift()||'';
+        document.getElementById('su-last').value=parts.join(' ');
+        rp.textContent=`Vous reprenez le profil « ${row.name} » : vos articles et vos statistiques vous seront rattachés.`;rp.style.display='block';
+    }else rp.style.display='none';
     document.getElementById('code-step1').style.display='none';
     document.getElementById('code-step2').style.display='block';
 };
@@ -1728,7 +1738,7 @@ function renderStaff(){
         return `<div class="staff-row clickable" onclick="openAuthor('${st.id}')"><div class="s-avatar">${av}</div>
             <div><div class="staff-name">${esc(st.name)}${self?' <span style="color:var(--muted);font-size:11px">(vous)</span>':''}${st.userId?'':'<span class="legacy-tag">ancien compte</span>'}</div><div class="staff-role">${esc(ROLE_LBL[st.role]||st.role)}</div></div>
             <div class="staff-stat"><b>${N(mine.length)}</b> articles<br><b>${N(v)}</b> lectures</div>
-            ${self?'':`<div class="staff-acts"><button class="act-btn act-gold" onclick="event.stopPropagation();chRole('${st.id}','${st.role}')">Rôle</button><button class="act-btn act-del" onclick="event.stopPropagation();delItem('admins','${st.id}')">✕</button></div>`}</div>`;
+            ${self?'':`<div class="staff-acts">${st.userId?'':`<button class="act-btn act-edit" onclick="event.stopPropagation();inviteProfile('${st.id}')">Inviter</button>`}<button class="act-btn act-gold" onclick="event.stopPropagation();chRole('${st.id}','${st.role}')">Rôle</button><button class="act-btn act-del" onclick="event.stopPropagation();delItem('admins','${st.id}')">✕</button></div>`}</div>`;
     }).join('');
 }
 function boot(){
@@ -1881,8 +1891,20 @@ window.genInvite=async()=>{
     const {data,error}=await sb.from('invitations').insert({role}).select('token').single();
     if(error){toast("Impossible de créer l'invitation",false);return;}
     window._lastInvite=data.token;
+    document.getElementById('invite-for').textContent='';
     document.getElementById('invite-code').textContent=data.token;
     document.getElementById('invite-result').style.display='block';
+};
+// Invitation liée à un ancien profil : la personne retrouve ses articles en créant son compte
+window.inviteProfile=async id=>{
+    const st=PROFILES.find(x=>x.id===id);if(!st)return;
+    const {data,error}=await sb.from('invitations').insert({role:st.role,profile_id:id}).select('token').single();
+    if(error){toast("Impossible de créer l'invitation",false);return;}
+    window._lastInvite=data.token;
+    document.getElementById('invite-for').innerHTML=`Pour <b>${esc(st.name)}</b> (${esc(ROLE_LBL[st.role]||st.role)}) : à son inscription, ses articles lui seront automatiquement rattachés.`;
+    document.getElementById('invite-code').textContent=data.token;
+    const box=document.getElementById('invite-result');box.style.display='block';
+    box.scrollIntoView({behavior:'smooth',block:'center'});
 };
 window.copyInvite=(what)=>{
     const t=what==='link'?`${SITE}/admin/?code=${window._lastInvite}`:window._lastInvite;
