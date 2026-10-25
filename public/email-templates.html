@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modèles d'e-mails professionnels — Briefly Infos</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: #131b2e;
+      --border: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #e11d48;
+      --primary-hover: #be123c;
+      --success: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 30px 20px;
+    }
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-title {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .brand-title span { color: var(--primary); }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(225,29,72,0.15);
+      color: #fda4af;
+      border: 1px solid rgba(225,29,72,0.3);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .desc {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 6px;
+    }
+    .instruction-box {
+      background: linear-gradient(135deg, rgba(30,41,59,0.7), rgba(15,23,42,0.8));
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 18px 22px;
+      margin-bottom: 24px;
+      font-size: 13.5px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+    .instruction-box strong { color: #fff; }
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      padding: 10px 18px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      color: var(--text);
+      border-color: #334155;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 4px 14px rgba(225,29,72,0.35);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 24px;
+    }
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .field-group {
+      margin-bottom: 20px;
+    }
+    .field-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .field-box {
+      background: #0a0e1a;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #e2e8f0;
+      font-size: 13.5px;
+      font-weight: 500;
+    }
+    .code-box {
+      background: #070a12;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      color: #cbd5e1;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      height: 320px;
+      overflow: auto;
+      white-space: pre;
+      line-height: 1.45;
+    }
+    .btn-copy {
+      padding: 6px 14px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .btn-copy:hover {
+      background: #334155;
+      border-color: #475569;
+    }
+    .btn-copy.copied {
+      background: #065f46;
+      border-color: #059669;
+      color: #a7f3d0;
+    }
+    .preview-frame-container {
+      background: #f1f5f9;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+      height: 640px;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #f1f5f9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand-title">
+        BRIEFLY<span>.</span>INFOS <span class="badge">E-mails Transactionnels Supabase</span>
+      </div>
+      <div class="desc">
+        Modèles d'e-mails HTML modernes, responsives et rédigés en français professionnel prêts pour la console Supabase.
+      </div>
+    </header>
+
+    <div class="instruction-box">
+      <strong>📍 Procédure dans le tableau de bord Supabase :</strong><br>
+      1. Ouvrez votre console Supabase &rarr; Allez dans le menu latéral <strong>Authentication</strong> &rarr; <strong>Email Templates</strong> (ou <strong>Templates</strong>).<br>
+      2. Sélectionnez l'onglet correspondant (indiqué sous le titre de chaque modèle).<br>
+      3. Cliquez sur <strong>« Copier le sujet »</strong> et collez dans le champ <strong>Subject</strong>.<br>
+      4. Cliquez sur <strong>« Copier le code HTML »</strong> et collez dans le champ <strong>Body</strong> (ou basculez en vue HTML/Source).<br>
+      5. Cliquez sur <strong>Save changes</strong> en bas de page pour enregistrer.
+    </div>
+
+    <!-- TABS -->
+    <div class="nav-tabs" id="tabs"></div>
+
+    <!-- MAIN GRID -->
+    <div class="grid">
+      <!-- DETAILS & CODE -->
+      <div class="card">
+        <div class="card-title">
+          <span id="tab-label">Modèle</span>
+          <span id="supabase-tab-name" style="font-size:12px;font-weight:700;color:#fda4af;background:rgba(225,29,72,0.15);padding:4px 8px;border-radius:6px;"></span>
+        </div>
+        
+        <p id="template-desc" style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5;"></p>
+
+        <!-- SUBJECT -->
+        <div class="field-group">
+          <div class="field-label">
+            <span>Objet de l'e-mail (Subject)</span>
+            <button class="btn-copy" id="btn-copy-subj" onclick="copySubject()">📋 Copier le sujet</button>
+          </div>
+          <div class="field-box" id="subject-text"></div>
+        </div>
+
+        <!-- HTML BODY -->
+        <div class="field-group" style="flex:1;display:flex;flex-direction:column;margin-bottom:0;">
+          <div class="field-label">
+            <span>Corps du message (Message Body HTML)</span>
+            <button class="btn-copy" id="btn-copy-html" onclick="copyHtml()">📋 Copier le code HTML</button>
+          </div>
+          <div class="code-box" id="code-box"></div>
+        </div>
+      </div>
+
+      <!-- VISUAL PREVIEW -->
+      <div class="card" style="padding:16px;">
+        <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;justify-content:space-between;">
+          <span>Aperçu en direct (Rendu E-mail)</span>
+          <span style="font-size:11px;color:#64748b;font-weight:500;">Format client mail</span>
+        </div>
+        <div class="preview-frame-container">
+          <iframe id="preview-iframe"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DATA = [{"id": "confirm", "name": "1. Confirmation d'inscription", "subject": "Confirmez votre adresse e-mail \u2014 Briefly Infos", "path": "1_confirm_signup.html", "desc": "Envoy\u00e9 lors de la cr\u00e9ation d'un compte si la confirmation par e-mail est demand\u00e9e.", "supabase_name": "Confirm signup", "html": "<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Confirmez votre adresse e-mail \u2014 Briefly Infos</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 0;\n      background-color: #f1f5f9;\n      font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n      color: #334155;\n    }\n    table { border-collapse: collapse; }\n    .email-container {\n      max-width: 600px;\n      margin: 0 auto;\n      background-color: #ffffff;\n      border-radius: 16px;\n      overflow: hidden;\n      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);\n      border: 1px solid #e2e8f0;\n    }\n  </style>\n</head>\n<body style=\"margin:0;padding:30px 12px;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n  <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n    <tr>\n      <td align=\"center\">\n        \n        <!-- HEADER BRAND -->\n        <table width=\"600\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;margin-bottom:18px;\">\n          <tr>\n            <td align=\"center\" style=\"padding:10px 0;\">\n              <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n                <tr>\n                  <td align=\"center\" style=\"vertical-align:middle;\">\n                    <div style=\"font-size:24px;font-weight:900;letter-spacing:-0.5px;color:#0f172a;text-transform:uppercase;\">\n                      BRIEFLY<span style=\"color:#e11d48;\">.</span>INFOS\n                    </div>\n                    <div style=\"font-size:11px;font-weight:600;letter-spacing:1px;color:#64748b;text-transform:uppercase;margin-top:2px;\">\n                      L'actualit\u00e9 v\u00e9rifi\u00e9e en un coup d'\u0153il\n                    </div>\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n        </table>\n\n        <!-- MAIN CARD -->\n        <table class=\"email-container\" width=\"600\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;\">\n          \n          <!-- BANNER TOP ACCENT -->\n          <tr>\n            <td height=\"4\" style=\"background:#e11d48;line-height:4px;font-size:4px;\">&nbsp;</td>\n          </tr>\n\n          <!-- CARD CONTENT -->\n          <tr>\n            <td style=\"padding:40px 36px 32px;\">\n              \n              <!-- BADGE ICON -->\n              <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-bottom:20px;\">\n                <tr>\n                  <td width=\"48\" height=\"48\" align=\"center\" style=\"background:#ffe4e6;color:#e11d48;border-radius:14px;font-size:22px;vertical-align:middle;\">\n                    &#9993;\n                  </td>\n                </tr>\n              </table>\n\n              <!-- HEADING -->\n              <h1 style=\"margin:0 0 16px;color:#0f172a;font-size:22px;font-weight:800;line-height:1.3;\">\n                Confirmez votre adresse e-mail\n              </h1>\n\n              <!-- INTRO / BODY -->\n              <div style=\"color:#334155;font-size:15px;line-height:1.65;margin-bottom:26px;\">\n                <p style=\"margin:0 0 12px;\">Bonjour,</p><p style=\"margin:0 0 12px;\">Merci de rejoindre la plateforme <strong>Briefly Infos</strong>. Pour activer d\u00e9finitivement votre compte d'acc\u00e8s et s\u00e9curiser votre profil, veuillez confirmer votre adresse e-mail en cliquant sur le bouton ci-dessous :</p>\n              </div>\n\n\n              <!-- ACTION BUTTON -->\n              <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-bottom:28px;\">\n                <tr>\n                  <td align=\"left\">\n                    <a href=\"{{ .ConfirmationURL }}\" class=\"btn\" style=\"display:inline-block;padding:14px 30px;background-color:#e11d48;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;border-radius:10px;box-shadow:0 4px 12px rgba(225,29,72,0.25);\">\n                      Confirmer mon adresse e-mail &rarr;\n                    </a>\n                  </td>\n                </tr>\n              </table>\n        \n\n              <!-- FALLBACK LINK -->\n              <div style=\"background-color:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:14px 16px;margin-bottom:24px;\">\n                <div style=\"font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px;\">\n                  Si le bouton ne s'ouvre pas, copiez ce lien s\u00e9curis\u00e9 dans votre navigateur :\n                </div>\n                <div style=\"font-size:11px;line-height:1.4;word-break:break-all;\">\n                  <a href=\"{{ .ConfirmationURL }}\" style=\"color:#e11d48;text-decoration:underline;\">{{ .ConfirmationURL }}</a>\n                </div>\n              </div>\n        \n\n              <!-- SECURITY NOTICE -->\n              <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-top:24px;padding-top:18px;border-top:1px solid #f1f5f9;\">\n                <tr>\n                  <td style=\"color:#64748b;font-size:12px;line-height:1.55;\">\n                    &#128274; <strong>S\u00e9curit\u00e9 :</strong> Ce lien de confirmation expire sous 1 heure. Si vous n'\u00eates pas \u00e0 l'origine de cette inscription, vous pouvez ignorer cet e-mail en toute tranquillit\u00e9 : votre compte ne sera pas activ\u00e9.\n                  </td>\n                </tr>\n              </table>\n\n            </td>\n          </tr>\n          \n          <!-- FOOTER -->\n          <tr>\n            <td style=\"background-color:#f8fafc;padding:24px 36px;border-top:1px solid #e2e8f0;text-align:center;\">\n              <p style=\"margin:0 0 6px;color:#0f172a;font-size:12px;font-weight:700;\">\n                Briefly Infos &middot; Espace d'administration &amp; r\u00e9daction\n              </p>\n              <p style=\"margin:0 0 6px;color:#64748b;font-size:11px;\">\n                Pour toute question ou assistance, \u00e9crivez-nous \u00e0 <a href=\"mailto:contact0briefly@gmail.com\" style=\"color:#e11d48;text-decoration:none;font-weight:600;\">contact0briefly@gmail.com</a>\n              </p>\n              <p style=\"margin:0;color:#94a3b8;font-size:10px;\">\n                &copy; 2026 Briefly Infos. Tous droits r\u00e9serv\u00e9s.\n              </p>\n            </td>\n          </tr>\n\n        </table>\n\n      </td>\n    </tr>\n  </table>\n</body>\n</html>"}, {"id": "recovery", "name": "2. R\u00e9initialisation de mot de passe", "subject": "R\u00e9initialisation de votre mot de passe \u2014 Briefly Infos", "path": "2_reset_password.html", "desc": "Envoy\u00e9 lorsqu'un utilisateur clique sur \u00ab Mot de passe oubli\u00e9 ? \u00bb pour choisir un nouveau mot de passe.", "supabase_name": "Reset Password", "html": "<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>R\u00e9initialisation de votre mot de passe \u2014 Briefly Infos</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 0;\n      background-color: #f1f5f9;\n      font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n      color: #334155;\n    }\n    table { border-collapse: collapse; }\n    .email-container {\n      max-width: 600px;\n      margin: 0 auto;\n      background-color: #ffffff;\n      border-radius: 16px;\n      overflow: hidden;\n      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);\n      border: 1px solid #e2e8f0;\n    }\n  </style>\n</head>\n<body style=\"margin:0;padding:30px 12px;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n  <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n    <tr>\n      <td align=\"center\">\n        \n        <!-- HEADER BRAND -->\n        <table width=\"600\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;margin-bottom:18px;\">\n          <tr>\n            <td align=\"center\" style=\"padding:10px 0;\">\n              <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n                <tr>\n                  <td align=\"center\" style=\"vertical-align:middle;\">\n                    <div style=\"font-size:24px;font-weight:900;letter-spacing:-0.5px;color:#0f172a;text-transform:uppercase;\">\n                      BRIEFLY<span style=\"color:#e11d48;\">.</span>INFOS\n                    </div>\n                    <div style=\"font-size:11px;font-weight:600;letter-spacing:1px;color:#64748b;text-transform:uppercase;margin-top:2px;\">\n                      L'actualit\u00e9 v\u00e9rifi\u00e9e en un coup d'\u0153il\n                    </div>\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n        </table>\n\n        <!-- MAIN CARD -->\n        <table class=\"email-container\" width=\"600\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;\">\n          \n          <!-- BANNER TOP ACCENT -->\n          <tr>\n            <td height=\"4\" style=\"background:#e11d48;line-height:4px;font-size:4px;\">&nbsp;</td>\n          </tr>\n\n          <!-- CARD CONTENT -->\n          <tr>\n            <td style=\"padding:40px 36px 32px;\">\n              \n              <!-- BADGE ICON -->\n              <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-bottom:20px;\">\n                <tr>\n                  <td width=\"48\" height=\"48\" align=\"center\" style=\"background:#ffe4e6;color:#e11d48;border-radius:14px;font-size:22px;vertical-align:middle;\">\n                    &#128273;\n                  </td>\n                </tr>\n              </table>\n\n              <!-- HEADING -->\n              <h1 style=\"margin:0 0 16px;color:#0f172a;font-size:22px;font-weight:800;line-height:1.3;\">\n                R\u00e9initialisation de votre mot de passe\n              </h1>\n\n              <!-- INTRO / BODY -->\n              <div style=\"color:#334155;font-size:15px;line-height:1.65;margin-bottom:26px;\">\n                <p style=\"margin:0 0 12px;\">Bonjour,</p><p style=\"margin:0 0 12px;\">Nous avons re\u00e7u une demande de r\u00e9initialisation de mot de passe pour le compte Briefly Infos associ\u00e9 \u00e0 l'adresse <strong>{{ .Email }}</strong>.</p><p style=\"margin:0 0 12px;\">Pour choisir imm\u00e9diatement un nouveau mot de passe s\u00e9curis\u00e9 et vous reconnecter, cliquez sur le bouton ci-dessous :</p>\n              </div>\n\n\n              <!-- ACTION BUTTON -->\n              <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-bottom:28px;\">\n                <tr>\n                  <td align=\"left\">\n                    <a href=\"{{ .ConfirmationURL }}\" class=\"btn\" style=\"display:inline-block;padding:14px 30px;background-color:#e11d48;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;border-radius:10px;box-shadow:0 4px 12px rgba(225,29,72,0.25);\">\n                      D\u00e9finir un nouveau mot de passe &rarr;\n                    </a>\n                  </td>\n                </tr>\n              </table>\n        \n\n              <!-- FALLBACK LINK -->\n              <div style=\"background-color:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:14px 16px;margin-bottom:24px;\">\n                <div style=\"font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px;\">\n                  Si le bouton ne s'ouvre pas, copiez ce lien s\u00e9curis\u00e9 dans votre navigateur :\n                </div>\n                <div style=\"font-size:11px;line-height:1.4;word-break:break-all;\">\n                  <a href=\"{{ .ConfirmationURL }}\" style=\"color:#e11d48;text-decoration:underline;\">{{ .ConfirmationURL }}</a>\n                </div>\n              </div>\n        \n\n              <!-- SECURITY NOTICE -->\n              <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-top:24px;padding-top:18px;border-top:1px solid #f1f5f9;\">\n                <tr>\n                  <td style=\"color:#64748b;font-size:12px;line-height:1.55;\">\n                    &#128274; <strong>S\u00e9curit\u00e9 :</strong> Ce lien \u00e0 usage unique expire sous 1 heure. Si vous n'avez pas sollicit\u00e9 cette r\u00e9initialisation, ignorez simplement ce message : votre mot de passe actuel reste inchang\u00e9 et votre compte est prot\u00e9g\u00e9.\n                  </td>\n                </tr>\n              </table>\n\n            </td>\n          </tr>\n          \n          <!-- FOOTER -->\n          <tr>\n            <td style=\"background-color:#f8fafc;padding:24px 36px;border-top:1px solid #e2e8f0;text-align:center;\">\n              <p style=\"margin:0 0 6px;color:#0f172a;font-size:12px;font-weight:700;\">\n                Briefly Infos &middot; Espace d'administration &amp; r\u00e9daction\n              </p>\n              <p style=\"margin:0 0 6px;color:#64748b;font-size:11px;\">\n                Pour toute question ou assistance, \u00e9crivez-nous \u00e0 <a href=\"mailto:contact0briefly@gmail.com\" style=\"color:#e11d48;text-decoration:none;font-weight:600;\">contact0briefly@gmail.com</a>\n              </p>\n              <p style=\"margin:0;color:#94a3b8;font-size:10px;\">\n                &copy; 2026 Briefly Infos. Tous droits r\u00e9serv\u00e9s.\n              </p>\n            </td>\n          </tr>\n\n        </table>\n\n      </td>\n    </tr>\n  </table>\n</body>\n</html>"}, {"id": "invite", "name": "3. Invitation d'un collaborateur", "subject": "Invitation \u00e0 rejoindre la r\u00e9daction de Briefly Infos", "path": "3_invite_user.html", "desc": "Envoy\u00e9 lorsqu'un administrateur invite un nouveau r\u00e9dacteur depuis l'espace admin.", "supabase_name": "Invite user", "html": "<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Invitation \u00e0 rejoindre la r\u00e9daction de Briefly Infos</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 0;\n      background-color: #f1f5f9;\n      font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n      color: #334155;\n    }\n    table { border-collapse: collapse; }\n    .email-container {\n      max-width: 600px;\n      margin: 0 auto;\n      background-color: #ffffff;\n      border-radius: 16px;\n      overflow: hidden;\n      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);\n      border: 1px solid #e2e8f0;\n    }\n  </style>\n</head>\n<body style=\"margin:0;padding:30px 12px;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n  <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n    <tr>\n      <td align=\"center\">\n        \n        <!-- HEADER BRAND -->\n        <table width=\"600\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;margin-bottom:18px;\">\n          <tr>\n            <td align=\"center\" style=\"padding:10px 0;\">\n              <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n                <tr>\n                  <td align=\"center\" style=\"vertical-align:middle;\">\n                    <div style=\"font-size:24px;font-weight:900;letter-spacing:-0.5px;color:#0f172a;text-transform:uppercase;\">\n                      BRIEFLY<span style=\"color:#e11d48;\">.</span>INFOS\n                    </div>\n                    <div style=\"font-size:11px;font-weight:600;letter-spacing:1px;color:#64748b;text-transform:uppercase;margin-top:2px;\">\n                      L'actualit\u00e9 v\u00e9rifi\u00e9e en un coup d'\u0153il\n                    </div>\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n        </table>\n\n        <!-- MAIN CARD -->\n        <table class=\"email-container\" width=\"600\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;\">\n          \n          <!-- BANNER TOP ACCENT -->\n          <tr>\n            <td height=\"4\" style=\"background:#e11d48;line-height:4px;font-size:4px;\">&nbsp;</td>\n          </tr>\n\n          <!-- CARD CONTENT -->\n          <tr>\n            <td style=\"padding:40px 36px 32px;\">\n              \n              <!-- BADGE ICON -->\n              <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-bottom:20px;\">\n                <tr>\n                  <td width=\"48\" height=\"48\" align=\"center\" style=\"background:#ffe4e6;color:#e11d48;border-radius:14px;font-size:22px;vertical-align:middle;\">\n                    &#9997;\n                  </td>\n                </tr>\n              </table>\n\n              <!-- HEADING -->\n              <h1 style=\"margin:0 0 16px;color:#0f172a;font-size:22px;font-weight:800;line-height:1.3;\">\n                Bienvenue dans l'\u00e9quipe Briefly Infos\n              </h1>\n\n              <!-- INTRO / BODY -->\n              <div style=\"color:#334155;font-size:15px;line-height:1.65;margin-bottom:26px;\">\n                <p style=\"margin:0 0 12px;\">Bonjour,</p><p style=\"margin:0 0 12px;\">Vous avez \u00e9t\u00e9 invit\u00e9(e) \u00e0 rejoindre l'\u00e9quipe de <strong>Briefly Infos</strong> en tant que collaborateur.</p><p style=\"margin:0 0 12px;\">Votre espace d'administration d\u00e9di\u00e9 vous permet de r\u00e9diger vos articles, g\u00e9rer vos publications et suivre l'actualit\u00e9 en temps r\u00e9el.</p><p style=\"margin:0 0 12px;\">Cliquez sur le bouton ci-dessous pour accepter l'invitation et d\u00e9finir votre mot de passe :</p>\n              </div>\n\n\n              <!-- ACTION BUTTON -->\n              <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-bottom:28px;\">\n                <tr>\n                  <td align=\"left\">\n                    <a href=\"{{ .ConfirmationURL }}\" class=\"btn\" style=\"display:inline-block;padding:14px 30px;background-color:#e11d48;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;border-radius:10px;box-shadow:0 4px 12px rgba(225,29,72,0.25);\">\n                      Accepter l'invitation et cr\u00e9er mon compte &rarr;\n                    </a>\n                  </td>\n                </tr>\n              </table>\n        \n\n              <!-- FALLBACK LINK -->\n              <div style=\"background-color:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:14px 16px;margin-bottom:24px;\">\n                <div style=\"font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px;\">\n                  Si le bouton ne s'ouvre pas, copiez ce lien s\u00e9curis\u00e9 dans votre navigateur :\n                </div>\n                <div style=\"font-size:11px;line-height:1.4;word-break:break-all;\">\n                  <a href=\"{{ .ConfirmationURL }}\" style=\"color:#e11d48;text-decoration:underline;\">{{ .ConfirmationURL }}</a>\n                </div>\n              </div>\n        \n\n              <!-- SECURITY NOTICE -->\n              <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-top:24px;padding-top:18px;border-top:1px solid #f1f5f9;\">\n                <tr>\n                  <td style=\"color:#64748b;font-size:12px;line-height:1.55;\">\n                    &#128274; <strong>S\u00e9curit\u00e9 :</strong> Cette invitation est strictement personnelle. Une fois votre compte cr\u00e9\u00e9, vous pourrez vous connecter directement depuis l'application mobile Briefly Infos Admin.\n                  </td>\n                </tr>\n              </table>\n\n            </td>\n          </tr>\n          \n          <!-- FOOTER -->\n          <tr>\n            <td style=\"background-color:#f8fafc;padding:24px 36px;border-top:1px solid #e2e8f0;text-align:center;\">\n              <p style=\"margin:0 0 6px;color:#0f172a;font-size:12px;font-weight:700;\">\n                Briefly Infos &middot; Espace d'administration &amp; r\u00e9daction\n              </p>\n              <p style=\"margin:0 0 6px;color:#64748b;font-size:11px;\">\n                Pour toute question ou assistance, \u00e9crivez-nous \u00e0 <a href=\"mailto:contact0briefly@gmail.com\" style=\"color:#e11d48;text-decoration:none;font-weight:600;\">contact0briefly@gmail.com</a>\n              </p>\n              <p style=\"margin:0;color:#94a3b8;font-size:10px;\">\n                &copy; 2026 Briefly Infos. Tous droits r\u00e9serv\u00e9s.\n              </p>\n            </td>\n          </tr>\n\n        </table>\n\n      </td>\n    </tr>\n  </table>\n</body>\n</html>"}, {"id": "magiclink", "name": "4. Lien magique de connexion", "subject": "Votre lien de connexion rapide \u2014 Briefly Infos", "path": "4_magic_link.html", "desc": "Envoy\u00e9 pour une connexion s\u00e9curis\u00e9e sans mot de passe via un lien instantan\u00e9 \u00e0 usage unique.", "supabase_name": "Magic Link", "html": "<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Votre lien de connexion rapide \u2014 Briefly Infos</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 0;\n      background-color: #f1f5f9;\n      font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n      color: #334155;\n    }\n    table { border-collapse: collapse; }\n    .email-container {\n      max-width: 600px;\n      margin: 0 auto;\n      background-color: #ffffff;\n      border-radius: 16px;\n      overflow: hidden;\n      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);\n      border: 1px solid #e2e8f0;\n    }\n  </style>\n</head>\n<body style=\"margin:0;padding:30px 12px;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n  <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n    <tr>\n      <td align=\"center\">\n        \n        <!-- HEADER BRAND -->\n        <table width=\"600\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;margin-bottom:18px;\">\n          <tr>\n            <td align=\"center\" style=\"padding:10px 0;\">\n              <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n                <tr>\n                  <td align=\"center\" style=\"vertical-align:middle;\">\n                    <div style=\"font-size:24px;font-weight:900;letter-spacing:-0.5px;color:#0f172a;text-transform:uppercase;\">\n                      BRIEFLY<span style=\"color:#e11d48;\">.</span>INFOS\n                    </div>\n                    <div style=\"font-size:11px;font-weight:600;letter-spacing:1px;color:#64748b;text-transform:uppercase;margin-top:2px;\">\n                      L'actualit\u00e9 v\u00e9rifi\u00e9e en un coup d'\u0153il\n                    </div>\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n        </table>\n\n        <!-- MAIN CARD -->\n        <table class=\"email-container\" width=\"600\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;\">\n          \n          <!-- BANNER TOP ACCENT -->\n          <tr>\n            <td height=\"4\" style=\"background:#e11d48;line-height:4px;font-size:4px;\">&nbsp;</td>\n          </tr>\n\n          <!-- CARD CONTENT -->\n          <tr>\n            <td style=\"padding:40px 36px 32px;\">\n              \n              <!-- BADGE ICON -->\n              <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-bottom:20px;\">\n                <tr>\n                  <td width=\"48\" height=\"48\" align=\"center\" style=\"background:#ffe4e6;color:#e11d48;border-radius:14px;font-size:22px;vertical-align:middle;\">\n                    &#9889;\n                  </td>\n                </tr>\n              </table>\n\n              <!-- HEADING -->\n              <h1 style=\"margin:0 0 16px;color:#0f172a;font-size:22px;font-weight:800;line-height:1.3;\">\n                Connexion instantan\u00e9e \u00e0 votre espace\n              </h1>\n\n              <!-- INTRO / BODY -->\n              <div style=\"color:#334155;font-size:15px;line-height:1.65;margin-bottom:26px;\">\n                <p style=\"margin:0 0 12px;\">Bonjour,</p><p style=\"margin:0 0 12px;\">Voici votre lien de connexion s\u00e9curis\u00e9 pour acc\u00e9der imm\u00e9diatement \u00e0 votre espace d'administration <strong>Briefly Infos</strong> sans avoir \u00e0 saisir votre mot de passe :</p>\n              </div>\n\n\n              <!-- ACTION BUTTON -->\n              <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-bottom:28px;\">\n                <tr>\n                  <td align=\"left\">\n                    <a href=\"{{ .ConfirmationURL }}\" class=\"btn\" style=\"display:inline-block;padding:14px 30px;background-color:#e11d48;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;border-radius:10px;box-shadow:0 4px 12px rgba(225,29,72,0.25);\">\n                      Me connecter maintenant &rarr;\n                    </a>\n                  </td>\n                </tr>\n              </table>\n        \n\n              <!-- FALLBACK LINK -->\n              <div style=\"background-color:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:14px 16px;margin-bottom:24px;\">\n                <div style=\"font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px;\">\n                  Si le bouton ne s'ouvre pas, copiez ce lien s\u00e9curis\u00e9 dans votre navigateur :\n                </div>\n                <div style=\"font-size:11px;line-height:1.4;word-break:break-all;\">\n                  <a href=\"{{ .ConfirmationURL }}\" style=\"color:#e11d48;text-decoration:underline;\">{{ .ConfirmationURL }}</a>\n                </div>\n              </div>\n        \n\n              <!-- SECURITY NOTICE -->\n              <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-top:24px;padding-top:18px;border-top:1px solid #f1f5f9;\">\n                <tr>\n                  <td style=\"color:#64748b;font-size:12px;line-height:1.55;\">\n                    &#128274; <strong>S\u00e9curit\u00e9 :</strong> Ce lien de connexion est \u00e0 usage unique et expire dans les prochaines minutes. Ne le partagez avec personne.\n                  </td>\n                </tr>\n              </table>\n\n            </td>\n          </tr>\n          \n          <!-- FOOTER -->\n          <tr>\n            <td style=\"background-color:#f8fafc;padding:24px 36px;border-top:1px solid #e2e8f0;text-align:center;\">\n              <p style=\"margin:0 0 6px;color:#0f172a;font-size:12px;font-weight:700;\">\n                Briefly Infos &middot; Espace d'administration &amp; r\u00e9daction\n              </p>\n              <p style=\"margin:0 0 6px;color:#64748b;font-size:11px;\">\n                Pour toute question ou assistance, \u00e9crivez-nous \u00e0 <a href=\"mailto:contact0briefly@gmail.com\" style=\"color:#e11d48;text-decoration:none;font-weight:600;\">contact0briefly@gmail.com</a>\n              </p>\n              <p style=\"margin:0;color:#94a3b8;font-size:10px;\">\n                &copy; 2026 Briefly Infos. Tous droits r\u00e9serv\u00e9s.\n              </p>\n            </td>\n          </tr>\n\n        </table>\n\n      </td>\n    </tr>\n  </table>\n</body>\n</html>"}, {"id": "change_email", "name": "5. Changement d'adresse e-mail", "subject": "Confirmez votre nouvelle adresse e-mail \u2014 Briefly Infos", "path": "5_change_email.html", "desc": "Envoy\u00e9 lorsque l'utilisateur demande \u00e0 modifier son adresse e-mail dans son profil.", "supabase_name": "Change Email Address", "html": "<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Confirmez votre nouvelle adresse e-mail \u2014 Briefly Infos</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 0;\n      background-color: #f1f5f9;\n      font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n      color: #334155;\n    }\n    table { border-collapse: collapse; }\n    .email-container {\n      max-width: 600px;\n      margin: 0 auto;\n      background-color: #ffffff;\n      border-radius: 16px;\n      overflow: hidden;\n      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);\n      border: 1px solid #e2e8f0;\n    }\n  </style>\n</head>\n<body style=\"margin:0;padding:30px 12px;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n  <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n    <tr>\n      <td align=\"center\">\n        \n        <!-- HEADER BRAND -->\n        <table width=\"600\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;margin-bottom:18px;\">\n          <tr>\n            <td align=\"center\" style=\"padding:10px 0;\">\n              <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n                <tr>\n                  <td align=\"center\" style=\"vertical-align:middle;\">\n                    <div style=\"font-size:24px;font-weight:900;letter-spacing:-0.5px;color:#0f172a;text-transform:uppercase;\">\n                      BRIEFLY<span style=\"color:#e11d48;\">.</span>INFOS\n                    </div>\n                    <div style=\"font-size:11px;font-weight:600;letter-spacing:1px;color:#64748b;text-transform:uppercase;margin-top:2px;\">\n                      L'actualit\u00e9 v\u00e9rifi\u00e9e en un coup d'\u0153il\n                    </div>\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n        </table>\n\n        <!-- MAIN CARD -->\n        <table class=\"email-container\" width=\"600\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;\">\n          \n          <!-- BANNER TOP ACCENT -->\n          <tr>\n            <td height=\"4\" style=\"background:#e11d48;line-height:4px;font-size:4px;\">&nbsp;</td>\n          </tr>\n\n          <!-- CARD CONTENT -->\n          <tr>\n            <td style=\"padding:40px 36px 32px;\">\n              \n              <!-- BADGE ICON -->\n              <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-bottom:20px;\">\n                <tr>\n                  <td width=\"48\" height=\"48\" align=\"center\" style=\"background:#ffe4e6;color:#e11d48;border-radius:14px;font-size:22px;vertical-align:middle;\">\n                    &#128260;\n                  </td>\n                </tr>\n              </table>\n\n              <!-- HEADING -->\n              <h1 style=\"margin:0 0 16px;color:#0f172a;font-size:22px;font-weight:800;line-height:1.3;\">\n                Confirmation du changement d'adresse e-mail\n              </h1>\n\n              <!-- INTRO / BODY -->\n              <div style=\"color:#334155;font-size:15px;line-height:1.65;margin-bottom:26px;\">\n                <p style=\"margin:0 0 12px;\">Bonjour,</p><p style=\"margin:0 0 12px;\">Une demande de modification d'adresse e-mail a \u00e9t\u00e9 enregistr\u00e9e pour votre compte Briefly Infos. Votre nouvelle adresse enregistr\u00e9e sera :</p><p style=\"margin:0 0 16px;padding:10px 14px;background:#f8fafc;border-left:4px solid #e11d48;font-weight:700;color:#0f172a;\">{{ .NewEmail }}</p><p style=\"margin:0 0 12px;\">Pour valider d\u00e9finitivement cette nouvelle adresse, veuillez cliquer sur le bouton ci-dessous :</p>\n              </div>\n\n\n              <!-- ACTION BUTTON -->\n              <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-bottom:28px;\">\n                <tr>\n                  <td align=\"left\">\n                    <a href=\"{{ .ConfirmationURL }}\" class=\"btn\" style=\"display:inline-block;padding:14px 30px;background-color:#e11d48;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;border-radius:10px;box-shadow:0 4px 12px rgba(225,29,72,0.25);\">\n                      Valider ma nouvelle adresse e-mail &rarr;\n                    </a>\n                  </td>\n                </tr>\n              </table>\n        \n\n              <!-- FALLBACK LINK -->\n              <div style=\"background-color:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:14px 16px;margin-bottom:24px;\">\n                <div style=\"font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px;\">\n                  Si le bouton ne s'ouvre pas, copiez ce lien s\u00e9curis\u00e9 dans votre navigateur :\n                </div>\n                <div style=\"font-size:11px;line-height:1.4;word-break:break-all;\">\n                  <a href=\"{{ .ConfirmationURL }}\" style=\"color:#e11d48;text-decoration:underline;\">{{ .ConfirmationURL }}</a>\n                </div>\n              </div>\n        \n\n              <!-- SECURITY NOTICE -->\n              <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-top:24px;padding-top:18px;border-top:1px solid #f1f5f9;\">\n                <tr>\n                  <td style=\"color:#64748b;font-size:12px;line-height:1.55;\">\n                    &#128274; <strong>S\u00e9curit\u00e9 :</strong> Si vous n'\u00eates pas \u00e0 l'origine de cette modification, contactez imm\u00e9diatement l'administrateur \u00e0 contact0briefly@gmail.com pour s\u00e9curiser votre compte.\n                  </td>\n                </tr>\n              </table>\n\n            </td>\n          </tr>\n          \n          <!-- FOOTER -->\n          <tr>\n            <td style=\"background-color:#f8fafc;padding:24px 36px;border-top:1px solid #e2e8f0;text-align:center;\">\n              <p style=\"margin:0 0 6px;color:#0f172a;font-size:12px;font-weight:700;\">\n                Briefly Infos &middot; Espace d'administration &amp; r\u00e9daction\n              </p>\n              <p style=\"margin:0 0 6px;color:#64748b;font-size:11px;\">\n                Pour toute question ou assistance, \u00e9crivez-nous \u00e0 <a href=\"mailto:contact0briefly@gmail.com\" style=\"color:#e11d48;text-decoration:none;font-weight:600;\">contact0briefly@gmail.com</a>\n              </p>\n              <p style=\"margin:0;color:#94a3b8;font-size:10px;\">\n                &copy; 2026 Briefly Infos. Tous droits r\u00e9serv\u00e9s.\n              </p>\n            </td>\n          </tr>\n\n        </table>\n\n      </td>\n    </tr>\n  </table>\n</body>\n</html>"}, {"id": "password_changed", "name": "6. Notification de mot de passe modifi\u00e9", "subject": "S\u00e9curit\u00e9 : Votre mot de passe Briefly Infos a \u00e9t\u00e9 mis \u00e0 jour", "path": "6_password_changed.html", "desc": "Alerte de s\u00e9curit\u00e9 envoy\u00e9e automatiquement d\u00e8s que le mot de passe est mis \u00e0 jour.", "supabase_name": "Password Changed Notification", "html": "<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>S\u00e9curit\u00e9 : Votre mot de passe Briefly Infos a \u00e9t\u00e9 modifi\u00e9</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 0;\n      background-color: #f1f5f9;\n      font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n      color: #334155;\n    }\n    table { border-collapse: collapse; }\n    .email-container {\n      max-width: 600px;\n      margin: 0 auto;\n      background-color: #ffffff;\n      border-radius: 16px;\n      overflow: hidden;\n      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);\n      border: 1px solid #e2e8f0;\n    }\n  </style>\n</head>\n<body style=\"margin:0;padding:30px 12px;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n  <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n    <tr>\n      <td align=\"center\">\n        \n        <!-- HEADER BRAND -->\n        <table width=\"600\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;margin-bottom:18px;\">\n          <tr>\n            <td align=\"center\" style=\"padding:10px 0;\">\n              <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n                <tr>\n                  <td align=\"center\" style=\"vertical-align:middle;\">\n                    <div style=\"font-size:24px;font-weight:900;letter-spacing:-0.5px;color:#0f172a;text-transform:uppercase;\">\n                      BRIEFLY<span style=\"color:#e11d48;\">.</span>INFOS\n                    </div>\n                    <div style=\"font-size:11px;font-weight:600;letter-spacing:1px;color:#64748b;text-transform:uppercase;margin-top:2px;\">\n                      L'actualit\u00e9 v\u00e9rifi\u00e9e en un coup d'\u0153il\n                    </div>\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n        </table>\n\n        <!-- MAIN CARD -->\n        <table class=\"email-container\" width=\"600\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;\">\n          \n          <!-- BANNER TOP ACCENT -->\n          <tr>\n            <td height=\"4\" style=\"background:#e11d48;line-height:4px;font-size:4px;\">&nbsp;</td>\n          </tr>\n\n          <!-- CARD CONTENT -->\n          <tr>\n            <td style=\"padding:40px 36px 32px;\">\n              \n              <!-- BADGE ICON -->\n              <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-bottom:20px;\">\n                <tr>\n                  <td width=\"48\" height=\"48\" align=\"center\" style=\"background:#ffe4e6;color:#e11d48;border-radius:14px;font-size:22px;vertical-align:middle;\">\n                    &#9989;\n                  </td>\n                </tr>\n              </table>\n\n              <!-- HEADING -->\n              <h1 style=\"margin:0 0 16px;color:#0f172a;font-size:22px;font-weight:800;line-height:1.3;\">\n                Votre mot de passe a \u00e9t\u00e9 mis \u00e0 jour\n              </h1>\n\n              <!-- INTRO / BODY -->\n              <div style=\"color:#334155;font-size:15px;line-height:1.65;margin-bottom:26px;\">\n                <p style=\"margin:0 0 12px;\">Bonjour,</p><p style=\"margin:0 0 12px;\">Nous vous confirmons que le mot de passe de votre compte Briefly Infos (<strong>{{ .Email }}</strong>) vient d'\u00eatre modifi\u00e9 avec succ\u00e8s.</p><p style=\"margin:0 0 12px;\">Si vous \u00eates bien l'auteur de cette modification, aucune autre action n'est requise : vous pouvez continuer \u00e0 utiliser l'application en toute s\u00e9r\u00e9nit\u00e9.</p>\n              </div>\n\n\n\n\n              <!-- SECURITY NOTICE -->\n              <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin-top:24px;padding-top:18px;border-top:1px solid #f1f5f9;\">\n                <tr>\n                  <td style=\"color:#64748b;font-size:12px;line-height:1.55;\">\n                    &#128274; <strong>S\u00e9curit\u00e9 :</strong> Si vous N'\u00caTES PAS \u00e0 l'origine de ce changement, votre compte a peut-\u00eatre \u00e9t\u00e9 compromis. Veuillez r\u00e9initialiser imm\u00e9diatement votre mot de passe ou contacter en urgence contact0briefly@gmail.com.\n                  </td>\n                </tr>\n              </table>\n\n            </td>\n          </tr>\n          \n          <!-- FOOTER -->\n          <tr>\n            <td style=\"background-color:#f8fafc;padding:24px 36px;border-top:1px solid #e2e8f0;text-align:center;\">\n              <p style=\"margin:0 0 6px;color:#0f172a;font-size:12px;font-weight:700;\">\n                Briefly Infos &middot; Espace d'administration &amp; r\u00e9daction\n              </p>\n              <p style=\"margin:0 0 6px;color:#64748b;font-size:11px;\">\n                Pour toute question ou assistance, \u00e9crivez-nous \u00e0 <a href=\"mailto:contact0briefly@gmail.com\" style=\"color:#e11d48;text-decoration:none;font-weight:600;\">contact0briefly@gmail.com</a>\n              </p>\n              <p style=\"margin:0;color:#94a3b8;font-size:10px;\">\n                &copy; 2026 Briefly Infos. Tous droits r\u00e9serv\u00e9s.\n              </p>\n            </td>\n          </tr>\n\n        </table>\n\n      </td>\n    </tr>\n  </table>\n</body>\n</html>"}];
+    let currentIndex = 0;
+
+    function init() {
+      const tabs = document.getElementById("tabs");
+      tabs.innerHTML = "";
+      DATA.forEach((item, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "tab-btn" + (idx === 0 ? " active" : "");
+        btn.textContent = item.name;
+        btn.onclick = () => selectTab(idx);
+        tabs.appendChild(btn);
+      });
+      selectTab(0);
+    }
+
+    function selectTab(idx) {
+      currentIndex = idx;
+      document.querySelectorAll(".tab-btn").forEach((btn, i) => {
+        btn.className = "tab-btn" + (i === idx ? " active" : "");
+      });
+
+      const item = DATA[idx];
+      document.getElementById("tab-label").textContent = item.name;
+      document.getElementById("supabase-tab-name").textContent = "Onglet Supabase : " + item.supabase_name;
+      document.getElementById("template-desc").textContent = item.desc;
+      document.getElementById("subject-text").textContent = item.subject;
+      document.getElementById("code-box").textContent = item.html;
+
+      // Update iframe with preview
+      const frame = document.getElementById("preview-iframe");
+      let previewHtml = item.html
+        .replace(/\{\{\s*\.ConfirmationURL\s*\}\}/g, "https://briefly-infos-admin.vercel.app/")
+        .replace(/\{\{\s*\.Email\s*\}\}/g, "contact0briefly@gmail.com")
+        .replace(/\{\{\s*\.NewEmail\s*\}\}/g, "nouveau.collaborateur@gmail.com")
+        .replace(/\{\{\s*\.Token\s*\}\}/g, "849201");
+      frame.srcdoc = previewHtml;
+    }
+
+    function copySubject() {
+      const text = DATA[currentIndex].subject;
+      const btn = document.getElementById("btn-copy-subj");
+      navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add("copied");
+        btn.innerHTML = "✓ Sujet copié !";
+        setTimeout(() => {
+          btn.classList.remove("copied");
+          btn.innerHTML = "📋 Copier le sujet";
+        }, 2000);
+      });
+    }
+
+    function copyHtml() {
+      const text = DATA[currentIndex].html;
+      const btn = document.getElementById("btn-copy-html");
+      navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add("copied");
+        btn.innerHTML = "✓ Code HTML copié !";
+        setTimeout(() => {
+          btn.classList.remove("copied");
+          btn.innerHTML = "📋 Copier le code HTML";
+        }, 2000);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
