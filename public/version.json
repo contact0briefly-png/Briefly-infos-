@@ -1,6 +1,6 @@
 {
-  "version": "2.2.0",
-  "versionCode": 2,
-  "downloadUrl": "https://github.com/contact0briefly-png/Briefly-infos-admin/releases/download/v2.2.0/BrieflyAdmin.apk",
-  "notes": "Mise à jour v2.2.0 : Signature cryptographique permanente unifiée, onglet Paramètres dans le menu tiroir, liaison des anciens comptes sans e-mail requis."
+  "version": "2.3.0",
+  "versionCode": 3,
+  "downloadUrl": "https://github.com/contact0briefly-png/Briefly-infos-admin/releases/download/v2.3.0/BrieflyAdmin.apk",
+  "notes": "Version 2.3.0 : Notification de test complète avec notification système dans la barre d'état, vibreur physique et son."
 }

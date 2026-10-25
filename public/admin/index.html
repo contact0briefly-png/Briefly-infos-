@@ -588,7 +588,7 @@
                 </svg>
                 <span>Déconnexion</span>
             </button>
-            <div class="drawer-app-version">Briefly Admin • v2.2.0</div>
+            <div class="drawer-app-version">Briefly Admin • v2.3.0</div>
         </div>
     </aside>
 
@@ -2389,7 +2389,7 @@ window.closeNotifPane=()=>{
 /* ════════════════════════════════════════════════════════════
    PARAMÈTRES, SÉCURITÉ & MISES À JOUR
 ════════════════════════════════════════════════════════════ */
-const APP_VERSION = "2.2.0";
+const APP_VERSION = "2.3.0";
 window._pendingUpdate = null;
 
 // Synchronisation paramètres
@@ -2489,10 +2489,40 @@ window.toggleDailySetting = (enabled) => {
 };
 
 window.testNotificationAlert = () => {
-    if(window.BrieflyNative?.showToast){
-        window.BrieflyNative.showToast('Test : nouvelle notification Briefly');
+    // 1. Application native Android (notification système + vibreur physique + son)
+    if(window.BrieflyNative?.sendTestNotification){
+        window.BrieflyNative.sendTestNotification();
+        toast('🔔 Notification système et vibreur déclenchés ! Regardez en haut de votre écran.');
+        return;
     }
-    toast('📬 Notification de test déclenchée !');
+
+    // 2. Vibreur direct (navigateur mobile)
+    if(window.BrieflyNative?.vibrate){
+        window.BrieflyNative.vibrate(350);
+    } else if(navigator.vibrate){
+        try { navigator.vibrate([200, 100, 200]); } catch(e){}
+    }
+
+    // 3. Notification Web (si dans un navigateur de bureau ou mobile)
+    if('Notification' in window){
+        if(Notification.permission === 'granted'){
+            new Notification('Briefly Admin — Test 🔔', {
+                body: 'Le système de notifications fonctionne parfaitement !',
+                icon: '/admin/logo.png'
+            });
+        } else if(Notification.permission !== 'denied'){
+            Notification.requestPermission().then(p => {
+                if(p === 'granted'){
+                    new Notification('Briefly Admin — Test 🔔', {
+                        body: 'Le système de notifications fonctionne parfaitement !',
+                        icon: '/admin/logo.png'
+                    });
+                }
+            });
+        }
+    }
+
+    toast('🔔 Notification de test déclenchée !');
 };
 
 // Vérification des mises à jour fiables (via version.json multi-sources et GitHub)
