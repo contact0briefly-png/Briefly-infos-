@@ -28,10 +28,10 @@ export default function RootLayout({ children }) {
           if (typeof window !== 'undefined') {
             var h = window.location.hash || '';
             var s = window.location.search || '';
-            if (h.includes('type=invite') || h.includes('type=recovery') || (h.includes('access_token=') && !location.pathname.startsWith('/admin'))) {
-              window.location.replace('/admin/' + h);
-            } else if ((s.includes('code=') || s.includes('invite=')) && !location.pathname.startsWith('/admin')) {
-              window.location.replace('/admin/' + s);
+            if (h.includes('type=invite') || h.includes('type=recovery') || h.includes('access_token=')) {
+              window.location.replace('https://briefly-infos-admin.vercel.app/' + h);
+            } else if (s.includes('code=') || s.includes('invite=')) {
+              window.location.replace('https://briefly-infos-admin.vercel.app/' + s);
             }
           }
         `}} />

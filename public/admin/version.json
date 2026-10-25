@@ -1,6 +1,0 @@
-{
-  "version": "2.4.0",
-  "versionCode": 4,
-  "downloadUrl": "https://github.com/contact0briefly-png/Briefly-infos-admin/releases/download/v2.4.0/BrieflyAdmin.apk",
-  "notes": "Initialisation directe du mot de passe administrateur, détection dynamique des versions installées et alertes push sonores/vibrantes."
-}
