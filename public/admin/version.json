@@ -1,7 +1,7 @@
 {
-  "version": "2.7.0",
-  "versionCode": 7,
+  "version": "2.8.0",
+  "versionCode": 8,
   "downloadUrl": "https://briefly-infos-admin.vercel.app/BrieflyAdmin.apk",
-  "githubDownloadUrl": "https://github.com/contact0briefly-png/Briefly-infos-/releases/download/v2.7.0/BrieflyAdmin.apk",
-  "notes": "Mode avion / hors ligne fiabilisé, gestion des brouillons et contrôle des notifications de republication."
+  "githubDownloadUrl": "https://github.com/contact0briefly-png/Briefly-infos-/releases/download/v2.8.0/BrieflyAdmin.apk",
+  "notes": "Gestion des brouillons fiabilisée, contrôle des notifications lors de la republication d'articles et mode avion complet."
 }
