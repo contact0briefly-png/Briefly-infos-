@@ -8,9 +8,13 @@ export default async function sitemap() {
   const baseUrl = "https://briefly-lilac.vercel.app";
 
   try {
-    // 1. Récupération des articles depuis Supabase
+    // 1. Récupération des articles depuis Supabase (hors brouillons)
     const { data: rows, error } = await supabase
-      .from('news').select('id,created_at,updated_at').order('created_at', { ascending: false }).limit(1000);
+      .from('news')
+      .select('id,created_at,updated_at')
+      .neq('status', 'draft')
+      .order('created_at', { ascending: false })
+      .limit(1000);
     if (error) throw error;
 
     const articleEntries = (rows || []).map(r => ({
