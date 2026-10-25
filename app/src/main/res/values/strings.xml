@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Briefly Admin</string>
+    <string name="lock_title">Briefly Admin Verrouillé</string>
+    <string name="lock_subtitle">Veuillez déverrouiller pour accéder à l\'administration</string>
+    <string name="lock_button">Déverrouiller l\'application</string>
+    <string name="lock_failed">Échec du déverrouillage</string>
+    <string name="press_again_exit">Appuyez encore une fois pour quitter l\'application</string>
+    <string name="notification_channel_name">Alertes et messages Briefly</string>
+    <string name="notification_channel_desc">Notifications instantanées des messages de contact et alertes système</string>
+</resources>

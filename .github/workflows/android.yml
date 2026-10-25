@@ -1,0 +1,93 @@
+name: Android — Build APK Briefly Admin
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Compiler l'APK Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Récupérer le code source
+        uses: actions/checkout@v4
+
+      - name: Configurer Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Configurer l'environnement Android
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+
+      - name: Générer la clé de signature PKCS12
+        run: |
+          PASS="BrieflyAdmin2026!"
+          keytool -genkeypair -v \
+            -keystore release.keystore \
+            -storetype PKCS12 \
+            -storepass "$PASS" \
+            -keypass "$PASS" \
+            -alias "briefly-admin" \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Briefly Admin, OU=Mobile, O=Briefly Infos, L=Lome, ST=Maritime, C=TG"
+
+      - name: Rendre Gradle exécutable
+        run: chmod +x gradlew
+
+      - name: Compiler l'APK Release
+        env:
+          ANDROID_KEYSTORE_PATH: ../release.keystore
+          ANDROID_KEYSTORE_PASSWORD: "BrieflyAdmin2026!"
+          ANDROID_KEY_ALIAS: "briefly-admin"
+          ANDROID_KEY_PASSWORD: "BrieflyAdmin2026!"
+        run: |
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Préparer le fichier APK final
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "Erreur : APK non trouvé !"
+            exit 1
+          fi
+          echo "APK trouvé : $APK_PATH"
+          cp "$APK_PATH" BrieflyAdmin.apk
+
+      - name: Archiver l'APK en artifact GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: BrieflyAdmin-APK
+          path: BrieflyAdmin.apk
+          retention-days: 30
+
+      - name: Créer une Release GitHub téléchargeable
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: v1.0.0
+          name: Briefly Admin Android v1.0.0
+          draft: false
+          prerelease: false
+          files: BrieflyAdmin.apk
+          body: |
+            ### 📱 Application Android Briefly Admin v1.0.0
+
+            Application officielle d'administration de Briefly Infos prête à l'installation (`.apk`).
+
+            #### ✨ Fonctionnalités incluses :
+            - **Verrouillage de sécurité** : utilise le verrouillage système du téléphone (empreinte, visage ou code PIN).
+            - **Navigation intelligente** : le bouton Retour du téléphone ferme les tiroirs/modales et revient aux statistiques sans quitter l'application par erreur.
+            - **Notifications instantanées** : alertes push Firebase pour les nouveaux messages reçus depuis la page Contact.
+            - **Nouveau menu en haut à gauche** : tiroir latéral ergonomique affichant votre photo, votre nom et un accès direct à la modification de profil.
+            - **Volet de notifications** : consultation immédiate des messages et de l'état du système.

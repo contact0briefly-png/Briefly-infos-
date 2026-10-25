@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "634935431290",
+    "project_id": "bbriefly-7e3b8",
+    "storage_bucket": "bbriefly-7e3b8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:634935431290:android:06ee1421803c4a1533ebc3",
+        "android_client_info": {
+          "package_name": "tg.BrieflyInfos.admin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "634935431290-6lggthqk82nasu6j8o7lgam9qvbimetu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-1qNvDHWuK43bskyRNj7eebr2hP_QfXw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "634935431290-6lggthqk82nasu6j8o7lgam9qvbimetu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
