@@ -2,6 +2,9 @@ import { B24_BLUE } from "../lib/constants";
 import { getNewsList } from "../lib/news";
 import Home from "../views/Home";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // --- AJOUT DES MÉTADONNÉES POUR LE SEO ---
 export async function generateMetadata({ searchParams }) {
     const cat = searchParams.cat;

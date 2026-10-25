@@ -1,6 +1,9 @@
 import { getArticle, getNewsList } from "../../../lib/news";
 import ArticleView from "../../../views/ArticleView";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function generateMetadata({ params }) {
     const { slug } = params;
     try {

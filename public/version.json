@@ -1,7 +1,7 @@
 {
-  "version": "2.5.0",
-  "versionCode": 5,
+  "version": "2.7.0",
+  "versionCode": 7,
   "downloadUrl": "https://briefly-infos-admin.vercel.app/BrieflyAdmin.apk",
-  "githubDownloadUrl": "https://github.com/contact0briefly-png/Briefly-infos-/releases/download/v2.5.0/BrieflyAdmin.apk",
-  "notes": "Affichage/masquage du mot de passe, réinitialisation par e-mail, raccourci code d'invitation et fiabilisation des profils."
+  "githubDownloadUrl": "https://github.com/contact0briefly-png/Briefly-infos-/releases/download/v2.7.0/BrieflyAdmin.apk",
+  "notes": "Mode avion / hors ligne fiabilisé, gestion des brouillons et contrôle des notifications de republication."
 }

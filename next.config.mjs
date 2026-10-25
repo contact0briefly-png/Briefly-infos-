@@ -11,16 +11,18 @@ const nextConfig = {
   },
 
   async redirects() {
+    return [];
+  },
+
+  async rewrites() {
     return [
       {
-        source: '/admin/:path*',
-        destination: '/',
-        permanent: false,
+        source: '/admin',
+        destination: '/admin/index.html',
       },
       {
-        source: '/admin',
-        destination: '/',
-        permanent: false,
+        source: '/admin/',
+        destination: '/admin/index.html',
       },
     ];
   },
