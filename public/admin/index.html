@@ -566,6 +566,14 @@
                 </svg>
                 <span>Publicités</span>
             </button>
+            <div class="drawer-section-title">Système</div>
+            <button class="drawer-nav-item" data-tab="settings" id="drawer-btn-settings" onclick="go('settings');closeDrawer();">
+                <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                <span>Paramètres</span>
+            </button>
             <a href="https://briefly-lilac.vercel.app/" target="_blank" class="drawer-nav-item">
                 <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -580,7 +588,7 @@
                 </svg>
                 <span>Déconnexion</span>
             </button>
-            <div class="drawer-app-version">Briefly Admin • v2.1</div>
+            <div class="drawer-app-version">Briefly Admin • v2.2.0</div>
         </div>
     </aside>
 
@@ -627,7 +635,13 @@
                 <div id="admin-badge">—</div>
             </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;gap:6px">
+            <button onclick="go('settings')" class="h-icon-btn" aria-label="Paramètres" title="Paramètres">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
             <button id="btn-toggle-notif" onclick="toggleNotifPane()" class="h-icon-btn" aria-label="Notifications" title="Volet de notifications" style="position:relative">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -1200,6 +1214,13 @@
                 <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
             </svg>
             <span class="n-label">Pub</span>
+        </button>
+        <button class="nav-btn" id="btn-settings" onclick="go('settings')">
+            <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span class="n-label">Paramètres</span>
         </button>
         <button class="nav-btn" id="btn-profile" onclick="go('profile')">
             <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1801,6 +1822,7 @@ document.getElementById('btn-code').onclick=async()=>{
     const {data:info,error}=await sb.rpc('invitation_info',{p_token:code});
     const row=Array.isArray(info)?info[0]:info;
     if(error||!row||!row.role)return authMsg('Code invalide, expiré ou déjà utilisé');
+    if(row.used)return authMsg('Ce code d\'invitation a déjà été utilisé');
     inviteToken=code;authMsg('');
     document.getElementById('su-role-label').textContent='Votre rôle : '+(ROLE_LBL[row.role]||row.role);
     const rp=document.getElementById('su-reprise');
@@ -1808,8 +1830,30 @@ document.getElementById('btn-code').onclick=async()=>{
         const parts=row.name.trim().split(/\s+/);
         document.getElementById('su-first').value=parts.shift()||'';
         document.getElementById('su-last').value=parts.join(' ');
-        rp.textContent=`Vous reprenez le profil « ${row.name} » : vos articles et vos statistiques vous seront rattachés.`;rp.style.display='block';
+        rp.textContent=`Vous reprenez le profil « ${row.name} » : vos articles et vos statistiques vous seront automatiquement rattachés.`;rp.style.display='block';
     }else rp.style.display='none';
+
+    // Si l'utilisateur est déjà connecté, lui permettre de rattacher immédiatement
+    const {data:{session}}=await sb.auth.getSession();
+    if(session && session.user){
+        const existingBtn = document.getElementById('btn-claim-existing');
+        if(!existingBtn){
+            const b = document.createElement('button');
+            b.id = 'btn-claim-existing';
+            b.style.cssText = 'width:100%;background:var(--green);color:#fff;border:none;border-radius:14px;padding:15px;margin-bottom:14px;font:700 12px Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer';
+            b.textContent = `Lier immédiatement à mon compte (${session.user.email})`;
+            b.onclick = async()=>{
+                b.disabled = true; b.textContent = 'Liaison en cours…';
+                const {error:cErr} = await sb.rpc('claim_invitation', {p_token:code, p_name:row.name||''});
+                if(cErr){ authMsg(cErr.message); b.disabled=false; return; }
+                toast("Profil rattaché avec succès ! ✓");
+                await onSession(session);
+            };
+            const c2 = document.getElementById('code-step2');
+            c2.insertBefore(b, c2.firstChild);
+        }
+    }
+
     document.getElementById('code-step1').style.display='none';
     document.getElementById('code-step2').style.display='block';
 };
@@ -1828,15 +1872,35 @@ document.getElementById('btn-signup').onclick=async()=>{
     if(pass.length<8)return authMsg('Le mot de passe doit contenir au moins 8 caractères');
     const btn=document.getElementById('btn-signup');btn.disabled=true;btn.textContent='Création…';
     const name=`${first} ${last}`;
-    // Mémorisé AVANT l'inscription : onSession s'en sert dès la première connexion (aussi après confirmation e-mail)
     localStorage.setItem('briefly_invite',JSON.stringify({token:inviteToken,name,bio,photo:signupPhoto}));
     let {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{name},emailRedirectTo:location.origin+'/admin/'}});
     if(error&&/already|registered/i.test(error.message)){
         ({data,error}=await sb.auth.signInWithPassword({email,password:pass}));
     }
+    if(error){
+        btn.disabled=false;btn.textContent='Créer mon compte';
+        localStorage.removeItem('briefly_invite');
+        return authMsg(error.message);
+    }
+
+    // Réception directe de session (grâce à l'autoconfirmation)
+    if(data && data.session){
+        authMsg("Compte activé ! Rattachement de vos articles…", true);
+        try {
+            const {error:claimErr} = await sb.rpc('claim_invitation', {p_token:inviteToken, p_name:name});
+            if(claimErr){
+                console.warn('claim error:', claimErr);
+            }
+            localStorage.removeItem('briefly_invite');
+            toast("Bienvenue ! Vos accès et vos articles sont rattachés ✓");
+            await onSession(data.session);
+        }catch(e){
+            console.error(e);
+        }
+    } else {
+        authMsg("Compte créé. Connectez-vous pour accéder à votre espace d'administration.", true);
+    }
     btn.disabled=false;btn.textContent='Créer mon compte';
-    if(error){localStorage.removeItem('briefly_invite');return authMsg(error.message);}
-    if(!data.session){authMsg("Compte créé. Cliquez sur le lien de confirmation reçu par e-mail, puis connectez-vous : votre accès sera activé automatiquement.",true);}
 };
 
 async function onSession(session){
@@ -1846,11 +1910,12 @@ async function onSession(session){
     let prof=await getProf(u.id);
     if(!prof){
         const raw=localStorage.getItem('briefly_invite');
-        if(raw){
-            let p;try{p=JSON.parse(raw);}catch{p={token:raw};}
-            const {error}=await sb.rpc('claim_invitation',{p_token:p.token,p_name:p.name||(u.user_metadata&&u.user_metadata.name)||''});
+        const tokenToClaim = (raw ? (JSON.parse(raw).token) : null) || inviteToken || (new URLSearchParams(location.search).get('code')) || (new URLSearchParams(location.search).get('invite'));
+        if(tokenToClaim){
+            let p={};try{if(raw)p=JSON.parse(raw);}catch(e){}
+            const {error}=await sb.rpc('claim_invitation',{p_token:tokenToClaim,p_name:p.name||(u.user_metadata&&u.user_metadata.name)||''});
             localStorage.removeItem('briefly_invite');
-            if(error)toast(error.message,false);
+            if(error)console.warn(error);
             prof=await getProf(u.id);
             if(prof){
                 const upd={};
@@ -1860,7 +1925,12 @@ async function onSession(session){
             }
         }
     }
-    if(!prof){await sb.auth.signOut();authMsg("Ce compte n'a pas encore d'accès. Utilisez « J'ai un code d'invitation ».");return;}
+    if(!prof){
+        // Ne pas déconnecter immédiatement : permettre d'entrer le code pour rattacher
+        authTab('code');
+        authMsg(`Votre compte (${u.email}) est connecté mais n'est pas encore associé à un profil. Entrez votre code d'invitation pour lier vos articles.`);
+        return;
+    }
     me=MAP.admins.from(prof);me.email=u.email;
     document.getElementById('admin-badge').textContent=`${me.name} · ${ROLE_LBL[me.role]||me.role}`;
     document.getElementById('login-gate').style.display='none';
@@ -2289,7 +2359,7 @@ window.closeNotifPane=()=>{
 /* ════════════════════════════════════════════════════════════
    PARAMÈTRES, SÉCURITÉ & MISES À JOUR
 ════════════════════════════════════════════════════════════ */
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "2.2.0";
 window._pendingUpdate = null;
 
 // Synchronisation paramètres
@@ -2332,8 +2402,16 @@ function initSettingsTab(){
     if(postponed){
         try{
             const up = JSON.parse(postponed);
-            showUpdateModal(up.version, up.notes, up.url);
-        }catch(e){}
+            if(isNewerVersion(up.version, APP_VERSION)){
+                window._pendingUpdate = up;
+                showUpdateModal(up.version, up.notes, up.url);
+            } else {
+                localStorage.removeItem('briefly_postponed_update');
+                checkForAppUpdate(false);
+            }
+        }catch(e){
+            checkForAppUpdate(false);
+        }
     } else {
         checkForAppUpdate(false);
     }
@@ -2387,28 +2465,46 @@ window.testNotificationAlert = () => {
     toast('📬 Notification de test déclenchée !');
 };
 
-// Vérification des mises à jour (API GitHub Releases ou Supabase)
+// Vérification des mises à jour fiables (via version.json multi-sources et GitHub)
 window.checkForAppUpdate = async (manual) => {
     const statusEl = document.getElementById('app-update-status');
     if(manual && statusEl) statusEl.textContent = 'Vérification en cours…';
-    try {
-        const res = await fetch('https://api.github.com/repos/contact0briefly-png/Briefly-infos-/releases/latest', { cache: 'no-store' });
-        if(!res.ok) throw new Error();
-        const data = await res.json();
-        const latestTag = (data.tag_name || '').replace(/^v/, '').replace(/-android$/, '');
-        const asset = (data.assets || []).find(a => a.name.endsWith('.apk'));
-        const apkUrl = asset ? asset.browser_download_url : data.html_url;
+    
+    const endpoints = [
+        '/version.json',
+        '/admin/version.json',
+        'https://briefly-infos-admin.vercel.app/version.json',
+        'https://briefly-lilac.vercel.app/version.json'
+    ];
 
-        // Comparer versions
-        if(latestTag && latestTag !== APP_VERSION && isNewerVersion(latestTag, APP_VERSION)){
-            window._pendingUpdate = { version: latestTag, notes: data.body || '', url: apkUrl };
-            if(statusEl) statusEl.innerHTML = `<span style="color:var(--accent)">Nouvelle v${latestTag} disponible !</span>`;
-            showUpdateModal(latestTag, data.body, apkUrl);
-        } else {
-            if(statusEl) statusEl.innerHTML = '<span style="color:var(--green)">Application à jour (v' + APP_VERSION + ') ✓</span>';
-            if(manual) toast('Briefly Admin est déjà à jour (v' + APP_VERSION + ')');
+    let updateFound = false;
+    for(const ep of endpoints){
+        try {
+            const res = await fetch(ep + '?t=' + Date.now(), { cache: 'no-store' });
+            if(!res.ok) continue;
+            const data = await res.json();
+            const remoteVer = data.version;
+            const apkUrl = data.downloadUrl;
+            const notes = data.notes || '';
+
+            if(remoteVer && isNewerVersion(remoteVer, APP_VERSION)){
+                window._pendingUpdate = { version: remoteVer, notes, url: apkUrl };
+                if(statusEl) statusEl.innerHTML = `<span style="color:var(--accent)">Nouvelle v${remoteVer} disponible !</span>`;
+                showUpdateModal(remoteVer, notes, apkUrl);
+                updateFound = true;
+                break;
+            } else if(remoteVer) {
+                if(statusEl) statusEl.innerHTML = '<span style="color:var(--green)">Application à jour (v' + APP_VERSION + ') ✓</span>';
+                if(manual) toast('Briefly Admin est déjà à jour (v' + APP_VERSION + ')');
+                updateFound = true;
+                break;
+            }
+        } catch(e) {
+            console.warn('Update endpoint check failed:', ep, e);
         }
-    } catch(e) {
+    }
+
+    if(!updateFound){
         if(statusEl) statusEl.textContent = 'Version courante : v' + APP_VERSION;
         if(manual) toast('Impossible de vérifier les mises à jour pour le moment');
     }
