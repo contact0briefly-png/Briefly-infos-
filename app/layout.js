@@ -24,6 +24,17 @@ export default function RootLayout({ children }) {
     <html lang="fr">
       <head>
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <script dangerouslySetInnerHTML={{ __html: `
+          if (typeof window !== 'undefined') {
+            var h = window.location.hash || '';
+            var s = window.location.search || '';
+            if (h.includes('type=invite') || h.includes('type=recovery') || (h.includes('access_token=') && !location.pathname.startsWith('/admin'))) {
+              window.location.replace('/admin/' + h);
+            } else if ((s.includes('code=') || s.includes('invite=')) && !location.pathname.startsWith('/admin')) {
+              window.location.replace('/admin/' + s);
+            }
+          }
+        `}} />
       </head>
       <body className="bg-white text-black min-h-screen flex flex-col antialiased">
        

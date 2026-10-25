@@ -439,6 +439,38 @@
     </div>
 </div>
 
+<!-- MODALE INITIALISATION DU MOT DE PASSE (INVITATION / RÉCUPÉRATION) -->
+<div id="password-setup-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.7);backdrop-filter:blur(6px);z-index:99999;align-items:center;justify-content:center;padding:20px">
+    <div style="background:#fff;border-radius:24px;padding:32px 26px;max-width:440px;width:100%;box-shadow:0 25px 50px -12px rgba(15,23,42,.25);text-align:center;animation:pop .3s ease">
+        <div style="width:64px;height:64px;border-radius:20px;background:rgba(37,99,235,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#2563eb">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+        </div>
+        <h3 style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px">Définissez votre mot de passe</h3>
+        <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:20px">
+            Bienvenue dans l'équipe Briefly Infos ! Choisissez un mot de passe sécurisé pour vos connexions à l'application.
+        </p>
+
+        <div style="text-align:left;display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+            <div>
+                <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px">Nouveau mot de passe</label>
+                <input type="password" id="modal-new-password" class="field" placeholder="Au moins 6 caractères" style="width:100%">
+            </div>
+            <div>
+                <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px">Confirmer le mot de passe</label>
+                <input type="password" id="modal-confirm-password" class="field" placeholder="Retapez le mot de passe" style="width:100%">
+            </div>
+            <div id="modal-pwd-error" style="display:none;color:#ef4444;font-size:12px;background:#fef2f2;border:1px solid #fecaca;padding:8px 12px;border-radius:8px"></div>
+        </div>
+
+        <button id="btn-save-modal-pwd" onclick="submitPasswordSetupModal()" class="btn-primary" style="width:100%;padding:14px;font-size:14px;font-weight:600">
+            Enregistrer mon mot de passe et continuer
+        </button>
+    </div>
+</div>
+
 
 <!-- YouTube Modal -->
 <div id="yt-modal">
@@ -1755,8 +1787,8 @@ window.saveProfile=async()=>{
 };
 window.updateUserPassword=async()=>{
     const p=document.getElementById('profile-new-pass').value;
-    if(!p||p.length<8){
-        toast('Le mot de passe doit comporter au moins 8 caractères',false);
+    if(!p||p.length<6){
+        toast('Le mot de passe doit comporter au moins 6 caractères',false);
         return;
     }
     const {error}=await sb.auth.updateUser({password:p});
@@ -1765,6 +1797,85 @@ window.updateUserPassword=async()=>{
     }else{
         document.getElementById('profile-new-pass').value='';
         toast('Mot de passe mis à jour avec succès ✓');
+    }
+};
+
+window.showPasswordSetupModal = () => {
+    const modal = document.getElementById('password-setup-modal');
+    if(!modal) return;
+    const err = document.getElementById('modal-pwd-error');
+    if(err) err.style.display = 'none';
+    const p1 = document.getElementById('modal-new-password');
+    const p2 = document.getElementById('modal-confirm-password');
+    if(p1) p1.value = '';
+    if(p2) p2.value = '';
+    modal.style.display = 'flex';
+};
+
+window.closePasswordSetupModal = () => {
+    const modal = document.getElementById('password-setup-modal');
+    if(modal) modal.style.display = 'none';
+};
+
+window.submitPasswordSetupModal = async () => {
+    const p1 = document.getElementById('modal-new-password')?.value || '';
+    const p2 = document.getElementById('modal-confirm-password')?.value || '';
+    const errEl = document.getElementById('modal-pwd-error');
+    const btn = document.getElementById('btn-save-modal-pwd');
+
+    if(p1.length < 6){
+        if(errEl){
+            errEl.textContent = 'Le mot de passe doit comporter au moins 6 caractères.';
+            errEl.style.display = 'block';
+        }
+        return;
+    }
+    if(p1 !== p2){
+        if(errEl){
+            errEl.textContent = 'Les deux mots de passe ne correspondent pas.';
+            errEl.style.display = 'block';
+        }
+        return;
+    }
+
+    if(errEl) errEl.style.display = 'none';
+    if(btn){
+        btn.disabled = true;
+        btn.textContent = 'Enregistrement en cours…';
+    }
+
+    try {
+        const { data, error } = await sb.auth.updateUser({ password: p1 });
+        if(error){
+            if(errEl){
+                errEl.textContent = error.message || 'Erreur lors de la mise à jour.';
+                errEl.style.display = 'block';
+            }
+            if(btn){
+                btn.disabled = false;
+                btn.textContent = 'Enregistrer mon mot de passe et continuer';
+            }
+            return;
+        }
+
+        toast('✓ Mot de passe enregistré avec succès ! Bienvenue.');
+        window.closePasswordSetupModal();
+        window._isPasswordSetupMode = false;
+
+        if(window.history && window.history.replaceState){
+            window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+
+        go('articles');
+    } catch(e) {
+        if(errEl){
+            errEl.textContent = 'Erreur inattendue : ' + (e.message || e);
+            errEl.style.display = 'block';
+        }
+        if(btn){
+            btn.disabled = false;
+            btn.textContent = 'Enregistrer mon mot de passe et continuer';
+        }
     }
 };
 function loadProfileIntoForm(admin){
@@ -1963,7 +2074,17 @@ async function onSession(session){
     boot();
 }
 let authChain=Promise.resolve();
-sb.auth.onAuthStateChange((_evt,session)=>{setTimeout(()=>{authChain=authChain.then(()=>onSession(session)).catch(console.error);},0);});
+sb.auth.onAuthStateChange((evt,session)=>{
+    if(evt === 'PASSWORD_RECOVERY' || (location.hash && /type=(invite|recovery)/.test(location.hash))){
+        window._isPasswordSetupMode = true;
+    }
+    setTimeout(()=>{
+        authChain=authChain.then(()=>onSession(session)).catch(console.error);
+        if(window._isPasswordSetupMode){
+            setTimeout(() => window.showPasswordSetupModal(), 500);
+        }
+    },0);
+});
 document.getElementById('btn-login').onclick=async()=>{
     const e=document.getElementById('admin-email').value.trim();
     const p=document.getElementById('admin-password').value;
@@ -1977,10 +2098,10 @@ document.getElementById('btn-logout').onclick=()=>sb.auth.signOut();
     const c=new URLSearchParams(location.search).get('code')||new URLSearchParams(location.search).get('invite');
     if(c){authTab('code');document.getElementById('inv-code').value=c;setTimeout(()=>document.getElementById('btn-code').click(),400);}
     if(location.hash&&/type=(invite|recovery)/.test(location.hash)){
+        window._isPasswordSetupMode = true;
         setTimeout(()=>{
-            go('profile');
-            toast('Bienvenue ! Veuillez choisir votre mot de passe pour vos prochaines connexions.');
-        },800);
+            window.showPasswordSetupModal();
+        },400);
     }
 })();
 function showLogin(){
@@ -2389,14 +2510,34 @@ window.closeNotifPane=()=>{
 /* ════════════════════════════════════════════════════════════
    PARAMÈTRES, SÉCURITÉ & MISES À JOUR
 ════════════════════════════════════════════════════════════ */
-const APP_VERSION = "2.3.0";
+const APP_VERSION = "2.4.0";
 window._pendingUpdate = null;
+
+function getInstalledAppVersion() {
+    if (window.BrieflyNative?.getAppVersion) {
+        try {
+            const v = window.BrieflyNative.getAppVersion();
+            if (v && v !== 'unknown') return v;
+        } catch (e) {}
+    }
+    if (window.BrieflyNative?.getAppVersionName) {
+        try {
+            const v = window.BrieflyNative.getAppVersionName();
+            if (v && v !== 'unknown') return v;
+        } catch (e) {}
+    }
+    return APP_VERSION;
+}
 
 // Synchronisation paramètres
 function initSettingsTab(){
     const isNative = !!window.BrieflyNative;
     const runModeEl = document.getElementById('sys-run-mode');
     if(runModeEl) runModeEl.textContent = isNative ? 'Android Natif (APK)' : 'Navigateur Web';
+
+    const installedVer = getInstalledAppVersion();
+    const curVerEl = document.getElementById('app-current-version');
+    if(curVerEl) curVerEl.textContent = 'v' + installedVer + (isNative ? ' (Natif)' : ' (Web)');
 
     // 1. Verrouillage : DÉSACTIVÉ par défaut
     const lockSaved = isNative ? window.BrieflyNative.isLockEnabled() : (localStorage.getItem('briefly_lock_enabled') === 'true');
@@ -2432,7 +2573,7 @@ function initSettingsTab(){
     if(postponed){
         try{
             const up = JSON.parse(postponed);
-            if(isNewerVersion(up.version, APP_VERSION)){
+            if(isNewerVersion(up.version, installedVer)){
                 window._pendingUpdate = up;
                 showUpdateModal(up.version, up.notes, up.url);
             } else {
@@ -2530,6 +2671,8 @@ window.checkForAppUpdate = async (manual) => {
     const statusEl = document.getElementById('app-update-status');
     if(manual && statusEl) statusEl.textContent = 'Vérification en cours…';
     
+    const installedVer = getInstalledAppVersion();
+
     const endpoints = [
         '/version.json',
         '/admin/version.json',
@@ -2547,15 +2690,15 @@ window.checkForAppUpdate = async (manual) => {
             const apkUrl = data.downloadUrl;
             const notes = data.notes || '';
 
-            if(remoteVer && isNewerVersion(remoteVer, APP_VERSION)){
+            if(remoteVer && isNewerVersion(remoteVer, installedVer)){
                 window._pendingUpdate = { version: remoteVer, notes, url: apkUrl };
-                if(statusEl) statusEl.innerHTML = `<span style="color:var(--accent)">Nouvelle v${remoteVer} disponible !</span>`;
+                if(statusEl) statusEl.innerHTML = `<span style="color:var(--accent);font-weight:700">Nouvelle v${remoteVer} disponible !</span>`;
                 showUpdateModal(remoteVer, notes, apkUrl);
                 updateFound = true;
                 break;
             } else if(remoteVer) {
-                if(statusEl) statusEl.innerHTML = '<span style="color:var(--green)">Application à jour (v' + APP_VERSION + ') ✓</span>';
-                if(manual) toast('Briefly Admin est déjà à jour (v' + APP_VERSION + ')');
+                if(statusEl) statusEl.innerHTML = '<span style="color:var(--green)">Application à jour (v' + installedVer + ') ✓</span>';
+                if(manual) toast('Briefly Admin est déjà à jour (v' + installedVer + ')');
                 updateFound = true;
                 break;
             }
@@ -2565,7 +2708,7 @@ window.checkForAppUpdate = async (manual) => {
     }
 
     if(!updateFound){
-        if(statusEl) statusEl.textContent = 'Version courante : v' + APP_VERSION;
+        if(statusEl) statusEl.textContent = 'Version installée : v' + installedVer;
         if(manual) toast('Impossible de vérifier les mises à jour pour le moment');
     }
 };

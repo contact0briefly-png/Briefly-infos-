@@ -5,5 +5,7 @@
 .env*.local
 *-firebase-adminsdk-*.json
 serviceAccount*.json
+firebase-service-account*.json
+lib/firebase-service-account.json
 node_modules
 .next
