@@ -344,7 +344,62 @@
             #toast{bottom:24px}
             #preview-frame{height:calc(100vh - 170px)}
         }
+
+        /* ═══ BOUTON MENU EN HAUT À GAUCHE & TIROIR LATÉRAL (MOBILE & DESKTOP) ═══ */
+        .h-left{display:flex;align-items:center;gap:12px}
+        .h-icon-btn{background:none;border:none;cursor:pointer;padding:8px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text);transition:background .15s}
+        .h-icon-btn:hover{background:var(--bg3)}
+        .notif-badge{position:absolute;top:2px;right:2px;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:99px;min-width:16px;text-align:center;line-height:1;box-shadow:0 0 0 2px #fff}
+
+        /* Tiroir de menu latéral gauche */
+        #drawer-backdrop,#notif-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.4);backdrop-filter:blur(3px);z-index:990;opacity:0;pointer-events:none;transition:opacity .25s ease}
+        #drawer-backdrop.open,#notif-backdrop.open{opacity:1;pointer-events:auto}
+
+        #drawer-panel{position:fixed;top:0;left:0;bottom:0;width:300px;max-width:85vw;background:#fff;z-index:995;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:4px 0 24px rgba(15,23,42,.12)}
+        #drawer-panel.open{transform:translateX(0)}
+
+        .drawer-header{padding:24px 20px 18px;border-bottom:1px solid var(--border);background:var(--bg3)}
+        .drawer-user-card{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+        .drawer-avatar{width:52px;height:52px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;overflow:hidden;flex-shrink:0;border:2px solid #fff;box-shadow:0 2px 6px rgba(15,23,42,.08)}
+        .drawer-user-info{min-width:0;flex:1}
+        .drawer-user-name{font-size:16px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .drawer-user-role{font-size:12px;color:var(--muted);font-weight:500;margin-top:2px}
+        .drawer-edit-btn{width:100%;background:#fff;border:1px solid var(--border);border-radius:10px;padding:9px 12px;font:600 12px 'Inter',sans-serif;color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .15s}
+        .drawer-edit-btn:hover{background:var(--accent-dim)}
+
+        .drawer-nav{flex:1;overflow-y:auto;padding:14px 10px;display:flex;flex-direction:column;gap:3px}
+        .drawer-nav-item{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;border:none;background:none;color:var(--text);font:600 13px 'Inter',sans-serif;text-align:left;cursor:pointer;width:100%;text-decoration:none;transition:background .15s}
+        .drawer-nav-item:hover{background:var(--bg3)}
+        .drawer-nav-item.active{background:var(--accent-dim);color:var(--accent)}
+        .drawer-nav-item.active .n-icon path,.drawer-nav-item.active .n-icon rect,.drawer-nav-item.active .n-icon circle,.drawer-nav-item.active .n-icon polyline,.drawer-nav-item.active .n-icon line{stroke:var(--accent)}
+        .drawer-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px}
+
+        .drawer-footer{padding:14px 18px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+        .drawer-logout-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--red-dim);color:var(--red);border:1px solid rgba(220,38,38,.2);padding:10px;border-radius:10px;font:600 12px 'Inter',sans-serif;cursor:pointer}
+        .drawer-app-version{font-size:11px;color:var(--muted2);text-align:center}
+
+        /* Volet notifications droit */
+        #notif-panel{position:fixed;top:0;right:0;bottom:0;width:340px;max-width:88vw;background:#fff;z-index:995;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(15,23,42,.12)}
+        #notif-panel.open{transform:translateX(0)}
+        .notif-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .notif-title{font-size:16px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+        .notif-close-btn{background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted);padding:4px}
+        .notif-body{flex:1;overflow-y:auto;padding:14px}
+        .notif-card{background:var(--bg3);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer;border:1px solid transparent;transition:all .15s}
+        .notif-card:hover{background:#fff;border-color:var(--border);box-shadow:0 2px 6px rgba(15,23,42,.06)}
+        .notif-card.unread{border-left:3px solid var(--accent);background:#fff}
+        .notif-sender{font-size:12px;font-weight:700;color:var(--text);display:flex;justify-content:space-between;align-items:center}
+        .notif-time{font-size:10px;color:var(--muted);font-weight:500}
+        .notif-subject{font-size:12px;font-weight:600;color:var(--accent);margin:3px 0 4px}
+        .notif-msg{font-size:11px;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+        /* Masquage de la barre du bas sur mobile au profit du menu en haut à gauche */
+        @media(max-width:899px){
+            #bottom-nav{display:none!important}
+            #content-area{padding-bottom:24px!important}
+        }
     </style>
+
 </head>
 <body>
 <div id="offline-bar">HORS CONNEXION</div>
@@ -408,12 +463,143 @@
 
 <!-- APP SHELL -->
 <div id="shell" style="display:none">
-    <header id="app-header">
-        <div>
-            <div class="h-brand">Briefly<b>.</b></div>
-            <div id="admin-badge">—</div>
+    <!-- TIROIR LATÉRAL GAUCHE (MENU) -->
+    <div id="drawer-backdrop" onclick="closeDrawer()"></div>
+    <aside id="drawer-panel">
+        <div class="drawer-header">
+            <div class="drawer-user-card">
+                <div id="drawer-avatar" class="drawer-avatar">B</div>
+                <div class="drawer-user-info">
+                    <div id="drawer-name" class="drawer-user-name">—</div>
+                    <div id="drawer-role" class="drawer-user-role">—</div>
+                </div>
+            </div>
+            <button class="drawer-edit-btn" onclick="go('profile');closeDrawer();">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                <span>Modifier mon profil</span>
+            </button>
         </div>
-        <div style="display:flex;align-items:center;gap:10px">
+        <nav class="drawer-nav">
+            <button class="drawer-nav-item active" data-tab="dash" onclick="go('dash');closeDrawer();">
+                <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                <span>Statistiques</span>
+            </button>
+            <button class="drawer-nav-item" data-tab="write" onclick="go('write');closeDrawer();">
+                <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                </svg>
+                <span>Studio (Rédiger)</span>
+            </button>
+            <button class="drawer-nav-item" data-tab="drafts" onclick="go('drafts');closeDrawer();">
+                <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span>Articles planifiés</span>
+            </button>
+            <button class="drawer-nav-item" data-tab="news" onclick="go('news');closeDrawer();">
+                <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                <span>Tous les articles</span>
+            </button>
+            <button class="drawer-nav-item" data-tab="inbox" id="drawer-btn-inbox" onclick="go('inbox');closeDrawer();">
+                <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <span>Messages</span>
+                <span id="drawer-inbox-badge" class="drawer-badge" style="display:none">0</span>
+            </button>
+            <button class="drawer-nav-item" data-tab="staff" id="drawer-btn-staff" style="display:none" onclick="go('staff');closeDrawer();">
+                <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+                </svg>
+                <span>Équipe</span>
+            </button>
+            <button class="drawer-nav-item" data-tab="ads" id="drawer-btn-ads" style="display:none" onclick="go('ads');closeDrawer();">
+                <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+                    <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+                </svg>
+                <span>Publicités</span>
+            </button>
+            <a href="https://briefly-lilac.vercel.app/" target="_blank" class="drawer-nav-item">
+                <svg class="n-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+                <span>Voir le site</span>
+            </a>
+        </nav>
+        <div class="drawer-footer">
+            <button class="drawer-logout-btn" onclick="document.getElementById('btn-logout').click();closeDrawer();">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                <span>Déconnexion</span>
+            </button>
+            <div class="drawer-app-version">Briefly Admin • v2.1</div>
+        </div>
+    </aside>
+
+    <!-- VOLET DE NOTIFICATIONS DROIT -->
+    <div id="notif-backdrop" onclick="closeNotifPane()"></div>
+    <aside id="notif-panel">
+        <div class="notif-header">
+            <div class="notif-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span>Notifications</span>
+            </div>
+            <button class="notif-close-btn" onclick="closeNotifPane()" aria-label="Fermer">✕</button>
+        </div>
+        <div class="notif-body">
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Messages du formulaire Contact</div>
+            <div id="notif-list">
+                <div style="text-align:center;padding:30px 10px;color:var(--muted);font-size:12px">Aucun message pour le moment</div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 10px">Système & Mises à jour</div>
+            <div class="card" style="padding:12px;font-size:12px">
+                <div style="display:flex;align-items:center;gap:8px;font-weight:600;color:var(--green)">
+                    <span style="width:8px;height:8px;background:var(--green);border-radius:50%"></span>
+                    <span>Système en ligne</span>
+                </div>
+                <div style="color:var(--muted);font-size:11px;margin-top:4px">Briefly Admin v2.1 • Connecté à Supabase</div>
+            </div>
+        </div>
+    </aside>
+
+    <header id="app-header">
+        <div class="h-left">
+            <button id="btn-toggle-drawer" onclick="toggleDrawer()" class="h-icon-btn" aria-label="Menu" title="Menu principal">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <div>
+                <div class="h-brand">Briefly<b>.</b></div>
+                <div id="admin-badge">—</div>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+            <button id="btn-toggle-notif" onclick="toggleNotifPane()" class="h-icon-btn" aria-label="Notifications" title="Volet de notifications" style="position:relative">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span id="notif-badge" class="notif-badge" style="display:none">0</span>
+            </button>
             <button onclick="go('profile')" id="btn-profile-header" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px">
                 <div id="header-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:14px;color:var(--accent);overflow:hidden;font-style:italic;flex-shrink:0">B</div>
             </button>
@@ -1439,12 +1625,22 @@ function loadProfileIntoForm(admin){
 }
 function updateHeaderAvatar(){
     const ha=document.getElementById('header-avatar');
-    if(!ha)return;
-    if(me?.photoUrl){
-        ha.innerHTML=`<img src="${me.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-    }else{
-        ha.textContent=me?.name?me.name[0].toUpperCase():'B';
+    const da=document.getElementById('drawer-avatar');
+    const dn=document.getElementById('drawer-name');
+    const dr=document.getElementById('drawer-role');
+    const initial=me?.name?me.name[0].toUpperCase():'B';
+    const photoImg=me?.photoUrl?`<img src="${me.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:null;
+
+    if(ha){
+        if(photoImg)ha.innerHTML=photoImg;
+        else ha.textContent=initial;
     }
+    if(da){
+        if(photoImg)da.innerHTML=photoImg;
+        else da.textContent=initial;
+    }
+    if(dn)dn.textContent=me?.name||'Administrateur';
+    if(dr)dr.textContent=ROLE_LBL[me?.role]||me?.role||'';
 }
 
 /* ── Auth ── */
@@ -1743,7 +1939,7 @@ function renderStaff(){
 }
 function boot(){
     const sup=isSuper();
-    ['btn-inbox','btn-ads','btn-staff'].forEach(id=>{const b=document.getElementById(id);if(b)b.style.display=sup?'':'none';});
+    ['btn-inbox','btn-ads','btn-staff','drawer-btn-ads','drawer-btn-staff'].forEach(id=>{const b=document.getElementById(id);if(b)b.style.display=sup?'':'none';});
     document.getElementById('news-author').style.display=sup?'':'none';
     document.getElementById('dash-scope').textContent=sup?'Vue globale : tous les rédacteurs. Touchez un rédacteur pour voir ses statistiques et ses articles.':'Vos statistiques personnelles : uniquement vos propres articles.';
     document.getElementById('hist-title').innerHTML=(sup?'Tous les articles':'Mes articles')+'<span>.</span>';
@@ -1762,6 +1958,17 @@ function boot(){
             const unread=msgs.filter(m=>!m.replied).length;
             const label=document.querySelector('#btn-inbox .n-label');
             if(label)label.textContent=unread>0?`Messages (${unread})`:'Messages';
+            const notifBadge=document.getElementById('notif-badge');
+            if(notifBadge){
+                notifBadge.textContent=unread;
+                notifBadge.style.display=unread>0?'block':'none';
+            }
+            const drawerBadge=document.getElementById('drawer-inbox-badge');
+            if(drawerBadge){
+                drawerBadge.textContent=unread;
+                drawerBadge.style.display=unread>0?'inline-block':'none';
+            }
+            renderNotifPane(msgs);
         });
         bootAds();
     }
@@ -1910,10 +2117,92 @@ window.copyInvite=(what)=>{
     const t=what==='link'?`${SITE}/admin/?code=${window._lastInvite}`:window._lastInvite;
     navigator.clipboard.writeText(t).then(()=>toast(what==='link'?'Lien copié ✓':'Code copié ✓'));
 };
+
+/* ═══ GESTION DU TIROIR MENU ET DU VOLET DE NOTIFICATIONS ═══ */
+window.toggleDrawer=()=>{
+    const p=document.getElementById('drawer-panel');
+    if(!p)return;
+    if(p.classList.contains('open'))closeDrawer();else openDrawer();
+};
+window.openDrawer=()=>{
+    document.getElementById('drawer-panel')?.classList.add('open');
+    document.getElementById('drawer-backdrop')?.classList.add('open');
+    if(window.BrieflyNative?.vibrate)window.BrieflyNative.vibrate(30);
+};
+window.closeDrawer=()=>{
+    document.getElementById('drawer-panel')?.classList.remove('open');
+    document.getElementById('drawer-backdrop')?.classList.remove('open');
+};
+
+window.toggleNotifPane=()=>{
+    const p=document.getElementById('notif-panel');
+    if(!p)return;
+    if(p.classList.contains('open'))closeNotifPane();else openNotifPane();
+};
+window.openNotifPane=()=>{
+    document.getElementById('notif-panel')?.classList.add('open');
+    document.getElementById('notif-backdrop')?.classList.add('open');
+    if(window.BrieflyNative?.vibrate)window.BrieflyNative.vibrate(30);
+};
+window.closeNotifPane=()=>{
+    document.getElementById('notif-panel')?.classList.remove('open');
+    document.getElementById('notif-backdrop')?.classList.remove('open');
+};
+
+// Gestionnaire du bouton retour matériel Android (via WebView evaluateJavascript)
+window.__brieflyBackPress=()=>{
+    const notifP=document.getElementById('notif-panel');
+    if(notifP&&notifP.classList.contains('open')){closeNotifPane();return true;}
+    const drawerP=document.getElementById('drawer-panel');
+    if(drawerP&&drawerP.classList.contains('open')){closeDrawer();return true;}
+    const ytM=document.getElementById('yt-modal');
+    if(ytM&&ytM.classList.contains('open')){closeYTModal();return true;}
+    const authT=document.getElementById('tab-author');
+    if(authT&&authT.classList.contains('active')){go('dash');return true;}
+    const dashT=document.getElementById('tab-dash');
+    if(dashT&&!dashT.classList.contains('active')){go('dash');return true;}
+    return false;
+};
+
+// Réception événement push natif
+window.__onBrieflyPushReceived=(jsonStr)=>{
+    try{
+        const data=typeof jsonStr==='string'?JSON.parse(jsonStr):jsonStr;
+        toast('📬 '+ (data.title||'Nouveau message de contact'));
+        const nb=document.getElementById('notif-badge');
+        if(nb){
+            const cur=parseInt(nb.textContent||'0',10)+1;
+            nb.textContent=cur;nb.style.display='block';
+        }
+    }catch(e){console.error(e);}
+};
+
+function renderNotifPane(msgs){
+    const el=document.getElementById('notif-list');
+    if(!el)return;
+    if(!msgs||!msgs.length){
+        el.innerHTML='<div style="text-align:center;padding:30px 10px;color:var(--muted);font-size:12px">Aucun message pour le moment</div>';
+        return;
+    }
+    const recent=msgs.slice(0,8);
+    el.innerHTML=recent.map(m=>`
+        <div class="notif-card ${m.replied?'':'unread'}" onclick="go('inbox');closeNotifPane();">
+            <div class="notif-sender">
+                <span>${esc(m.name||'Anonyme')}</span>
+                <span class="notif-time">${m.timestamp?new Date(m.timestamp.seconds*1000).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''}</span>
+            </div>
+            <div class="notif-subject">${esc(m.subject||'Message sans objet')}</div>
+            <div class="notif-msg">${esc(m.message||'')}</div>
+        </div>
+    `).join('');
+}
+
 window.go=id=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-    document.getElementById('tab-'+id).classList.add('active');
+    document.querySelectorAll('.drawer-nav-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+    const target=document.getElementById('tab-'+id);
+    if(target)target.classList.add('active');
     const navBtn=document.getElementById('btn-'+(id==='author'?'dash':id));
     if(navBtn)navBtn.classList.add('active');
     document.getElementById('content-area').scrollTop=0;
