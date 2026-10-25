@@ -260,6 +260,9 @@ public class MainActivity extends AppCompatActivity {
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 progressBar.setVisibility(View.GONE);
                 swipeRefreshLayout.setRefreshing(false);
+                if (request.isForMainFrame() && !view.getUrl().startsWith("file:")) {
+                    view.loadUrl("file:///android_asset/admin/index.html");
+                }
             }
         });
 
