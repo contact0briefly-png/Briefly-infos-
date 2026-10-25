@@ -1052,7 +1052,15 @@
                         </div>
                     </div>
 
-                    <button class="btn-primary" onclick="saveProfile()">Enregistrer mon profil</button>
+                    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+                        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">Sécurité du compte &amp; Mot de passe</div>
+                        <div class="field-grid">
+                            <input type="password" id="profile-new-pass" class="field" placeholder="Nouveau mot de passe (8 car. min)">
+                            <button type="button" class="btn-secondary" onclick="updateUserPassword()" style="height:48px;border-radius:12px;font-weight:600">Mettre à jour</button>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" onclick="saveProfile()" style="margin-top:14px">Enregistrer mon profil</button>
                 </div>
             </div>
         </div>
@@ -1745,6 +1753,20 @@ window.saveProfile=async()=>{
         toast('Profil enregistré ✓');
     }catch(e){toast('Erreur lors de la sauvegarde',false);console.error(e);}
 };
+window.updateUserPassword=async()=>{
+    const p=document.getElementById('profile-new-pass').value;
+    if(!p||p.length<8){
+        toast('Le mot de passe doit comporter au moins 8 caractères',false);
+        return;
+    }
+    const {error}=await sb.auth.updateUser({password:p});
+    if(error){
+        toast(error.message,false);
+    }else{
+        document.getElementById('profile-new-pass').value='';
+        toast('Mot de passe mis à jour avec succès ✓');
+    }
+};
 function loadProfileIntoForm(admin){
     if(!admin)return;
     document.getElementById('profile-name').value=admin.name||'';
@@ -1951,8 +1973,16 @@ document.getElementById('btn-login').onclick=async()=>{
 document.getElementById('admin-password').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-login').click();});
 document.getElementById('btn-logout').onclick=()=>sb.auth.signOut();
 // Lien direct ?code=… : ouvre l'onglet d'invitation
-(()=>{const c=new URLSearchParams(location.search).get('code')||new URLSearchParams(location.search).get('invite');
-    if(c){authTab('code');document.getElementById('inv-code').value=c;setTimeout(()=>document.getElementById('btn-code').click(),400);}})();
+(()=>{
+    const c=new URLSearchParams(location.search).get('code')||new URLSearchParams(location.search).get('invite');
+    if(c){authTab('code');document.getElementById('inv-code').value=c;setTimeout(()=>document.getElementById('btn-code').click(),400);}
+    if(location.hash&&/type=(invite|recovery)/.test(location.hash)){
+        setTimeout(()=>{
+            go('profile');
+            toast('Bienvenue ! Veuillez choisir votre mot de passe pour vos prochaines connexions.');
+        },800);
+    }
+})();
 function showLogin(){
     subs.clear();Object.values(CH).forEach(c=>c&&c.destroy());
     document.getElementById('login-gate').style.display='flex';
