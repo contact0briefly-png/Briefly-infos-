@@ -3235,7 +3235,7 @@ window.checkForAppUpdate = async (manual) => {
             const notes = data.notes || '';
 
             if(remoteVer && isNewerVersion(remoteVer, installedVer)){
-                window._pendingUpdate = { version: remoteVer, notes, url: apkUrl };
+                window._pendingUpdate = { version: remoteVer, versionCode: data.versionCode || 0, notes, url: apkUrl };
                 if(statusEl) statusEl.innerHTML = `<span style="color:var(--accent);font-weight:700">Nouvelle v${remoteVer} disponible !</span>`;
                 showUpdateModal(remoteVer, notes, apkUrl);
                 updateFound = true;
@@ -3318,7 +3318,8 @@ window.executeAppUpdate = () => {
         if(wrap) wrap.style.display = 'block';
         if(bar) bar.style.width = '0%';
         if(txt) txt.textContent = 'Préparation du téléchargement…';
-        window.BrieflyNative.downloadAndInstallUpdate(up.url);
+        const targetCode = up.versionCode || 0;
+        window.BrieflyNative.downloadAndInstallUpdate(up.url, targetCode);
     } else {
         window.open(up.url, '_blank');
         document.getElementById('update-modal').style.display = 'none';
