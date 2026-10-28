@@ -68,7 +68,7 @@
         }
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
         html,body{width:100%;height:100%;overflow:hidden}
-        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased}
+        body{font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased}
         #shell{position:fixed;inset:0;display:flex;flex-direction:column}
         #app-header{height:var(--header-h);flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100}
         .h-brand{font-family:'Inter',sans-serif;font-size:22px;font-style:italic;color:var(--text);letter-spacing:-.02em}
@@ -1494,8 +1494,8 @@ const MAP = {
         from: r => ({ id: r.id, name: r.name, email: r.email, subject: r.subject, message: r.message, replied: r.replied, repliedAt: TS(r.replied_at), timestamp: TS(r.created_at) }),
         to: { replied: 'replied', repliedAt: 'replied_at', name: 'name', email: 'email', subject: 'subject', message: 'message' } },
     drafts: { table: 'drafts', json: true, from: r => ({ id: r.id, ...r.data }) },
-    admins: { table: 'profiles', from: r => ({ id: r.id, userId: r.user_id, name: r.name, role: r.role, photoUrl: r.photo_url || '', bio: r.bio || '', location: r.location || '', socials: r.socials || {} }),
-        to: { name: 'name', role: 'role', photoUrl: 'photo_url', bio: 'bio', location: 'location', socials: 'socials' } },
+    admins: { table: 'profiles', from: r => ({ id: r.id, userId: r.user_id, name: r.name, role: r.role, photoUrl: r.photo_url || '', bio: r.bio || '', location: r.location || '', socials: r.socials || {}, lastSeenAt: r.last_seen_at, lastSignInAt: r.last_sign_in_at }),
+        to: { name: 'name', role: 'role', photoUrl: 'photo_url', bio: 'bio', location: 'location', socials: 'socials', last_seen_at: 'last_seen_at', last_sign_in_at: 'last_sign_in_at' } },
     users: { none: true },
 };
 const colName = p => p.split('/').pop();
@@ -2357,13 +2357,16 @@ document.getElementById('btn-signup').onclick=async()=>{
 
 async function onSession(session){
     if(!session){
-        if(!navigator.onLine && localStorage.getItem('briefly_cached_me')){
-            console.log('Mode hors connexion : maintien de la session active');
-            document.getElementById('offline-bar').style.display='block';
+        const cachedMeRaw = localStorage.getItem('briefly_cached_me');
+        if(cachedMeRaw){
+            console.log('Maintien de la session active locale');
+            if(!navigator.onLine){
+                const ob = document.getElementById('offline-bar');
+                if(ob) ob.style.display = 'block';
+            }
             return;
         }
         me=null;
-        localStorage.removeItem('briefly_cached_me');
         document.documentElement.classList.remove('has-session');
         showLogin();
         return;
@@ -2410,7 +2413,19 @@ async function onSession(session){
     checkLocalDraft();
     initSettingsTab();
     boot();
+    pingPresence();
 }
+
+async function pingPresence(){
+    if(!me?.id || !navigator.onLine) return;
+    try {
+        const now = new Date().toISOString();
+        await sb.from('profiles').update({ last_seen_at: now, last_sign_in_at: now }).eq('id', me.id);
+    } catch(e) {}
+}
+window.addEventListener('focus', pingPresence);
+window.addEventListener('online', pingPresence);
+setInterval(pingPresence, 120000);
 let authChain=Promise.resolve();
 sb.auth.onAuthStateChange((evt,session)=>{
     if(evt === 'PASSWORD_RECOVERY' || (location.hash && /type=(invite|recovery)/.test(location.hash))){
@@ -2558,11 +2573,25 @@ function renderDash(){
     drawStats('dash',ALL_ARTS,isSuper()?null:me.id);
     const box=document.getElementById('dash-team');
     if(!isSuper()){box.style.display='none';return;}
-    const rows=PROFILES.map(p=>{const m=ALL_ARTS.filter(a=>a.authorId===p.id);return{id:p.id,name:p.name,photo:p.photoUrl,role:p.role,n:m.length,v:m.reduce((s,a)=>s+(a.views||0),0)};});
+    const rows=PROFILES.map(p=>{
+        const m=ALL_ARTS.filter(a=>a.authorId===p.id);
+        return {
+            id: p.id,
+            name: p.name,
+            photo: p.photoUrl,
+            role: p.role,
+            lastSeenAt: p.lastSeenAt,
+            n: m.length,
+            v: m.reduce((s,a)=>s+(a.views||0),0)
+        };
+    });
     const orphan=ALL_ARTS.filter(a=>!a.authorId);
-    if(orphan.length)rows.push({id:'none',name:'Non attribués',photo:'',role:'',n:orphan.length,v:orphan.reduce((s,a)=>s+(a.views||0),0)});
+    if(orphan.length)rows.push({id:'none',name:'Non attribués',photo:'',role:'',lastSeenAt:null,n:orphan.length,v:orphan.reduce((s,a)=>s+(a.views||0),0)});
     rows.sort((a,b)=>b.v-a.v);const max=Math.max(1,...rows.map(r=>r.v));
-    document.getElementById('team-table').innerHTML=`<tr><th>Rédacteur</th><th>Articles</th><th>Lectures</th><th>Moyenne</th></tr>`+rows.map(r=>`<tr class="click" onclick="openAuthor('${r.id}')"><td><div class="team-name"><div class="s-avatar" style="width:34px;height:34px;border-radius:50%;font-size:14px">${r.photo?`<img src="${esc(r.photo)}" style="border-radius:50%">`:esc((r.name||'?')[0].toUpperCase())}</div><div>${esc(r.name)}<div class="staff-role">${esc(ROLE_LBL[r.role]||'')}</div></div></div><div class="bar"><i style="width:${Math.round(r.v/max*100)}%"></i></div></td><td>${N(r.n)}</td><td><b>${N(r.v)}</b></td><td>${N(r.n?Math.round(r.v/r.n):0)}</td></tr>`).join('');
+    document.getElementById('team-table').innerHTML=`<tr><th>Rédacteur</th><th>Articles</th><th>Lectures</th><th>Moyenne</th></tr>`+rows.map(r=>{
+        const online = isMemberOnline(r.lastSeenAt);
+        return `<tr class="click" onclick="openAuthor('${r.id}')"><td><div class="team-name"><div class="s-avatar" style="position:relative;width:34px;height:34px;border-radius:50%;font-size:14px">${r.photo?`<img src="${esc(r.photo)}" style="border-radius:50%">`:esc((r.name||'?')[0].toUpperCase())}${online?`<span style="position:absolute;bottom:0;right:0;width:8px;height:8px;border-radius:50%;background:#10b981;border:1.5px solid var(--bg2)"></span>`:''}</div><div>${esc(r.name)}${online?' <span style="color:#10b981;font-size:10px;font-weight:700">● en ligne</span>':''}<div class="staff-role">${esc(ROLE_LBL[r.role]||'')}</div></div></div><div class="bar"><i style="width:${Math.round(r.v/max*100)}%"></i></div></td><td>${N(r.n)}</td><td><b>${N(r.v)}</b></td><td>${N(r.n?Math.round(r.v/r.n):0)}</td></tr>`;
+    }).join('');
     box.style.display='block';
 }
 window.openAuthor=id=>{
@@ -2736,17 +2765,77 @@ function onArts(raw, saveCache = true){
         badgeEl.textContent=total;
     }
 }
+function isMemberOnline(lastSeenIso) {
+    if (!lastSeenIso) return false;
+    const diffMs = Date.now() - new Date(lastSeenIso).getTime();
+    return diffMs < 5 * 60 * 1000;
+}
+
+function formatPresence(lastSeenIso) {
+    if (!lastSeenIso) {
+        return `<span style="font-size:10px;color:var(--muted);padding:2px 7px;border-radius:99px;background:var(--bg3);border:1px solid var(--border);display:inline-flex;align-items:center;gap:4px">⚪ Hors ligne</span>`;
+    }
+    const diffMs = Date.now() - new Date(lastSeenIso).getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffH = Math.floor(diffMs / 3600000);
+
+    if (diffMin < 5) {
+        return `<span style="background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;display:inline-flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 0 2px #d1fae5"></span> En ligne</span>`;
+    }
+    if (diffMin < 60) {
+        return `<span style="background:#fef3c7;color:#b45309;border:1px solid #fde68a;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;display:inline-flex;align-items:center;gap:4px">🟡 Vu il y a ${diffMin} min</span>`;
+    }
+    if (diffH < 24) {
+        return `<span style="background:var(--bg3);color:var(--muted);border:1px solid var(--border);font-size:10px;font-weight:500;padding:2px 8px;border-radius:99px;display:inline-flex;align-items:center;gap:4px">Vu il y a ${diffH}h</span>`;
+    }
+    const d = new Date(lastSeenIso);
+    const day = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return `<span style="background:var(--bg3);color:var(--muted);border:1px solid var(--border);font-size:10px;font-weight:500;padding:2px 8px;border-radius:99px;display:inline-flex;align-items:center;gap:4px">Vu le ${day} à ${time}</span>`;
+}
+
+function formatLastConnectionText(iso) {
+    if (!iso) return "Aucune connexion enregistrée";
+    const d = new Date(iso);
+    const day = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return `Dernière connexion : le ${day} à ${time}`;
+}
+
 function renderStaff(){
     if(!isSuper())return;
     const el=document.getElementById('staff-list');if(!el)return;
     el.innerHTML=PROFILES.map(st=>{
         const mine=ALL_ARTS.filter(a=>a.authorId===st.id);const v=mine.reduce((x,a)=>x+(a.views||0),0);
         const self=st.userId&&me.userId===st.userId;
-        const av=st.photoUrl?`<img src="${esc(st.photoUrl)}">`:`<span>${esc((st.name||'?')[0].toUpperCase())}</span>`;
-        return `<div class="staff-row clickable" onclick="openAuthor('${st.id}')"><div class="s-avatar">${av}</div>
-            <div><div class="staff-name">${esc(st.name)}${self?' <span style="color:var(--muted);font-size:11px">(vous)</span>':''}${st.userId?'':'<span class="legacy-tag">ancien compte</span>'}</div><div class="staff-role">${esc(ROLE_LBL[st.role]||st.role)}</div></div>
-            <div class="staff-stat"><b>${N(mine.length)}</b> articles<br><b>${N(v)}</b> lectures</div>
-            ${self?'':`<div class="staff-acts">${st.userId?'':`<button class="act-btn act-edit" onclick="event.stopPropagation();inviteProfile('${st.id}')">Inviter</button>`}<button class="act-btn act-gold" onclick="event.stopPropagation();chRole('${st.id}','${st.role}')">Rôle</button><button class="act-btn act-del" onclick="event.stopPropagation();delItem('admins','${st.id}')">✕</button></div>`}</div>`;
+        const av=st.photoUrl?`<img src="${esc(st.photoUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:`<span>${esc((st.name||'?')[0].toUpperCase())}</span>`;
+        const online = isMemberOnline(st.lastSeenAt);
+        const presenceTag = formatPresence(st.lastSeenAt || st.lastSignInAt);
+        const connText = formatLastConnectionText(st.lastSignInAt || st.lastSeenAt);
+
+        return `<div class="staff-row clickable" onclick="openAuthor('${st.id}')">
+            <div class="s-avatar" style="position:relative">
+                ${av}
+                ${online?`<span style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:#10b981;border:2px solid var(--bg2);box-shadow:0 0 0 2px rgba(16,185,129,0.3)"></span>`:''}
+            </div>
+            <div style="flex:1;min-width:0">
+                <div class="staff-name" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <span>${esc(st.name)}</span>
+                    ${self?'<span style="color:var(--muted);font-size:11px">(vous)</span>':''}
+                    ${st.userId?'':'<span class="legacy-tag">ancien compte</span>'}
+                    ${presenceTag}
+                </div>
+                <div class="staff-role" style="margin-top:2px">${esc(ROLE_LBL[st.role]||st.role)}</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:5px">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>${connText}</span>
+                </div>
+            </div>
+            <div class="staff-stat" style="text-align:right">
+                <b>${N(mine.length)}</b> articles<br><b>${N(v)}</b> lectures
+            </div>
+            ${self?'':`<div class="staff-acts">${st.userId?'':`<button class="act-btn act-edit" onclick="event.stopPropagation();inviteProfile('${st.id}')">Inviter</button>`}<button class="act-btn act-gold" onclick="event.stopPropagation();chRole('${st.id}','${st.role}')">Rôle</button><button class="act-btn act-del" onclick="event.stopPropagation();delItem('admins','${st.id}')">✕</button></div>`}
+        </div>`;
     }).join('');
 }
 function boot(){

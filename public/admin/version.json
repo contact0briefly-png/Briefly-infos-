@@ -1,7 +1,7 @@
 {
-  "version": "2.9.0",
-  "versionCode": 9,
+  "version": "3.0.0",
+  "versionCode": 10,
   "downloadUrl": "https://briefly-infos-admin.vercel.app/BrieflyAdmin.apk",
-  "githubDownloadUrl": "https://github.com/contact0briefly-png/Briefly-infos-/releases/download/v2.9.0/BrieflyAdmin.apk",
-  "notes": "Téléchargement propre sans ancien cache, vérification stricte du versionCode, alertes sonores et vibrations renforcées."
+  "githubDownloadUrl": "https://github.com/contact0briefly-png/Briefly-infos-/releases/download/v3.0.0/BrieflyAdmin.apk",
+  "notes": "Architecture 100% native locale : ouverture instantanée 0ms, mode avion garanti sans écran de connexion et suivi des connexions de l'équipe."
 }
